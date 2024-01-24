@@ -1,4 +1,5 @@
 #include "mainHeader.hpp"
+#include <fstream>
 #include <ios>
 
 configFile::configFile(void) {}
@@ -26,4 +27,8 @@ configFile::configFile(int ac, char **av)
     this->File.open(this->fileName.c_str(), std::ios_base::in);
     if (!this->File)
         throw BadFileException();
+}
+std::fstream &configFile::getFile()
+{
+    return (File);
 }

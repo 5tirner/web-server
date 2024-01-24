@@ -19,6 +19,7 @@ class   configFile
         configFile(const configFile &other);
         configFile&operator=(const configFile &other);
         ~configFile(void);
+        std::fstream &getFile();
         class   BadRunException : public std::exception
         {
             const char* what() const throw()
