@@ -3,6 +3,7 @@ SRCS	= main.cpp\
 		get.cpp\
 		post.cpp\
 		delete.cpp\
+		openFile.cpp\
 
 OBJS	= $(SRCS:.cpp=.o)
 
