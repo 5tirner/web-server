@@ -2,10 +2,17 @@
 #include <ios>
 
 configFile::configFile(void) {}
+
 configFile::~configFile(void) {}
+
 configFile::configFile(const configFile &other) {*this = other;}
+
 configFile &configFile::operator=(const configFile &other)
-{this->fileName = other.fileName; return (*this);}
+{
+    this->fileName = other.fileName;
+    return (*this);
+}
+
 configFile::configFile(int ac, char **av)
 {
     std::cout << "Config File Paramz" << std::endl;

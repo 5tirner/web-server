@@ -53,6 +53,7 @@ class   servers
         std::map<int , locations *> my_map;
     public:
         servers(void);
+        servers(configFile &cFile);
         servers(const servers &other);
         servers&operator=(const servers &other);
         ~servers(void);

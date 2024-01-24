@@ -4,6 +4,7 @@ SRCS	= main.cpp\
 		post.cpp\
 		delete.cpp\
 		openFile.cpp\
+		selectServers.cpp\
 
 OBJS	= $(SRCS:.cpp=.o)
 
