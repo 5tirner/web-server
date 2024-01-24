@@ -17,8 +17,10 @@ servers::servers(configFile &cFile)
 {
     std::string buffer;
     std::string needed;
+    std::string all;
     while (std::getline(cFile.getFile(), buffer))
     {
+        all += buffer + "\n";
         if (buffer[0] == '#' || buffer[0] == '\n')
             continue;
         bool checker = 0;
@@ -36,9 +38,8 @@ servers::servers(configFile &cFile)
             }
         }
         if (!checker)
-        {
-            std::cout << buffer << std::endl;
-            needed += buffer;
-        }
+            needed += buffer + '\n';
     }
+    std::cout << "-> All Things: " << std::endl
+    << all << "-> What We Need: " << std::endl << needed;
 }
