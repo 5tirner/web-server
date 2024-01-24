@@ -21,7 +21,7 @@ servers::servers(configFile &cFile)
     while (std::getline(cFile.getFile(), buffer))
     {
         all += buffer + "\n";
-        if (buffer[0] == '#' || buffer[0] == '\n')
+        if (buffer[0] == '#' || buffer[0] == '\0')
             continue;
         bool checker = 0;
         if (buffer[0] == ' ' || buffer[0] == '\t')

@@ -1,10 +1,14 @@
-# one listen keyword for each server
-     # put the root inside each location
-   # put all the indexes inside there locations
-#    don't write two lines in one
-# feel free to do comments
+     # one listen keyword for each server
+
+# put the root inside each location
+     # put all the indexes inside there locations
+
+
+    # don't write two lines in one
+     #   feel free to do comments
 server {
         listen 80 default_server;
+
         server_name _;
         location / {
                 try_files $uri $uri/ =404;
@@ -12,6 +16,7 @@ server {
         location /test
         {
             root /var/www/html;
+            
             index index.html index.htm index.nginx-debian.html;
         }
 }
