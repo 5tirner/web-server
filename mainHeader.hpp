@@ -4,6 +4,7 @@
 #include <exception>
 #include <fstream>
 # include <iostream>
+#include <utility>
 # include <vector>
 # include <map>
 # include <string>
@@ -36,22 +37,16 @@ class   configFile
         };
 };
 
-class   locations
+typedef struct info
 {
-    private:
-        std::string                 location;
-        std::vector<std::string>    indexes;
-    public:
-        locations(void);
-        locations(const locations &other);
-        locations&operator=(const locations &other);
-        ~locations(void);
-};
+    std::pair<std::string, int> port;
+    std::pair<std::string, std::string> serverName;
+}   informations;
 
 class   servers
 {
     private:
-        std::map<int , locations *> my_map;
+        std::vector<informations> server;
     public:
         servers(void);
         servers(configFile &cFile);

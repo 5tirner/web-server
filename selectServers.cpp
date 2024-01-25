@@ -10,7 +10,8 @@ servers::servers(const servers &other){*this = other;}
 
 servers&servers::operator=(const servers &other)
 {
-    this->my_map = other.my_map;
+    for (size_t i = 0 ; i < other.server.size(); i++)
+        this->server[i] = other.server[i];
     return (*this);
 }
 
@@ -44,4 +45,5 @@ servers::servers(configFile &cFile)
     }
     std::cout << "-> All Things: " << std::endl
     << all << "-> What We Need: " << std::endl << needed;
+    
 }
