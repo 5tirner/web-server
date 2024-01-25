@@ -17,9 +17,11 @@ All Things
 # indexs = index ....
 # root = root /path
      
-server                    {
+server{
+        server{
+                
+        }
         listen 80;
-            
         server_name _;
         location / {
                 try_files $uri $uri/ =404;
@@ -31,7 +33,7 @@ server                    {
             index index.html index.htm index.nginx-debian.html;
         }
 }
-server {
+server           {
         listen 80;
             
         server_name _;
@@ -62,7 +64,9 @@ server {
 }
 
 What We Need
-server {
+server{
+server{
+}
 listen 80;
 server_name _;
 location / {
@@ -101,7 +105,9 @@ index index.html index.htm index.nginx-debian.html;
 
 -------------------------------------------
 Server Number 0:
-server {
+server{
+server{
+}
 listen 80;
 server_name _;
 location / {
