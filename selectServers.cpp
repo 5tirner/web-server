@@ -43,4 +43,14 @@ servers::servers(configFile &cFile)
         if (!checker)
             needed += removeWhiteSpaces(buffer);
     }
+    std::cout << "All Things\n" << all << std::endl;
+    std::cout << "What We Need\n" << needed << std::endl;
+    std::cout << "-------------------------------------------" << std::endl;
+    if (checkSyntaxAndFill(needed))
+        throw BadConetent();
+    for (size_t i = 0; i < this->server.size(); i++)
+    {
+        std::cout << "Server Number " << i << ":\n"
+        << this->server[i] << std::endl;
+    }
 }

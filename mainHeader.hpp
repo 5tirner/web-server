@@ -45,15 +45,24 @@ typedef struct info
 class   servers
 {
     private:
-        std::vector<informations> server;
+        std::vector<std::string> server;
+        std::vector<informations> serversInfo;
     public:
         servers(void);
         servers(configFile &cFile);
         servers(const servers &other);
         servers&operator=(const servers &other);
         ~servers(void);
+        class   BadConetent : public std::exception
+        {
+            const char *what() const throw()
+            {
+                return ("Bad Config File Content");
+            }
+        };
+        int         checkSyntaxAndFill(std::string &s);
 };
 
-std::string removeWhiteSpaces(std::string &buffer);
+std::string removeWhiteSpaces(std::string &s);
 
 #endif
