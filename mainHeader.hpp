@@ -1,12 +1,11 @@
 #ifndef MAINHEADER_HPP
 # define MAINHEADER_HPP
 
+# include <iostream>
 #include <exception>
 #include <fstream>
-# include <iostream>
 #include <utility>
 # include <vector>
-# include <map>
 # include <string>
 
 class   configFile

@@ -45,5 +45,4 @@ servers::servers(configFile &cFile)
     }
     std::cout << "-> All Things: " << std::endl
     << all << "-> What We Need: " << std::endl << needed;
-    
 }
