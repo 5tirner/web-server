@@ -46,7 +46,7 @@ servers::servers(configFile &cFile)
     std::cout << "All Things\n" << all << std::endl;
     std::cout << "What We Need\n" << needed << std::endl;
     std::cout << "-------------------------------------------" << std::endl;
-    if (checkSyntaxAndFill(needed))
+    if (isolateServers(needed))
         throw BadConetent();
     for (size_t i = 0; i < this->server.size(); i++)
     {

@@ -2,11 +2,11 @@
 # define MAINHEADER_HPP
 
 # include <iostream>
-#include <exception>
-#include <fstream>
-#include <utility>
+# include <exception>
+# include <fstream>
 # include <vector>
 # include <string>
+# include <map>
 
 class   configFile
 {
@@ -46,7 +46,7 @@ class   servers
 {
     private:
         std::vector<std::string> server;
-        std::vector<informations> serversInfo;
+        std::map<int, informations> serversInfo;
     public:
         servers(void);
         servers(configFile &cFile);
@@ -60,7 +60,7 @@ class   servers
                 return ("Bad Config File Content");
             }
         };
-        int         checkSyntaxAndFill(std::string &s);
+        int         isolateServers(std::string &s);
 };
 
 std::string removeWhiteSpaces(std::string &s);

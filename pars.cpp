@@ -51,7 +51,7 @@ std::string removeWhiteSpaces(std::string &s)
     return (ret);
 }
 
-int servers::checkSyntaxAndFill(std::string &s)
+int servers::isolateServers(std::string &s)
 {
     size_t check = s.find("server {");
     if (check != 0)
