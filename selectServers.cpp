@@ -53,5 +53,5 @@ servers::servers(configFile &cFile)
         std::cout << "Server Number " << i << ":\n"
         << this->server[i] << std::endl;
     }
-    fillInfos();
+    //fillInfos();
 }

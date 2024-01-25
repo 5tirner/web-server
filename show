@@ -1,5 +1,4 @@
-Config File Paramz
--> default
+Config File Name: default
 All Things
      # one listen keyword for each server
 # don't put a server inside a server
@@ -18,7 +17,7 @@ All Things
 # indexs = index ....
 # root = root /path
      
-server {
+server                    {
         listen 80;
             
         server_name _;

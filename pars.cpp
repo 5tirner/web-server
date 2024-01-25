@@ -17,7 +17,7 @@ int isServer(std::string &s, size_t i)
         check.push_back(s[i]);
         j++;
     }
-    if (check == "server {")
+    if (check == "server {" || check == "server{")
         return (0);
     return (1);
 }
@@ -53,8 +53,8 @@ std::string removeWhiteSpaces(std::string &s)
 
 int servers::isolateServers(std::string &s)
 {
-    size_t check = s.find("server {");
-    if (check != 0)
+    size_t check = s.find("server {"), check2 = s.find("server{");
+    if (check != 0 && check2 != 0)
         return (1);
     std::string save;
     for (size_t i = 0; i < s.size(); i++)
