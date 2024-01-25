@@ -27,6 +27,7 @@ configFile::configFile(int ac, char **av)
     if (!this->File)
         throw BadFileException();
 }
+
 std::fstream &configFile::getFile()
 {
     return (File);
