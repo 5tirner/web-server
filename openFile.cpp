@@ -16,14 +16,13 @@ configFile &configFile::operator=(const configFile &other)
 
 configFile::configFile(int ac, char **av)
 {
-    std::cout << "Config File Paramz" << std::endl;
     if (ac == 1)
         this->fileName = "default";
     else if (ac == 2)
         this->fileName = av[1];
     else
         throw BadRunException();
-    std::cout << "-> " + this->fileName << std::endl; 
+    std::cout << "Config File Name: " + this->fileName << std::endl; 
     this->File.open(this->fileName.c_str(), std::ios_base::in);
     if (!this->File)
         throw BadFileException();
