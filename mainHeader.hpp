@@ -61,7 +61,7 @@ class   servers
             }
         };
         int isolateServers(std::string &s);
-        int fillInfos();        
+        int fillInfos(void);        
 };
 
 std::string removeWhiteSpaces(std::string &s);
