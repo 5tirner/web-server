@@ -60,4 +60,6 @@ class   servers
         ~servers(void);
 };
 
+std::string removeWhiteSpaces(std::string &buffer);
+
 #endif

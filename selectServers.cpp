@@ -1,4 +1,5 @@
 #include "mainHeader.hpp"
+#include <cstddef>
 #include <string>
 
 servers::servers(void) {}
@@ -20,13 +21,14 @@ servers::servers(configFile &cFile)
     std::string all;
     while (std::getline(cFile.getFile(), buffer))
     {
-        all += buffer + "\n";
-        if (buffer[0] == '#' || buffer[0] == '\0')
+        buffer.push_back('\n');
+        all += buffer;
+        if (buffer[0] == '#' || buffer[0] == '\n')
             continue;
         bool checker = 0;
         if (buffer[0] == ' ' || buffer[0] == '\t')
         {
-            for(unsigned long i = 0; i < buffer.size(); i++)
+            for(size_t i = 0; i < buffer.size(); i++)
             {
                 if (buffer[i] == ' ' || buffer[i] == '\t')
                 {
@@ -38,7 +40,7 @@ servers::servers(configFile &cFile)
             }
         }
         if (!checker)
-            needed += buffer + '\n';
+            needed += removeWhiteSpaces(buffer);
     }
     std::cout << "-> All Things: " << std::endl
     << all << "-> What We Need: " << std::endl << needed;
