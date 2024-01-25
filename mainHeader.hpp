@@ -60,7 +60,8 @@ class   servers
                 return ("Bad Config File Content");
             }
         };
-        int         isolateServers(std::string &s);
+        int isolateServers(std::string &s);
+        int fillInfos();        
 };
 
 std::string removeWhiteSpaces(std::string &s);
