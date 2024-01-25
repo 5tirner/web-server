@@ -43,6 +43,4 @@ servers::servers(configFile &cFile)
         if (!checker)
             needed += removeWhiteSpaces(buffer);
     }
-    std::cout << "-> All Things: " << std::endl
-    << all << "-> What We Need: " << std::endl << needed;
 }

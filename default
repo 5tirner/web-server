@@ -1,11 +1,12 @@
      # one listen keyword for each server
-
+# don't put a server inside a server
 # put the root inside each location
      # put all the indexes inside there locations
 
 
-    # don't write two lines in one
+    # don'{t write two lines in one
      #   feel free to do comments
+     HI There
 server {
         listen 80 default_server;
             
