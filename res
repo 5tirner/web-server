@@ -17,7 +17,7 @@ All Things
 # indexs = index ....
 # root = root /path
      
-server     
+server   
 {
         listen 80;;;;;
         server_name _;;;;;;
@@ -47,8 +47,8 @@ server           {
 
 server     
 
-
-
+            
+     
 {        
         listen 80;
             
@@ -154,7 +154,6 @@ index index.html index.htm index.nginx-debian.html;
 
 --------------------------------------------
 Content Number 0:
-
 listen 80;;;;;
 server_name _;;;;;;
 location / {
@@ -165,10 +164,7 @@ location /test
 root /var/www/html;
 index index.html index.htm index.nginx-debian.html;
 }
-} 
-
 Content Number 1:
-
 listen 80;
 server_name _;
 location / {
@@ -179,10 +175,8 @@ location /test
 root /var/www/html;
 index index.html index.htm index.nginx-debian.html;
 }
-}
-
 Content Number 2:
- 
+
 listen 80;
 server_name _;
 location / {
@@ -193,5 +187,3 @@ location /test
 root /var/www/html;
 index index.html index.htm index.nginx-debian.html;
 }
-}
-

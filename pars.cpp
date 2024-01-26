@@ -1,22 +1,43 @@
 #include "mainHeader.hpp"
+#include <cstddef>
 
 /*This File For Any Code About String Manupilution*/
+
+void    getContent(std::string &server)
+{
+    std::string save;
+    bool        start = 0;
+    size_t      end = server.size() - 1;
+    while (end > 0 && server[end] != '}')
+        end--;
+    for (size_t i = 0; i < end - 1; i++)
+    {
+        if (start == 1)
+            save.push_back(server[i]);
+        else
+        {
+            if (server[i] == '{')
+            {
+                start = 1;
+                while (i < server.size() && (server[i] == ' ' || server[i] == '\t'
+                    || server[i] == '\n'))
+                    i++;
+                i++;
+            }
+        }
+    }
+    server = save;
+}
 
 int isAgoodServer(std::string &server)
 {
     int openCollad = 0;
     int closeCollad = 0;
-    int toGetContent = 0;
     for (size_t i = 0; i < server.size(); i++)
     {
         if (server[i] == '{' || server[i] == '}')
         {
-            if (server[i] == '{')
-            {
-                if (toGetContent == 0)
-                    toGetContent = i;
-                openCollad++;
-            }
+            if (server[i] == '{') openCollad++;
             else if (server[i] == '}') closeCollad++;
             i++;
             while (i < server.size() && server[i] != '\n')
@@ -45,7 +66,7 @@ int isAgoodServer(std::string &server)
     }
     if (closeCollad != openCollad)
         return (1);
-    server = server.substr(toGetContent, server.size() - 1);
+    getContent(server);
     return (0);
 }
 
