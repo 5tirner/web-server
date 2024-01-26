@@ -1,10 +1,5 @@
 #include "mainHeader.hpp"
-#include <cstddef>
-#include <cstring>
-#include <string.h>
-#include <string>
-#include <vector>
-#include <cstdlib>
+
 /*This File For Any Code About String Manupilution*/
 
 int isServer(std::string &s, size_t i)

@@ -1,6 +1,4 @@
 #include "mainHeader.hpp"
-#include <fstream>
-#include <ios>
 
 configFile::configFile(void) {}
 
