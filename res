@@ -17,13 +17,13 @@ All Things
 # indexs = index ....
 # root = root /path
      
-server
-{
-        listen 80;
-        server_name _;
+server     
+{{
+        listen 80;;;;;
+        server_name _;;;;;;
         location / {
                 try_files $uri $uri/ =404;
-        }
+        }}
         location /test
         {
             root /var/www/html;
@@ -46,7 +46,11 @@ server           {
         }
 }
 
-server{
+server     
+
+
+
+{        
         listen 80;
             
         server_name _;
@@ -62,13 +66,13 @@ server{
 }
 
 What We Need
-server
-{
-listen 80;
-server_name _;
+server 
+{{
+listen 80;;;;;
+server_name _;;;;;;
 location / {
 try_files $uri $uri/ =404;
-}
+}}
 location /test
 {
 root /var/www/html;
@@ -87,7 +91,8 @@ root /var/www/html;
 index index.html index.htm index.nginx-debian.html;
 }
 }
-server{
+server 
+{ 
 listen 80;
 server_name _;
 location / {
@@ -103,14 +108,15 @@ index index.html index.htm index.nginx-debian.html;
 -------------------------------------------
 After Check ^ is a server
 After Check ^ is a server
+After Check ^ is a server
 Server Number 0:
-server
-{
-listen 80;
-server_name _;
+server 
+{{
+listen 80;;;;;
+server_name _;;;;;;
 location / {
 try_files $uri $uri/ =404;
-}
+}}
 location /test
 {
 root /var/www/html;
@@ -133,7 +139,8 @@ index index.html index.htm index.nginx-debian.html;
 }
 
 Server Number 2:
-server{
+server 
+{ 
 listen 80;
 server_name _;
 location / {
@@ -145,4 +152,3 @@ root /var/www/html;
 index index.html index.htm index.nginx-debian.html;
 }
 }
-
