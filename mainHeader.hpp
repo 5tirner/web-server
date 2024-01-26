@@ -1,8 +1,8 @@
 #ifndef MAINHEADER_HPP
 # define MAINHEADER_HPP
 
-#include <cstddef>
 # include <iostream>
+#include <cstddef>
 # include <exception>
 # include <fstream>
 # include <vector>

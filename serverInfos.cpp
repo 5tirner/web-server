@@ -7,7 +7,6 @@ int servers::fillInfos(void)
         //informations info;
         if (isAgoodServer(this->server[i]))
             return (1);
-        //takeContent(server[i]);
         // this->serversInfo[i] = info;
     }
     return (0);
