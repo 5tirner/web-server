@@ -18,22 +18,21 @@ All Things
 # root = root /path
      
 server     
-{{
+{
         listen 80;;;;;
         server_name _;;;;;;
         location / {
                 try_files $uri $uri/ =404;
-        }}
+        }
         location /test
         {
             root /var/www/html;
             
             index index.html index.htm index.nginx-debian.html;
         }
-}
+}             
 server           {
         listen 80;
-            
         server_name _;
         location / {
                 try_files $uri $uri/ =404;
@@ -67,18 +66,18 @@ server
 
 What We Need
 server 
-{{
+{
 listen 80;;;;;
 server_name _;;;;;;
 location / {
 try_files $uri $uri/ =404;
-}}
+}
 location /test
 {
 root /var/www/html;
 index index.html index.htm index.nginx-debian.html;
 }
-}
+} 
 server {
 listen 80;
 server_name _;
@@ -111,18 +110,18 @@ After Check ^ is a server
 After Check ^ is a server
 Server Number 0:
 server 
-{{
+{
 listen 80;;;;;
 server_name _;;;;;;
 location / {
 try_files $uri $uri/ =404;
-}}
+}
 location /test
 {
 root /var/www/html;
 index index.html index.htm index.nginx-debian.html;
 }
-}
+} 
 
 Server Number 1:
 server {
@@ -152,3 +151,47 @@ root /var/www/html;
 index index.html index.htm index.nginx-debian.html;
 }
 }
+
+--------------------------------------------
+Content Number 0:
+
+listen 80;;;;;
+server_name _;;;;;;
+location / {
+try_files $uri $uri/ =404;
+}
+location /test
+{
+root /var/www/html;
+index index.html index.htm index.nginx-debian.html;
+}
+} 
+
+Content Number 1:
+
+listen 80;
+server_name _;
+location / {
+try_files $uri $uri/ =404;
+}
+location /test
+{
+root /var/www/html;
+index index.html index.htm index.nginx-debian.html;
+}
+}
+
+Content Number 2:
+ 
+listen 80;
+server_name _;
+location / {
+try_files $uri $uri/ =404;
+}
+location /test
+{
+root /var/www/html;
+index index.html index.htm index.nginx-debian.html;
+}
+}
+
