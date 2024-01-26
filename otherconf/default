@@ -4,7 +4,7 @@
 # don't write two lines in one
 # feel free to do comments
 
-server {
+server {{
 
 
 	listen 80 default_server;

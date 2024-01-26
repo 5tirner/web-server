@@ -61,8 +61,9 @@ class   servers
                 return ("Bad Config File Content");
             }
         };
-        int isolateServers(std::string &s);
-        int fillInfos(void);        
+        int             isolateServers(std::string &s);
+        int             fillInfos(void);
+        informations    serverInfos();
 };
 
 int         isServer(std::string &s, size_t i);
