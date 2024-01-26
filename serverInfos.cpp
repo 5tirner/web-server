@@ -34,8 +34,6 @@ int isAgoodServer(std::string &server)
                 i++;
             }
         }
-        // if (server[i] == '}') closeCollad++;
-        // else if (server[i] == '{') openCollad++;
     }
     if (closeCollad != openCollad)
         return (1);
@@ -48,9 +46,6 @@ int servers::fillInfos(void)
     {
         if (isAgoodServer(this->server[i]))
             return (1);
-        // informations info;
-        // this->server[i].find("listen");
-        // this->server[i].find("server_name");
     }
     return (0);
 }
