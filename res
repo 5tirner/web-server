@@ -6,9 +6,9 @@ All Things
      # put all the indexes inside there locations
 
 
-    # don'{t write two lines in one
+    # don't write two lines in one
      #   feel free to do comments
-
+# lowercase syntax please
 #syntax :
 # server = server { }
 # porst = listen number
@@ -17,10 +17,8 @@ All Things
 # indexs = index ....
 # root = root /path
      
-server{
-        server{
-                
-        }
+server
+{
         listen 80;
         server_name _;
         location / {
@@ -48,7 +46,7 @@ server           {
         }
 }
 
-server {
+server{
         listen 80;
             
         server_name _;
@@ -64,9 +62,8 @@ server {
 }
 
 What We Need
-server{
-server{
-}
+server
+{
 listen 80;
 server_name _;
 location / {
@@ -90,7 +87,7 @@ root /var/www/html;
 index index.html index.htm index.nginx-debian.html;
 }
 }
-server {
+server{
 listen 80;
 server_name _;
 location / {
@@ -104,10 +101,11 @@ index index.html index.htm index.nginx-debian.html;
 }
 
 -------------------------------------------
+After Check ^ is a server
+After Check ^ is a server
 Server Number 0:
-server{
-server{
-}
+server
+{
 listen 80;
 server_name _;
 location / {
@@ -135,7 +133,7 @@ index index.html index.htm index.nginx-debian.html;
 }
 
 Server Number 2:
-server {
+server{
 listen 80;
 server_name _;
 location / {

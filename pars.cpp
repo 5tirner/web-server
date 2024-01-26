@@ -1,9 +1,10 @@
 #include "mainHeader.hpp"
+#include <cstddef>
 #include <cstring>
 #include <string.h>
 #include <string>
 #include <vector>
-
+#include <cstdlib>
 /*This File For Any Code About String Manupilution*/
 
 int isServer(std::string &s, size_t i)
@@ -12,13 +13,30 @@ int isServer(std::string &s, size_t i)
     int j = 0;
     for (; i < s.size(); i++)
     {
-        if (j == 8)
+        if (j == 7)
             break;
         check.push_back(s[i]);
         j++;
     }
-    if (check == "server {" || check == "server{")
-        return (0);
+    if (check == "server{") return (0);
+    else if (check == "server " || check == "server\t" || check == "server\n")
+    {
+        for (; i < s.size(); i++)
+        {
+            check.push_back(s[i]);
+            if (s[i] == '{')
+                break;
+            if (s[i] != ' ' && s[i] != '\t' && s[i] != '\n')
+                return (2);
+        }
+        if (check == "server{" || check == "server {" || check == "server\t{"
+            || check == "server\n{" || check == "server \n{" || check == "server\t\n{"
+            || check == "server\t \n{" || check == "server \t\n")
+        {
+            std::cout << "After Check ^ is a server" << std::endl;
+            return (0);
+        }
+    }
     return (1);
 }
 
@@ -53,17 +71,20 @@ std::string removeWhiteSpaces(std::string &s)
 
 int servers::isolateServers(std::string &s)
 {
-    size_t check = s.find("server {"), check2 = s.find("server{");
-    if (check != 0 && check2 != 0)
+    size_t check = s.find("server");
+    if (check != 0)
         return (1);
     std::string save;
     for (size_t i = 0; i < s.size(); i++)
     {
-        if (!isServer(s, i) && i != 0)
+        int checker = isServer(s, i);
+        if (!checker && i != 0)
         {
             this->server.push_back(save);
             save.clear();
         }
+        else if (checker == 2)
+            return (1);
         save.push_back(s[i]);
     }
     if (save.size())

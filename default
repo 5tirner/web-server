@@ -4,9 +4,9 @@
      # put all the indexes inside there locations
 
 
-    # don'{t write two lines in one
+    # don't write two lines in one
      #   feel free to do comments
-
+# lowercase syntax please
 #syntax :
 # server = server { }
 # porst = listen number
@@ -15,7 +15,8 @@
 # indexs = index ....
 # root = root /path
      
-server{
+server
+{
         listen 80;
         server_name _;
         location / {
@@ -43,7 +44,7 @@ server           {
         }
 }
 
-server {
+server{
         listen 80;
             
         server_name _;
