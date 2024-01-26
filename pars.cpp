@@ -6,11 +6,17 @@ int isAgoodServer(std::string &server)
 {
     int openCollad = 0;
     int closeCollad = 0;
+    int toGetContent = 0;
     for (size_t i = 0; i < server.size(); i++)
     {
         if (server[i] == '{' || server[i] == '}')
         {
-            if (server[i] == '{') openCollad++;
+            if (server[i] == '{')
+            {
+                if (toGetContent == 0)
+                    toGetContent = i;
+                openCollad++;
+            }
             else if (server[i] == '}') closeCollad++;
             i++;
             while (i < server.size() && server[i] != '\n')
@@ -39,6 +45,7 @@ int isAgoodServer(std::string &server)
     }
     if (closeCollad != openCollad)
         return (1);
+    server = server.substr(toGetContent, server.size() - 1);
     return (0);
 }
 
