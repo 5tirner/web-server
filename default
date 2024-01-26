@@ -30,6 +30,9 @@ server
         }
 }
 server           {
+        server{
+                
+        }
         listen 80;
             
         server_name _;

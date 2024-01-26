@@ -8,6 +8,8 @@ int isAgoodServer(std::string &server)
     {
         if (server[i] == '{' || server[i] == '}')
         {
+            if (server[i] == '{') openCollad++;
+            else if (server[i] == '}') closeCollad++;
             i++;
             while (i < server.size() && server[i] != '\n')
             {
@@ -32,8 +34,8 @@ int isAgoodServer(std::string &server)
                 i++;
             }
         }
-        if (server[i] == '}') closeCollad++;
-        else if (server[i] == '{') openCollad++;
+        // if (server[i] == '}') closeCollad++;
+        // else if (server[i] == '{') openCollad++;
     }
     if (closeCollad != openCollad)
         return (1);
