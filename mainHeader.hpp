@@ -69,6 +69,6 @@ class   servers
 int         isServer(std::string &s, size_t i);
 std::string removeWhiteSpaces(std::string &s);
 int         isAgoodServer(std::string &server);
-void        getContent(std::string &server);
+int         getContent(std::string &server);
 
 #endif

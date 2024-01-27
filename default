@@ -14,9 +14,10 @@
 # locations = location /location{}
 # indexs = index ....
 # root = root /path
-     
-server   
+
+server  
 {
+        0
         listen 80;;;;;
         server_name _;;;;;;
         location / {
@@ -28,7 +29,9 @@ server
             
             index index.html index.htm index.nginx-debian.html;
         }
-}             
+}
+
+
 server           {
         listen 80;
         server_name _;
@@ -45,9 +48,8 @@ server           {
 
 server     
 
-            
      
-{        
+{
         listen 80;
             
         server_name _;
@@ -61,3 +63,4 @@ server
             index index.html index.htm index.nginx-debian.html;
         }
 }
+

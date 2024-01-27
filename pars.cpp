@@ -3,13 +3,17 @@
 
 /*This File For Any Code About String Manupilution*/
 
-void    getContent(std::string &server)
+int    getContent(std::string &server)
 {
     std::string save;
     bool        start = 0;
     size_t      end = server.size() - 1;
     while (end > 0 && server[end] != '}')
+    {
+        if (server[end] != ' ' && server[end] != '\t' && server[end] != '\n')
+            return (1);
         end--;
+    }
     for (size_t i = 0; i < end - 1; i++)
     {
         if (start == 1)
@@ -27,6 +31,7 @@ void    getContent(std::string &server)
         }
     }
     server = save;
+    return (0);
 }
 
 int isAgoodServer(std::string &server)
@@ -66,7 +71,8 @@ int isAgoodServer(std::string &server)
     }
     if (closeCollad != openCollad)
         return (1);
-    getContent(server);
+    if (getContent(server))
+        return (1);
     return (0);
 }
 
