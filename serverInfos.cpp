@@ -6,10 +6,13 @@ informations servers::serverInfos(void)
     size_t       i = 0;
     while (i < this->server.size())
     {
-        for (size_t j = 0; j < this->server.size(); j++)
+        std::stringstream input(this->server[i]);
+        std::string buffer;
+        while (std::getline(input, buffer))
         {
-            
+            std::cout << "[ " + buffer + " ]" << std::endl;
         }
+        i++;
     }
     return (tmp);
 }
@@ -19,6 +22,7 @@ int servers::fillInfos(void)
     {
         if (isAgoodServer(this->server[i]))
             return (1);
+        serverInfos();
         //this->serversInfo[i] = info;
     }
     return (0);

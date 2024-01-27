@@ -17,55 +17,51 @@ All Things
 # indexs = index ....
 # root = root /path
 
-server  
+server 
 {
-        0
-        listen 80;;;;;
-        server_name _;;;;;;
-        location / {
-                try_files $uri $uri/ =404;
-        }
-        location /test
-        {
-            root /var/www/html;
-            
-            index index.html index.htm index.nginx-debian.html;
-        }
+	0
+	listen 80;;;;;
+	server_name _;;;;;;
+	location / {
+		try_files $uri $uri/ =404;
+	}
+	location /test
+	{
+	    root /var/www/html;
+	    
+	    index index.html index.htm index.nginx-debian.html;
+	}
 }
-
 
 server           {
-        listen 80;
-        server_name _;
-        location / {
-                try_files $uri $uri/ =404;
-        }
-        location /test
-        {
-            root /var/www/html;
-            
-            index index.html index.htm index.nginx-debian.html;
-        }
+	listen 80;
+	server_name _;
+	location / {
+		try_files $uri $uri/ =404;
+	}
+	location /test
+	{
+	    root /var/www/html;
+	    
+	    index index.html index.htm index.nginx-debian.html;
+	}
 }
 
-server     
-
-     
+server   	
 {
-        listen 80;
-            
-        server_name _;
-        location / {
-                try_files $uri $uri/ =404;
-        }
-        location /test
-        {
-            root /var/www/html;
-            
-            index index.html index.htm index.nginx-debian.html;
-        }
+	listen 80;
+	    
+	server_name _;
+	location / {
+		try_files $uri $uri/ =404;
+	}
+	location /test
+	{
+	    root /var/www/html;
+	    
+	    index index.html index.htm index.nginx-debian.html;
+	}
 }
-
 
 What We Need
 server 
@@ -161,7 +157,7 @@ index index.html index.htm index.nginx-debian.html;
 Content Number 0:
 0
 listen 80;;;;;
-server_name _;;;;;;
+server_name _;;;;;; 
 location / {
 try_files $uri $uri/ =404;
 }

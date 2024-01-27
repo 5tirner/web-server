@@ -2,12 +2,13 @@
 # define MAINHEADER_HPP
 
 # include <iostream>
-#include <cstddef>
+# include <cstddef>
 # include <exception>
 # include <fstream>
 # include <vector>
 # include <string>
 # include <map>
+# include <sstream>
 
 class   configFile
 {
