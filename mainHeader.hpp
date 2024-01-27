@@ -40,14 +40,16 @@ class   configFile
 
 typedef struct info
 {
-    std::pair<std::string, int> port;
+    std::pair<std::string, int>         port;
     std::pair<std::string, std::string> serverName;
+    std::vector<std::string>            locations;
+    std::vector<std::string>            others;
 }   informations;
 
 class   servers
 {
     private:
-        std::vector<std::string> server;
+        std::vector<std::string>    server;
         std::map<int, informations> serversInfo;
     public:
         servers(void);
