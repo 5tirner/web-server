@@ -66,7 +66,7 @@ class   servers
         };
         int             isolateServers(std::string &s);
         int             fillInfos(void);
-        informations    serverInfos();
+        informations    serverInfos(int i);
 };
 
 int         isServer(std::string &s, size_t i);

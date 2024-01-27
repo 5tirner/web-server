@@ -2,14 +2,14 @@
 #include <cstddef>
 #include <cstring>
 
-informations servers::serverInfos(void)
+informations servers::serverInfos(int i)
 {
     informations tmp;
-    size_t       i = 0;
+    // size_t       i = 0;
     int          check = 0;
     std::string  save;
-    while (i < this->server.size())
-    {
+    // while (i < this->server.size())
+    // {
         std::stringstream input(this->server[i]);
         std::string buffer;
         while (std::getline(input, buffer))
@@ -32,22 +32,23 @@ informations servers::serverInfos(void)
                     save.clear();
                 }
             }
-        }
-        i++;
+        // }
+        // i++;
     }
+    std::cout << "Info Of Server Number: " << i << std::endl;
     std::cout << "Not Locations" << std::endl;
-    i = 0;
-    while (i < tmp.others.size())
+    size_t j = 0;
+    while (j < tmp.others.size())
     {
-        std::cout << "-> " << tmp.others[i] << std::endl;
-        i++;
+        std::cout << "-> " << tmp.others[j] << std::endl;
+        j++;
     }
     std::cout << "Location" << std::endl;
-    i = 0;
-    while (i < tmp.locations.size())
+    j = 0;
+    while (j < tmp.locations.size())
     {
-        std::cout << "-> " << tmp.locations[i] << std::endl;
-        i++;
+        std::cout << "-> " << tmp.locations[j] << std::endl;
+        j++;
     }
     return (tmp);
 }
@@ -57,8 +58,7 @@ int servers::fillInfos(void)
     {
         if (isAgoodServer(this->server[i]))
             return (1);
-        serverInfos();
-        //this->serversInfo[i] = info;
+        this->serversInfo[i] = serverInfos(i);
     }
     return (0);
 }
