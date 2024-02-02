@@ -41,10 +41,12 @@ class   configFile
 
 typedef struct info
 {
-    std::pair<std::string, int>         port;
-    std::pair<std::string, std::string> serverName;
-    std::vector<std::string>            locations;
-    std::vector<std::string>            others;
+    std::pair<std::string, std::string>              limitClientBody;
+    std::pair<std::string, std::vector<std::string> >index;
+    std::pair<std::string, int>                      port;
+    std::pair<std::string, std::string>              serverName;
+    std::vector<std::string>                         locations;
+    std::vector<std::string>                         others;
 }   informations;
 
 class   servers
@@ -67,7 +69,7 @@ class   servers
         };
         int             isolateServers(std::string &s);
         int             fillInfos(void);
-        informations    serverInfos(int i);
+        void            serverInfos(int i);
 };
 
 int         isServer(std::string &s, size_t i);

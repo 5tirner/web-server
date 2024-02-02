@@ -1,9 +1,8 @@
 #include "../include/mainHeader.hpp"
 
-informations servers::serverInfos(int i)
+void servers::serverInfos(int i)
 {
     informations tmp;
-    // size_t       i = 0;
     int          check = 0;
     std::string  save;
     std::stringstream input(this->server[i]);
@@ -44,7 +43,7 @@ informations servers::serverInfos(int i)
         std::cout << "-> " << tmp.locations[j] << std::endl;
         j++;
     }
-    return (tmp);
+    //this->serversInfo[i] = tmp;
 }
 int servers::fillInfos(void)
 {
@@ -52,7 +51,8 @@ int servers::fillInfos(void)
     {
         if (isAgoodServer(this->server[i]))
             return (1);
-        this->serversInfo[i] = serverInfos(i);
+        this->serverInfos(i);
+        //this->serversInfo[i] = serverInfos(i);
     }
     return (0);
 }
