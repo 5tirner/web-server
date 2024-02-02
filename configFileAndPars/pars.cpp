@@ -1,5 +1,4 @@
-#include "mainHeader.hpp"
-#include <cstddef>
+#include "../include/mainHeader.hpp"
 
 /*This File For Any Code About String Manupilution*/
 

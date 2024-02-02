@@ -16,8 +16,15 @@
 # root = root /path
 
 server 
-{
-	LimitClientBodySize 1;#
+
+
+
+
+
+
+
+		{#test;
+	LimitClientBodySize 1;   #test
 	listen 80;;;;;
 	server_name _;;;;;;
 	location / {
@@ -31,6 +38,11 @@ server
 	    index index.html index.htm index.nginx-debian.html;
 	}
 }
+#hello
+
+
+
+
 server           {
 	listen 80;
 	server_name _;
@@ -45,8 +57,11 @@ server           {
 	    
 	    index index.html index.htm index.nginx-debian.html;
 	}
-}
 
+
+
+					}
+#bad
 server   	
 {
 	listen 80;
@@ -62,3 +77,4 @@ server
 	    index index.html index.htm index.nginx-debian.html;
 	}
 }
+#end

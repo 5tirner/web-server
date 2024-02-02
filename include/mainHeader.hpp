@@ -8,6 +8,7 @@
 # include <vector>
 # include <string>
 # include <map>
+# include <cstring>
 # include <sstream>
 
 class   configFile

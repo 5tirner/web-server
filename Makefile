@@ -1,11 +1,11 @@
 SRCS	= main.cpp\
-		pars.cpp\
-		get.cpp\
-		post.cpp\
-		delete.cpp\
-		openFile.cpp\
-		selectServers.cpp\
-		serverInfos.cpp\
+		./configFileAndPars/pars.cpp\
+		./configFileAndPars/openFile.cpp\
+		./configFileAndPars/selectServers.cpp\
+		./configFileAndPars/serverInfos.cpp\
+		./methods/get.cpp\
+		./methods/post.cpp\
+		./methods/delete.cpp\
 
 OBJS	= $(SRCS:.cpp=.o)
 

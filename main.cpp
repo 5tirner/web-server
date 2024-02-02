@@ -1,4 +1,4 @@
-#include "mainHeader.hpp"
+#include "./include/mainHeader.hpp"
 #include <exception>
 
 int main(int ac, char **av)

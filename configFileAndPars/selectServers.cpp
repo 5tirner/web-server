@@ -1,4 +1,4 @@
-#include "mainHeader.hpp"
+#include "../include/mainHeader.hpp"
 
 servers::servers(void) {}
 
@@ -23,7 +23,9 @@ servers::servers(configFile &cFile)
         buffer.push_back('\n');
         all += buffer;
         if (buffer[0] == '#' || buffer[0] == '\n')
+        {
             continue;
+        }
         bool checker = 0;
         if (buffer[0] == ' ' || buffer[0] == '\t')
         {
@@ -36,6 +38,8 @@ servers::servers(configFile &cFile)
                         checker = 1; break;
                     }
                 }
+                else
+                    break;
             }
         }
         if (!checker)
@@ -54,6 +58,7 @@ servers::servers(configFile &cFile)
     std::cout << "--------------------------------------------" << std::endl;
     if (fillInfos())
         throw BadConetent();
+    std::cout << "--------------------------------------------" << std::endl;
     for (size_t i = 0; i < this->server.size(); i++)
     {
         std::cout << "Content Number " << i << ":\n"

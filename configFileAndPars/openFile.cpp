@@ -1,4 +1,4 @@
-#include "mainHeader.hpp"
+#include "../include/mainHeader.hpp"
 
 configFile::configFile(void) {}
 

@@ -1,6 +1,4 @@
-#include "mainHeader.hpp"
-#include <cstddef>
-#include <cstring>
+#include "../include/mainHeader.hpp"
 
 informations servers::serverInfos(int i)
 {
