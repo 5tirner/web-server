@@ -31,6 +31,7 @@ informations servers::serverInfos(int i)
             }
         }
     }
+    std::cout << "Server Number " << i << " Informations" << std::endl;
     size_t j = 0;
     std::cout << "Not Location" << std::endl;
     while (j < tmp.others.size())

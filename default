@@ -17,7 +17,7 @@
 
 server 
 {
-	LimitClientBodySize 1;#check
+	LimitClientBodySize 1;#
 	listen 80;;;;;
 	server_name _;;;;;;
 	location / {

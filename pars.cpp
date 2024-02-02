@@ -153,6 +153,8 @@ std::string removeWhiteSpaces(std::string &s)
         {
             while (i < s.size() && s[i] != ' ' && s[i] != '\t')
             {
+                if (s[i] == '#')
+                    return (ret + "\n");
                 ret.push_back(s[i]);
                 i++;
             }
