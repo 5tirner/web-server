@@ -8,36 +8,31 @@ informations servers::serverInfos(int i)
     // size_t       i = 0;
     int          check = 0;
     std::string  save;
-    // while (i < this->server.size())
-    // {
-        std::stringstream input(this->server[i]);
-        std::string buffer;
-        while (std::getline(input, buffer))
+    std::stringstream input(this->server[i]);
+    std::string buffer;
+    while (std::getline(input, buffer))
+    {
+        if (!std::strncmp(buffer.c_str(), "location", 8))
         {
-            if (!std::strncmp(buffer.c_str(), "location", 8))
+            //std::cout << "Find Location Word: " + buffer << std::endl; 
+            check = 1;
+            save += buffer;
+        }
+        else if (check == 0)
+            tmp.others.push_back(buffer);
+        else if (check == 1)
+        {
+            save += buffer;
+            if (std::strchr(buffer.c_str(), '}'))
             {
-                //std::cout << "Find Location Word: " + buffer << std::endl; 
-                check = 1;
-                save += buffer;
+                check = 0;
+                tmp.locations.push_back(save);
+                save.clear();
             }
-            else if (check == 0)
-                tmp.others.push_back(buffer);
-            else if (check == 1)
-            {
-                save += buffer;
-                if (std::strchr(buffer.c_str(), '}'))
-                {
-                    check = 0;
-                    tmp.locations.push_back(save);
-                    save.clear();
-                }
-            }
-        // }
-        // i++;
+        }
     }
-    std::cout << "Info Of Server Number: " << i << std::endl;
-    std::cout << "Not Locations" << std::endl;
     size_t j = 0;
+    std::cout << "Not Location" << std::endl;
     while (j < tmp.others.size())
     {
         std::cout << "-> " << tmp.others[j] << std::endl;
