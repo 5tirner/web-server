@@ -65,3 +65,26 @@ servers::servers(configFile &cFile)
         << this->server[i] << std::endl;
     }
 }
+
+int servers::isolateServers(std::string &s)
+{
+    size_t check = s.find("server");
+    if (check != 0)
+        return (1);
+    std::string save;
+    for (size_t i = 0; i < s.size(); i++)
+    {
+        int checker = isServer(s, i);
+        if (!checker && i != 0)
+        {
+            this->server.push_back(save);
+            save.clear();
+        }
+        else if (checker == 2)
+            return (1);
+        save.push_back(s[i]);
+    }
+    if (save.size())
+        this->server.push_back(save);
+    return (0);
+}
