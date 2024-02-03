@@ -1,7 +1,9 @@
 #include "../include/mainHeader.hpp"
+#include <cstring>
 
 void    showInfo(informations &tmp)
 {
+    std::cout << "----------------------------------------" << std::endl;
     std::map<std::string, std::string>::iterator it = tmp.port.begin();
     std::cout << "Port " << it->first << " - " << it->second << std::endl;
     it = tmp.host.begin();
@@ -31,6 +33,8 @@ int checkInformations(informations &tmp)
             }
             key.push_back(tmp.others[i][j]);
         }
+        if (!strchr(&tmp.others[i][j], ';'))
+            return (1);
         if (key == "listen")
             tmp.port[key] = &tmp.others[i][j];
         else if (key == "host")
@@ -76,8 +80,8 @@ int servers::serverInfos(int i)
             }
         }
     }
-    // if (tmp.locations.size() == 0)
-    //     return (1);
+    if (tmp.locations.size() == 0)
+        return (1);
     std::cout << "Server Number " << i << " Informations" << std::endl;
     size_t j = 0;
     std::cout << "Not Location" << std::endl;
