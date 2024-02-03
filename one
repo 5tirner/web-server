@@ -1,1 +1,13 @@
-	LimitClientBodySize 1; #test
+#example how the config file should be like:
+
+server {
+	listen 80;
+	host zasabri;
+	server_name makalili;
+	limit_client_body 20;
+	error_page /home/zasabri/Desktop/errors;
+	location{
+		allowed_methods GET;
+		hi
+	}
+}

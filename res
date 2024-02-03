@@ -1,9 +1,11 @@
 Config File Name: default
 All Things
-     # one listen keyword for each server
+     # one port keyword for each server
+	 # one host keyword for each server;
 # don't put a server inside a server
 # put the root inside each location
      # put all the indexes inside there locations
+		   # one error page for each server
 #LimitClientBodySize with megabytes
 
     # don't write two lines in one
@@ -11,8 +13,11 @@ All Things
 # lowercase syntax please
 #syntax :
 # server = server { }
-# porst = listen number
-# serverName = server_name name
+# port = port number
+# host = host hotsName
+# serverName = serverName name
+# LimitClientBodySize = LimitClientBodySize Number
+# errorPage = errorPage PATH
 # locations = location /location{}
 # indexs = index ....
 # root = root /path
@@ -28,6 +33,7 @@ server
 		{#test;
 	LimitClientBodySize                     1;   #test
 	listen 80;;;;;
+	host localhost;
 	server_name _;#;;;;;;
 	location / {
 		allowed_methods POST GET DELETE;
@@ -86,6 +92,7 @@ server
 {
 LimitClientBodySize 1; 
 listen 80;;;;;
+host localhost;
 server_name _;
 location / {
 allowed_methods POST GET DELETE;
@@ -134,6 +141,7 @@ server
 {
 LimitClientBodySize 1; 
 listen 80;;;;;
+host localhost;
 server_name _;
 location / {
 allowed_methods POST GET DELETE;
@@ -182,6 +190,7 @@ Server Number 0 Informations
 Not Location
 -> LimitClientBodySize 1; 
 -> listen 80;;;;;
+-> host localhost;
 -> server_name _;
 -> test -1;
 Location
@@ -207,6 +216,7 @@ Location
 Content Number 0:
 LimitClientBodySize 1; 
 listen 80;;;;;
+host localhost;
 server_name _;
 location / {
 allowed_methods POST GET DELETE;

@@ -5,6 +5,8 @@
 # include <cstddef>
 # include <exception>
 # include <fstream>
+#include <string_view>
+#include <utility>
 # include <vector>
 # include <string>
 # include <map>
@@ -41,12 +43,15 @@ class   configFile
 
 typedef struct info
 {
-    std::pair<std::string, std::string>              limitClientBody;
-    std::pair<std::string, std::vector<std::string> >index;
-    std::pair<std::string, int>                      port;
-    std::pair<std::string, std::string>              serverName;
-    std::vector<std::string>                         locations;
-    std::vector<std::string>                         others;
+    //others
+    std::vector<std::string>            others;
+    std::map<std::string, std::string>  limitClientBody;
+    std::map<std::string, std::string>  port;
+    std::map<std::string, std::string>  host;
+    std::map<std::string, std::string>  serverName;
+    std::map<std::string, std::string>  errorPage;
+    //locations
+    std::vector<std::string>            locations;
 }   informations;
 
 class   servers
@@ -76,5 +81,6 @@ int         isServer(std::string &s, size_t i);
 std::string removeWhiteSpaces(std::string &s);
 int         isAgoodServer(std::string &server);
 int         getContent(std::string &server);
+int         checkInformations(informations &tmp);
 
 #endif

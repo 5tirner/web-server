@@ -1,5 +1,53 @@
 #include "../include/mainHeader.hpp"
 
+void    showInfo(informations &tmp)
+{
+    std::map<std::string, std::string>::iterator it = tmp.port.begin();
+    std::cout << "Port " << it->first << " - " << it->second << std::endl;
+    it = tmp.host.begin();
+    std::cout << "Host " << it->first << " - " << it->second << std::endl;
+    it = tmp.serverName.begin();
+    std::cout << "ServerName " << it->first << " - " << it->second << std::endl;
+    it = tmp.limitClientBody.begin();
+    std::cout << "LimitClient " << it->first << " - " << it->second << std::endl;
+    it = tmp.errorPage.begin();
+    std::cout << "ErrorPage " << it->first << " - " << it->second << std::endl;
+}
+
+int checkInformations(informations &tmp)
+{
+    //std::cout << "Others" << std::endl;
+    for (size_t i = 0; i < tmp.others.size(); i++)
+    {
+        std::string key;
+        size_t j = 0;
+        for (; j < tmp.others[i].size(); j++)
+        {
+            if (tmp.others[i][j] == ' ')
+            {
+                if (j < tmp.others[i].size())
+                    j++;
+                break ;
+            }
+            key.push_back(tmp.others[i][j]);
+        }
+        if (key == "listen")
+            tmp.port[key] = &tmp.others[i][j];
+        else if (key == "host")
+            tmp.host[key] = &tmp.others[i][j];
+        else if (key == "server_name")
+            tmp.serverName[key] = &tmp.others[i][j];
+        else if (key == "error_page")
+            tmp.errorPage[key] = &tmp.others[i][j];
+        else if (key == "limit_client_body")
+            tmp.limitClientBody[key] = &tmp.others[i][j];
+        else
+            return (1);
+    }
+    showInfo(tmp);
+    return (0);
+}
+
 int servers::serverInfos(int i)
 {
     informations tmp;
@@ -28,6 +76,8 @@ int servers::serverInfos(int i)
             }
         }
     }
+    // if (tmp.locations.size() == 0)
+    //     return (1);
     std::cout << "Server Number " << i << " Informations" << std::endl;
     size_t j = 0;
     std::cout << "Not Location" << std::endl;
@@ -43,11 +93,12 @@ int servers::serverInfos(int i)
         std::cout << "-> " << tmp.locations[j] << std::endl;
         j++;
     }
-    //if (checkTheOthers(&tmp) || checTheLOcations(&tmp))
-    //    return (1);
+    if (checkInformations(tmp))
+        return (1);
     //this->serversInfo[i] = tmp;
     return (0);
 }
+
 int servers::fillInfos(void)
 {
     for (size_t i = 0; i < this->server.size(); i++)
@@ -55,8 +106,7 @@ int servers::fillInfos(void)
         if (isAgoodServer(this->server[i]))
             return (1);
         if (this->serverInfos(i))
-            throw BadConetent();
-        //this->serversInfo[i] = serverInfos(i);
+            return (1);
     }
     return (0);
 }
