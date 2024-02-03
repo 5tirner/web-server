@@ -26,9 +26,9 @@ server
 
 
 		{#test;
-	LimitClientBodySize 1;   #test
+	LimitClientBodySize                     1;   #test
 	listen 80;;;;;
-	server_name _;;;;;;
+	server_name _;#;;;;;;
 	location / {
 		allowed_methods POST GET DELETE;
 	}
@@ -86,7 +86,7 @@ server
 {
 LimitClientBodySize 1; 
 listen 80;;;;;
-server_name _;;;;;;
+server_name _;
 location / {
 allowed_methods POST GET DELETE;
 }
@@ -134,7 +134,7 @@ server
 {
 LimitClientBodySize 1; 
 listen 80;;;;;
-server_name _;;;;;;
+server_name _;
 location / {
 allowed_methods POST GET DELETE;
 }
@@ -182,7 +182,7 @@ Server Number 0 Informations
 Not Location
 -> LimitClientBodySize 1; 
 -> listen 80;;;;;
--> server_name _;;;;;;
+-> server_name _;
 -> test -1;
 Location
 -> location / {allowed_methods POST GET DELETE;}
@@ -207,7 +207,7 @@ Location
 Content Number 0:
 LimitClientBodySize 1; 
 listen 80;;;;;
-server_name _;;;;;;
+server_name _;
 location / {
 allowed_methods POST GET DELETE;
 }

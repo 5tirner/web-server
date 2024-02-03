@@ -1,6 +1,6 @@
 #include "../include/mainHeader.hpp"
 
-void servers::serverInfos(int i)
+int servers::serverInfos(int i)
 {
     informations tmp;
     int          check = 0;
@@ -43,7 +43,10 @@ void servers::serverInfos(int i)
         std::cout << "-> " << tmp.locations[j] << std::endl;
         j++;
     }
+    //if (checkTheOthers(&tmp) || checTheLOcations(&tmp))
+    //    return (1);
     //this->serversInfo[i] = tmp;
+    return (0);
 }
 int servers::fillInfos(void)
 {
@@ -51,7 +54,8 @@ int servers::fillInfos(void)
     {
         if (isAgoodServer(this->server[i]))
             return (1);
-        this->serverInfos(i);
+        if (this->serverInfos(i))
+            throw BadConetent();
         //this->serversInfo[i] = serverInfos(i);
     }
     return (0);

@@ -24,9 +24,9 @@ server
 
 
 		{#test;
-	LimitClientBodySize 1;   #test
+	LimitClientBodySize                     1;   #test
 	listen 80;;;;;
-	server_name _;;;;;;
+	server_name _;#;;;;;;
 	location / {
 		allowed_methods POST GET DELETE;
 	}
