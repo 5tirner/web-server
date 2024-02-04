@@ -1,5 +1,4 @@
-     # one port keyword for each server
-	 # one host keyword for each server;
+# If U duplicate The keywords an override will be happen
 # don't put a server inside a server
 # put the root inside each location
      # put all the indexes inside there locations

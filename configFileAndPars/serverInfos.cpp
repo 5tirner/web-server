@@ -14,6 +14,7 @@ void    showInfo2(informations &tmp)
         std::cout << "upload - " + tmp.locationsInfo[i].upload << std::endl;
         std::cout << "cgi - " + tmp.locationsInfo[i].cgi << std::endl;
     }
+    std::cout << "------------------------------------" << std::endl;
 }
 void    showInfo(informations &tmp)
 {
@@ -55,6 +56,12 @@ int checkLocations(informations &tmp)
             }
             if (key == "location")
                 save.directory = &buffer[j];
+            else if (key != "location"
+                && key != "}" && !strchr(&buffer[j], ';'))
+            {
+                std::cout << "+++" + key << std::endl;
+                return (1);
+            }
             else if (key == "root")
                 save.root = &buffer[j];
             else if (key == "index")
@@ -69,8 +76,8 @@ int checkLocations(informations &tmp)
                 save.upload = &buffer[j];
             else if (key == "cgi")
                 save.cgi = &buffer[j];
-            // else
-            //     return (1);
+            else if (key != "}")
+                return (1);
         }
         tmp.locationsInfo.push_back(save);
     }
