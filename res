@@ -38,6 +38,15 @@ return 303 ysabr.ma;
 					upload	on | off /var/www/html;
 			cgi off adress:port;  
 	}   
+	location /nottest {
+		root	/rot;   #efgru 
+		index	index.back indx.bawn;
+			allowed_methodes  DLETE;
+		autoindex n;  
+return 30 ysabr.ma;
+					upload	on | off /var/w/html;
+			cgi off adss:port;  
+	}  
 }  
 
 What We Need
@@ -73,6 +82,15 @@ autoindex on;
 return 303 ysabr.ma;
 upload	on | off /var/www/html;
 cgi off adress:port; 
+} 
+location /nottest {
+root	/rot; 
+index	index.back indx.bawn;
+allowed_methodes DLETE;
+autoindex n; 
+return 30 ysabr.ma;
+upload	on | off /var/w/html;
+cgi off adss:port; 
 } 
 } 
 
@@ -115,6 +133,15 @@ return 303 ysabr.ma;
 upload	on | off /var/www/html;
 cgi off adress:port; 
 } 
+location /nottest {
+root	/rot; 
+index	index.back indx.bawn;
+allowed_methodes DLETE;
+autoindex n; 
+return 30 ysabr.ma;
+upload	on | off /var/w/html;
+cgi off adss:port; 
+} 
 } 
 
 --------------------------------------------
@@ -144,6 +171,7 @@ ServerName server_name - makalili;
 LimitClient limit_client_body - 20;
 ErrorPage error_page - /home/zasabri/Desktop/errors;
 For Locations
+Location Number 0
 Location - /test {
 root - /var/www/html; 
 index - index.html index.php;
@@ -171,6 +199,16 @@ upload	on | off /var/www/html;
 cgi off adress:port; 
 } 
 
+-> location /nottest {
+root	/rot; 
+index	index.back indx.bawn;
+allowed_methodes DLETE;
+autoindex n; 
+return 30 ysabr.ma;
+upload	on | off /var/w/html;
+cgi off adss:port; 
+} 
+
 ----------------------------------------
 For Server
 Port listen - 443; 
@@ -179,6 +217,7 @@ ServerName server_name - sade_manio;
 LimitClient limit_client_body - 100;
 ErrorPage error_page - /home/ysabr/errors;
 For Locations
+Location Number 0
 Location - /nottest {
 root - /root; 
 index - index.black index.brawn;
@@ -187,6 +226,15 @@ autoidx - on;
 return - 303 ysabr.ma;
 upload - on | off /var/www/html;
 cgi - off adress:port; 
+Location Number 1
+Location - /nottest {
+root - /rot; 
+index - index.back indx.bawn;
+methodes - DLETE;
+autoidx - n; 
+return - 30 ysabr.ma;
+upload - on | off /var/w/html;
+cgi - off adss:port; 
 ------------------------------------
 --------------------------------------------
 Content Number 0:
@@ -218,4 +266,13 @@ autoindex on;
 return 303 ysabr.ma;
 upload	on | off /var/www/html;
 cgi off adress:port; 
+} 
+location /nottest {
+root	/rot; 
+index	index.back indx.bawn;
+allowed_methodes DLETE;
+autoindex n; 
+return 30 ysabr.ma;
+upload	on | off /var/w/html;
+cgi off adss:port; 
 } 

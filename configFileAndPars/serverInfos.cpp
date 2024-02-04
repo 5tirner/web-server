@@ -5,6 +5,7 @@ void    showInfo2(informations &tmp)
     std::cout << "For Locations" << std::endl;
     for (size_t i = 0; i < tmp.locationsInfo.size(); i++)
     {
+        std::cout << "Location Number " << i << std::endl;
         std::cout << "Location - " + tmp.locationsInfo[i].directory << std::endl;
         std::cout << "root - " + tmp.locationsInfo[i].root << std::endl;
         std::cout << "index - " + tmp.locationsInfo[i].index << std::endl;
