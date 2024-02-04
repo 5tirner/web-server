@@ -1,16 +1,18 @@
 #example how the config file should be like:
 
 server {
-	listen 80;
-	host zasabri;
-	server_name makalili;
-	limit_client_body 20;
-	error_page /home/zasabri/Desktop/errors;
+	      listen		80;
+	host      zasabri;
+	     server_name       		makalili;
+	limit_client_body           20;
+	      error_page                 /home/zasabri/Desktop/errors;
 	location /test {
-		allowed_methods GET POST DELETE;
+		root	/var/www/html;
+		index	index.html index.php;
+		allowed_methodes GET POST DELETE;
 		autoindex on | off;
 		return 301 www.zasabri.ma;
 		upload	on | off /var/www/html;
-		cgi on | off adress:port
+		cgi on | off adress:port;
 	}
 }

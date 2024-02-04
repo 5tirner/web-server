@@ -5,12 +5,11 @@
 # include <cstddef>
 # include <exception>
 # include <fstream>
-#include <string_view>
-#include <utility>
 # include <vector>
 # include <string>
 # include <map>
 # include <cstring>
+# include <cstdlib>
 # include <sstream>
 
 class   configFile
@@ -43,11 +42,16 @@ class   configFile
 
 typedef struct routes
 {
-    std::string                 root;
-    std::vector<std::string>    index;
-    std::vector<std::string>    allowed_methodes;
-    std::string                 autoindex;
+    std::string  directory;
+    std::string  root;
+    std::string  index;
+    std::string  allowed_methodes;
+    std::string  autoindex;
+    std::string  Return;
+    std::string  upload;
+    std::string  cgi;
 }   location;
+
 typedef struct info
 {
     //others
@@ -59,6 +63,7 @@ typedef struct info
     std::map<std::string, std::string>  errorPage;
     //locations
     std::vector<std::string>            locations;
+    std::vector<location>               locationsInfo;
 }   informations;
 
 class   servers
@@ -89,5 +94,6 @@ std::string removeWhiteSpaces(std::string &s);
 int         isAgoodServer(std::string &server);
 int         getContent(std::string &server);
 int         checkInformations(informations &tmp);
+int         checkLocations(informations &tmp);
 
 #endif
