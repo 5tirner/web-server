@@ -61,6 +61,8 @@ int servers::serverInfos(int i)
     std::string buffer;
     while (std::getline(input, buffer))
     {
+        std::cout << "line= " + buffer << std::endl;
+
         if (!std::strncmp(buffer.c_str(), "location", 8))
         {
             //std::cout << "Find Location Word: " + buffer << std::endl; 

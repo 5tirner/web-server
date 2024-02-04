@@ -43,6 +43,15 @@ hi
 }
 
 --------------------------------------------
+line= listen 80;
+line= host zasabri;
+line= server_name makalili;
+line= limit_client_body 20;
+line= error_page /home/zasabri/Desktop/errors;
+line= location{
+line= allowed_methods GET;
+line= hi
+line= }
 Server Number 0 Informations
 Not Location
 -> listen 80;
