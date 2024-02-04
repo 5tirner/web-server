@@ -41,6 +41,13 @@ class   configFile
         };
 };
 
+typedef struct routes
+{
+    std::string                 root;
+    std::vector<std::string>    index;
+    std::vector<std::string>    allowed_methodes;
+    std::string                 autoindex;
+}   location;
 typedef struct info
 {
     //others
