@@ -98,5 +98,7 @@ int         checkLocations(informations &tmp);
 void        etatInitial(informations &tmp);
 void        showInfo(informations &tmp);
 void        showInfo2(informations &tmp);
+int         isAgoodValue1(std::string &value);
+int         valueCheck(informations &tmp);
 
 #endif

@@ -27,15 +27,73 @@ void    showInfo2(informations &tmp)
 void    showInfo(informations &tmp)
 {
     std::map<std::string, std::string>::iterator it = tmp.port.begin();
-    std::cout << "Port " << it->first << " - " << it->second << std::endl;
+    std::cout << "Port " << it->first << " - " << "|"+it->second+"|" << std::endl;
     it = tmp.host.begin();
-    std::cout << "Host " << it->first << " - " << it->second << std::endl;
+    std::cout << "Host " << it->first << " - " << "|"+it->second+"|" << std::endl;
     it = tmp.serverName.begin();
-    std::cout << "ServerName " << it->first << " - " << it->second << std::endl;
+    std::cout << "ServerName " << it->first << " - " << "|"+it->second+"|" << std::endl;
     it = tmp.limitClientBody.begin();
-    std::cout << "LimitClient " << it->first << " - " << it->second << std::endl;
+    std::cout << "LimitClient " << it->first << " - " << "|"+it->second+"|" << std::endl;
     it = tmp.errorPage.begin();
-    std::cout << "ErrorPage " << it->first << " - " << it->second << std::endl;
+    std::cout << "ErrorPage " << it->first << " - " << "|"+it->second+"|" << std::endl;
+}
+
+int     isAgoodValue1(std::string &value)
+{
+    std::string save;
+    size_t i = 0, j = value.size() - 1;
+    while ((i < value.size()) && (value[i] == ' ' || value[i] == '\t'))
+        i++;
+    while ((j) && (value[j] == ' ' || value[j] == '\t'
+            || value[j] == '\n' || value[j] == ';'))
+        j--;
+    while (i <= j)
+    {
+        save.push_back(value[i]);
+        i++;
+    }
+    //std::cout << value + " Become " + save << std::endl;
+    if (save.size() == 0 || save == ";")
+        return (1);
+    if (strchr(save.c_str(), ' ') || strchr(save.c_str(), '\t' ))
+        return (1);
+    value = save;
+    return (0);
+}
+
+int     valueCheck(informations &tmp)
+{
+    std::map<std::string, std::string>::iterator it = tmp.port.begin();
+    if (isAgoodValue1(it->second) || atoi(it->second.c_str()) <= 0)
+    {
+        std::cout << "Not A valid Port " + it->second << std::endl;
+        return (1);
+    }
+    it = tmp.host.begin();
+    if (isAgoodValue1(it->second))
+    {
+        std::cout << "Not A valid Host " + it->second << std::endl;
+        return (1);
+    }
+    it = tmp.serverName.begin();
+    if (isAgoodValue1(it->second))
+    {
+        std::cout << "Not A valid ServerName " + it->second << std::endl;
+        return (1);
+    }
+    it = tmp.limitClientBody.begin();
+    if (isAgoodValue1(it->second))
+    {
+        std::cout << "Not A valid LimitClientBody " + it->second << std::endl;
+        return (1);
+    }
+    it = tmp.errorPage.begin();
+    if (isAgoodValue1(it->second))
+    {
+        std::cout << "Not A valid ErrorPage " + it->second << std::endl;
+        return (1);
+    }
+    return (0);
 }
 
 void    initialLocation(location &save)

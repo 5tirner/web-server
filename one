@@ -1,9 +1,10 @@
+
 #example how the config file should be like:
 #server1
 server 
 
 {
-	      listen		1000; 
+	      listen		1000;
 
 	host      zasabri;
 	     server_name       		makalili;  
