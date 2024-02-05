@@ -1,26 +1,27 @@
 #include "../include/mainHeader.hpp"
 
-void    showInfo2(informations &tmp)
-{
-    std::cout << "For Locations" << std::endl;
-    for (size_t i = 0; i < tmp.locationsInfo.size(); i++)
-    {
-        std::cout << "Location Number " << i << std::endl;
-        std::cout << "Location - " + tmp.locationsInfo[i].directory << std::endl;
-        std::cout << "root - " + tmp.locationsInfo[i].root << std::endl;
-        std::cout << "index - " + tmp.locationsInfo[i].index << std::endl;
-        std::cout << "methodes - " + tmp.locationsInfo[i].allowed_methodes << std::endl;
-        std::cout << "autoidx - " + tmp.locationsInfo[i].autoindex << std::endl;
-        std::cout << "return - " + tmp.locationsInfo[i].Return << std::endl;
-        std::cout << "upload - " + tmp.locationsInfo[i].upload << std::endl;
-        std::cout << "cgi - " + tmp.locationsInfo[i].cgi << std::endl;
-    }
-    std::cout << "------------------------------------" << std::endl;
-}
+// void    showInfo2(informations &tmp)
+// {
+//     std::cout << "For Locations" << std::endl;
+//     // for (size_t i = 0; i < tmp.locationsInfo.size(); i++)
+//     // {
+//     //     std::cout << "Location Number " << i << std::endl;
+//     //     std::cout << "Location - " + tmp.locationsInfo[i].directory << std::endl;
+//     //     std::cout << "root - " + tmp.locationsInfo[i].root << std::endl;
+//     //     std::cout << "index - " + tmp.locationsInfo[i].index << std::endl;
+//     //     std::cout << "methodes - " + tmp.locationsInfo[i].allowed_methodes << std::endl;
+//     //     std::cout << "autoidx - " + tmp.locationsInfo[i].autoindex << std::endl;
+//     //     std::cout << "return - " + tmp.locationsInfo[i].Return << std::endl;
+//     //     std::cout << "upload - " + tmp.locationsInfo[i].upload << std::endl;
+//     //     std::cout << "cgi - " + tmp.locationsInfo[i].cgi << std::endl;
+//     // }
+//     std::cout << "------------------------------------" << std::endl;
+// }
+
 void    showInfo(informations &tmp)
 {
-    std::cout << "----------------------------------------" << std::endl;
-    std::cout << "For Server" << std::endl;
+    //std::cout << "----------------------------------------" << std::endl;
+    //std::cout << "For Server" << std::endl;
     std::map<std::string, std::string>::iterator it = tmp.port.begin();
     std::cout << "Port " << it->first << " - " << it->second << std::endl;
     it = tmp.host.begin();
@@ -56,33 +57,30 @@ int checkLocations(informations &tmp)
                 key.push_back(buffer[j]);
             }
             if (key == "location")
-                save.directory = &buffer[j];
+                save.directory[key] = &buffer[j];
             else if (key != "location"
                 && key != "}" && !strchr(&buffer[j], ';'))
-            {
-                std::cout << "+++" + key << std::endl;
                 return (1);
-            }
             else if (key == "root")
-                save.root = &buffer[j];
+                save.root[key] = &buffer[j];
             else if (key == "index")
-                save.index = &buffer[j];
+                save.index[key] = &buffer[j];
             else if (key == "allowed_methodes")
-                save.allowed_methodes = &buffer[j];
+                save.allowed_methodes[key] = &buffer[j];
             else if (key == "autoindex")
-                save.autoindex = &buffer[j];
+                save.autoindex[key] = &buffer[j];
             else if (key == "return")
-                save.Return = &buffer[j];
+                save.Return[key] = &buffer[j];
             else if (key == "upload")
-                save.upload = &buffer[j];
+                save.upload[key] = &buffer[j];
             else if (key == "cgi")
-                save.cgi = &buffer[j];
+                save.cgi[key] = &buffer[j];
             else if (key != "}")
                 return (1);
         }
         tmp.locationsInfo.push_back(save);
     }
-    showInfo2(tmp);
+    //showInfo2(tmp);
     return (0);
 }
 int checkInformations(informations &tmp)
@@ -118,13 +116,23 @@ int checkInformations(informations &tmp)
         else
             return (1);
     }
-    showInfo(tmp);
+    //showInfo(tmp);
     return (0);
+}
+
+void    etatInitial(informations &tmp)
+{
+    tmp.port["listen"] = "80";
+    tmp.host["host"] = "localhost";
+    tmp.serverName["server_name"] = "defualt";
+    tmp.errorPage["error_page"] = "/home/zasabri/Desktop/error.txt";
+    tmp.limitClientBody["limit_client_body"] = "10";
 }
 
 int servers::serverInfos(int i)
 {
     informations tmp;
+    etatInitial(tmp);
     int          check = 0;
     std::string  save;
     std::stringstream input(this->server[i]);
@@ -153,24 +161,24 @@ int servers::serverInfos(int i)
     }
     if (tmp.locations.size() == 0)
         return (1);
-    std::cout << "Server Number " << i << " Informations" << std::endl;
-    size_t j = 0;
-    std::cout << "Not Location" << std::endl;
-    while (j < tmp.others.size())
-    {
-        std::cout << "-> " << tmp.others[j] << std::endl;
-        j++;
-    }
-    std::cout << "Location" << std::endl;
-    j = 0;
-    while (j < tmp.locations.size())
-    {
-        std::cout << "-> " << tmp.locations[j] << std::endl;
-        j++;
-    }
+    //std::cout << "Server Number " << i << " Informations" << std::endl;
+    //size_t j = 0;
+    //std::cout << "Not Location" << std::endl;
+    // while (j < tmp.others.size())
+    // {
+    //     std::cout << "-> " << tmp.others[j] << std::endl;
+    //     j++;
+    // }
+    // std::cout << "Location" << std::endl;
+    // j = 0;
+    // while (j < tmp.locations.size())
+    // {
+    //     std::cout << "-> " << tmp.locations[j] << std::endl;
+    //     j++;
+    // }
     if (checkInformations(tmp) || checkLocations(tmp))
         return (1);
-    //this->serversInfo[i] = tmp;
+    this->serversInfo[i] = tmp;
     return (0);
 }
 

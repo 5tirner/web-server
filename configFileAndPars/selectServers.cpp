@@ -45,25 +45,33 @@ servers::servers(configFile &cFile)
         if (!checker)
             needed += removeWhiteSpaces(buffer);
     }
-    std::cout << "All Things\n" << all << std::endl;
-    std::cout << "What We Need\n" << needed << std::endl;
-    std::cout << "-------------------------------------------" << std::endl;
+    // std::cout << "All Things\n" << all << std::endl;
+    // std::cout << "What We Need\n" << needed << std::endl;
+    // std::cout << "-------------------------------------------" << std::endl;
     if (this->isolateServers(needed))
         throw BadConetent();
-    for (size_t i = 0; i < this->server.size(); i++)
-    {
-        std::cout << "Server Number " << i << ":\n"
-        << this->server[i] << std::endl;
-    }
-    std::cout << "--------------------------------------------" << std::endl;
+    // for (size_t i = 0; i < this->server.size(); i++)
+    // {
+    //     std::cout << "Server Number " << i << ":\n"
+    //     << this->server[i] << std::endl;
+    // }
+    //std::cout << "--------------------------------------------" << std::endl;
     if (this->fillInfos())
         throw BadConetent();
-    std::cout << "--------------------------------------------" << std::endl;
-    for (size_t i = 0; i < this->server.size(); i++)
+    std::map<int, informations>::iterator it = this->serversInfo.begin();
+    std::cout << "Server Infos" << std::endl;
+    while (it != this->serversInfo.end())
     {
-        std::cout << "Content Number " << i << ":\n"
-        << this->server[i] << std::endl;
+        std::cout << "Server Number " << it->first << std::endl;
+        showInfo(it->second);
+        it++;
     }
+    // std::cout << "--------------------------------------------" << std::endl;
+    // for (size_t i = 0; i < this->server.size(); i++)
+    // {
+    //     std::cout << "Content Number " << i << ":\n"
+    //     << this->server[i] << std::endl;
+    // }
 }
 
 int servers::isolateServers(std::string &s)

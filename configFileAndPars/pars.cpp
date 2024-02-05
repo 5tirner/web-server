@@ -101,7 +101,7 @@ int isServer(std::string &s, size_t i)
             || check == "server\n{" || check == "server \n{" || check == "server\t\n{"
             || check == "server\t \n{" || check == "server \t\n")
         {
-            std::cout << "After Check ^ is a server" << std::endl;
+            //std::cout << "After Check ^ is a server" << std::endl;
             return (0);
         }
     }
