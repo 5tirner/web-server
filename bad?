@@ -1,9 +1,7 @@
 server   {
     listen 80 default_server;
     server_name _;
-    location / {
-        try_files $uri $uri/ =404;
-    }
+    
     location /test
     {
         root /var/www/html;
@@ -15,9 +13,6 @@ server          {
         listen 80;
 
         server_name _;
-        location / {
-                try_files $uri $uri/ =404;
-        }
         location /test
         {
             root /var/www/html;

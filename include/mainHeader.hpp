@@ -95,7 +95,8 @@ int         isAgoodServer(std::string &server);
 int         getContent(std::string &server);
 int         checkInformations(informations &tmp);
 int         checkLocations(informations &tmp);
-void        showInfo(informations &tmp);
 void        etatInitial(informations &tmp);
+void        showInfo(informations &tmp);
+void        showInfo2(informations &tmp);
 
 #endif

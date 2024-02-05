@@ -23,9 +23,7 @@ servers::servers(configFile &cFile)
         buffer.push_back('\n');
         all += buffer;
         if (buffer[0] == '#' || buffer[0] == '\n')
-        {
             continue;
-        }
         bool checker = 0;
         if (buffer[0] == ' ' || buffer[0] == '\t')
         {
@@ -48,6 +46,7 @@ servers::servers(configFile &cFile)
     // std::cout << "All Things\n" << all << std::endl;
     // std::cout << "What We Need\n" << needed << std::endl;
     // std::cout << "-------------------------------------------" << std::endl;
+    std::cout << "I will Isolate Servers" << std::endl;
     if (this->isolateServers(needed))
         throw BadConetent();
     // for (size_t i = 0; i < this->server.size(); i++)
@@ -56,14 +55,18 @@ servers::servers(configFile &cFile)
     //     << this->server[i] << std::endl;
     // }
     //std::cout << "--------------------------------------------" << std::endl;
+    std::cout << "I will Fill Infos" << std::endl;
     if (this->fillInfos())
         throw BadConetent();
     std::map<int, informations>::iterator it = this->serversInfo.begin();
-    std::cout << "Server Infos" << std::endl;
     while (it != this->serversInfo.end())
     {
-        std::cout << "Server Number " << it->first << std::endl;
+        std::cout << "Server Number " << it->first + 1 << ":" << std::endl;
+        std::cout << "About Server:" << std::endl;
         showInfo(it->second);
+        std::cout << "About Locations:" << std::endl;
+        showInfo2(it->second);
+        std::cout << "////////////////////////////////////////////////" << std::endl;
         it++;
     }
     // std::cout << "--------------------------------------------" << std::endl;
@@ -78,7 +81,10 @@ int servers::isolateServers(std::string &s)
 {
     size_t check = s.find("server");
     if (check != 0)
+    {
+        std::cout << "Problem In The Top Of The File" << std::endl;
         return (1);
+    }
     std::string save;
     for (size_t i = 0; i < s.size(); i++)
     {
@@ -88,8 +94,7 @@ int servers::isolateServers(std::string &s)
             this->server.push_back(save);
             save.clear();
         }
-        else if (checker == 2)
-            return (1);
+        else if (checker == 2) return (1);
         save.push_back(s[i]);
     }
     if (save.size())
