@@ -42,14 +42,14 @@ class   configFile
 
 typedef struct routes
 {
-    std::string  directory;
-    std::string  root;
-    std::string  index;
-    std::string  allowed_methodes;
-    std::string  autoindex;
-    std::string  Return;
-    std::string  upload;
-    std::string  cgi;
+    std::map<std::string, std::string>  directory;
+    std::map<std::string, std::string>  root;
+    std::map<std::string, std::string>  index;
+    std::map<std::string, std::string>  allowed_methodes;
+    std::map<std::string, std::string>  autoindex;
+    std::map<std::string, std::string>  Return;
+    std::map<std::string, std::string>  upload;
+    std::map<std::string, std::string>  cgi;
 }   location;
 
 typedef struct info
@@ -95,5 +95,7 @@ int         isAgoodServer(std::string &server);
 int         getContent(std::string &server);
 int         checkInformations(informations &tmp);
 int         checkLocations(informations &tmp);
+void        showInfo(informations &tmp);
+void        etatInitial(informations &tmp);
 
 #endif

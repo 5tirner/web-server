@@ -3,8 +3,8 @@
 server 
 
 {
-	      listen		80;     
-	host      zasabri;
+	      #listen		1000;     
+	#host      zasabri;
 	     server_name       		makalili;     
 	limit_client_body           20;
 	      error_page                 /home/zasabri/Desktop/errors;
