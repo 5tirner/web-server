@@ -35,7 +35,6 @@ server
 	location / {
 		allowed_methods POST GET DELETE;
 	}
-	test -1;
 	location /test
 	{
 	    root /var/www/html;
@@ -70,11 +69,7 @@ server           {
 server   	
 {
 	listen 80;
-	    test1
 	server_name _;
-	location / {
-		try_files $uri $uri/ =404;
-	}
 	location /test
 	{
 	    root /var/www/html;
