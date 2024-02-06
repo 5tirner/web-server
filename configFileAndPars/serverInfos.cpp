@@ -7,21 +7,21 @@ void    showInfo2(informations &tmp)
         std::cout << "Location Number " << i + 1 << ':' << std::endl;
         std::map<std::string, std::string>::iterator it
         = tmp.locationsInfo[i].directory.begin();
-        std::cout << "Location "<< it->first + " - " + it->second << std::endl;
+        std::cout << "Location "<< it->first + " - |" + it->second+"|" << std::endl;
         it = tmp.locationsInfo[i].root.begin();
-        std::cout << "Root " << it->first + " - " + it->second << std::endl;
+        std::cout << "Root " << it->first + " - |" + it->second+"|" << std::endl;
         it = tmp.locationsInfo[i].index.begin();
-        std::cout << "Index " << it->first + " - " + it->second << std::endl;
+        std::cout << "Index " << it->first + " - |" + it->second+"|" << std::endl;
         it = tmp.locationsInfo[i].allowed_methodes.begin();
-        std::cout << "AllowMethodes "<< it->first + " - " + it->second << std::endl;
+        std::cout << "AllowMethodes "<< it->first + " - |" + it->second+"|" << std::endl;
         it = tmp.locationsInfo[i].autoindex.begin();
-        std::cout << "AutoIndex " << it->first + " - " + it->second << std::endl;
+        std::cout << "AutoIndex " << it->first + " - |" + it->second+"|" << std::endl;
         it = tmp.locationsInfo[i].Return.begin();
-        std::cout << "Return "<< it->first + " - " + it->second << std::endl;
+        std::cout << "Return "<< it->first + " - |" + it->second+"|" << std::endl;
         it = tmp.locationsInfo[i].upload.begin();
-        std::cout << "Upload "<< it->first + " - " + it->second << std::endl;
+        std::cout << "Upload "<< it->first + " - |" + it->second+"|" << std::endl;
         it = tmp.locationsInfo[i].cgi.begin();
-        std::cout << "Cgi " << it->first + " - " + it->second << std::endl;
+        std::cout << "Cgi " << it->first + " - |" + it->second+"|" << std::endl;
     }
 }
 void    showInfo(informations &tmp)
@@ -38,6 +38,12 @@ void    showInfo(informations &tmp)
     std::cout << "ErrorPage " << it->first << " - " << "|"+it->second+"|" << std::endl;
 }
 
+// int     isAgoodValue2(std::string &value)
+// {
+//     std::string save;
+//     size_t i = 0, j = value.size() - 1;
+//     return (0);
+// }
 int     isAgoodValue1(std::string &value)
 {
     std::string save;
@@ -45,7 +51,7 @@ int     isAgoodValue1(std::string &value)
     while ((i < value.size()) && (value[i] == ' ' || value[i] == '\t'))
         i++;
     while ((j) && (value[j] == ' ' || value[j] == '\t'
-            || value[j] == '\n' || value[j] == ';'))
+            || value[j] == '\n' || value[j] == ';' || value[j] == '{'))
         j--;
     while (i <= j)
     {
@@ -93,6 +99,9 @@ int     valueCheck(informations &tmp)
     { std::cout << "Not A valid ErrorPage " + it->second << std::endl; return (1); }
     for (size_t i = 0; i < tmp.locationsInfo.size(); i++)
     {
+        it = tmp.locationsInfo[i].directory.begin();
+        if (isAgoodValue1(it->second))
+        { std::cout << "Not A Valid Location " + it->second << std::endl; return (1);}
         it = tmp.locationsInfo[i].root.begin();
         if (isAgoodValue1(it->second))
         { std::cout << "Not A Valid Root " + it->second << std::endl; return (1);}
