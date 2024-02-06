@@ -69,6 +69,14 @@ int     valueCheck(informations &tmp)
         std::cout << "Not A valid Port " + it->second << std::endl;
         return (1);
     }
+    for (size_t i = 0; i < it->second.size(); i++)
+    {
+        if (!isdigit(it->second[i]))
+        {
+            std::cout << "Not A valid Port " + it->second << std::endl;
+            return (1);
+        }
+    }
     it = tmp.host.begin();
     if (isAgoodValue1(it->second))
     {
@@ -86,6 +94,14 @@ int     valueCheck(informations &tmp)
     {
         std::cout << "Not A valid LimitClientBody " + it->second << std::endl;
         return (1);
+    }
+    for (size_t i = 0; i < it->second.size(); i++)
+    {
+        if (!isdigit(it->second[i]))
+        {
+            std::cout << "Not A valid Port " + it->second << std::endl;
+            return (1);
+        }
     }
     it = tmp.errorPage.begin();
     if (isAgoodValue1(it->second))

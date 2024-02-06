@@ -4,7 +4,7 @@
 server 
 
 {
-	      listen		1000;
+	      listen		1;
 
 	host      zasabri;
 	     server_name       		makalili;  
