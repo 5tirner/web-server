@@ -64,7 +64,7 @@ int isAgoodServer(std::string &server)
             {
                 if (server[i] != ' ' && server[i] != '\t' && server[i] != ';')
                 {
-                    std::cout << "Wrong Thing aftes ; int this:\n" + server << std::endl;
+                    std::cout << "Wrong Thing after ; int this:\n" + server << std::endl;
                     return (1);
                 }
                 i++;

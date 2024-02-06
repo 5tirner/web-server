@@ -72,11 +72,15 @@ int     complecatedValues(std::string &value, char c)
         }
 
     }
-    else if (c == 'I')
+    else if (c == 'C')
     {
 
     }
-    else if (c == 'C')
+    else if (c == 'U')
+    {
+
+    }
+    else if (c == 'R')
     {
 
     }
@@ -160,6 +164,8 @@ int     valueCheck(informations &tmp)
         it = tmp.locationsInfo[i].allowed_methodes.begin();
         if (isAgoodValue(it->second, 'M'))
         { std::cout << "Not A Valid Methodes " + it->second << std::endl; return (1);}
+        if (isAgoodValue(it->second, 'I'))
+        { std::cout << "Not A Valid Indexes " + it->second << std::endl; return (1); }
     }
     return (0);
 }

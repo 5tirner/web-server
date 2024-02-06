@@ -22,8 +22,8 @@ __________________________________________________________
 # locations = location /location{} --> VALID
 # root = root /path --> VALID
 # autoIndex = autoindex off | on --> VALID
-# allowedMethodes = allowed_methodes ... VALID
-# indexs = index .... X
+# allowedMethodes = allowed_methodes ... --> VALID
+# indexs = index .... --> VALID
 # return = return nbStatus website X
 # upload = upload on | off PATH X
 # cgi = cgi on | off address:port X

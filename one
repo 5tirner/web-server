@@ -1,12 +1,13 @@
 
 #example how the config file should be like:
 #server1
-server      
+server     #hello  
 
 {
 	      listen		1;
+		listen 20;
 	host      zasabri;
-	     server_name       		makalili  ;  
+	     server_name       		makalili  ;  ;;;; ; ;;  ; ;;;;
 
 	limit_client_body           20;
 	      error_page                 /home/zasabri/Desktop/errors;
@@ -31,7 +32,7 @@ server
 	      error_page                 /home/ysabr/errors;
 location /nottest {
 		root	/root;   #efgru 
-		index	index.black index.brawn;
+		index	index.black index.brawn ghrefh;
 			allowed_methodes      GET;
 		autoindex on;  
 return 303 ysabr.ma;

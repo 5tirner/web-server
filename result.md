@@ -7,7 +7,7 @@ I will Check The info
 I will Check The Location Info
 Server Number 1:
 About Server:
-Port listen - |1|
+Port listen - |20|
 Host host - |zasabri|
 ServerName server_name - |makalili|
 LimitClient limit_client_body - |20|
@@ -34,7 +34,7 @@ About Locations:
 Location Number 1:
 Location location - |/nottest|
 Root root - |/root|
-Index index - |index.black index.brawn;|
+Index index - |index.black index.brawn ghrefh;|
 AllowMethodes allowed_methodes - |GET|
 AutoIndex autoindex - |on|
 Return return - |303 ysabr.ma;|
