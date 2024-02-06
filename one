@@ -39,7 +39,7 @@ return 303 ysabr.ma;
 					upload	on | off /var/www/html;
 			cgi off adress:port;  
 	}   
-	location /nottest {
+	location /nottesttester {
 		root	/rot ;   #efgru 
 		index	index.back indx.bawn;
 			allowed_methodes  DLETE;

@@ -41,7 +41,7 @@ Return return - |303 ysabr.ma;|
 Upload upload - |on | off /var/www/html;|
 Cgi cgi - |off adress:port; |
 Location Number 2:
-Location location - |/nottest|
+Location location - |/nottesttester|
 Root root - |/rot|
 Index index - |index.back indx.bawn;|
 AllowMethodes allowed_methodes - |DLETE;|

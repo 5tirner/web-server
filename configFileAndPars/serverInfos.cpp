@@ -38,13 +38,12 @@ void    showInfo(informations &tmp)
     std::cout << "ErrorPage " << it->first << " - " << "|"+it->second+"|" << std::endl;
 }
 
-// int     isAgoodValue2(std::string &value)
-// {
-//     std::string save;
-//     size_t i = 0, j = value.size() - 1;
-//     return (0);
-// }
-int     isAgoodValue1(std::string &value)
+int     complecatedValues(std::string &value)
+{
+    (void)value;
+    return (0);
+}
+int     isAgoodValue(std::string &value, char c)
 {
     std::string save;
     size_t i = 0, j = value.size() - 1;
@@ -61,8 +60,16 @@ int     isAgoodValue1(std::string &value)
     //std::cout << value + " Become " + save << std::endl;
     if (save.size() == 0 || save == ";")
         return (1);
-    if (strchr(save.c_str(), ' ') || strchr(save.c_str(), '\t' ))
-        return (1);
+    if (c == 'N')
+    {
+        if (strchr(save.c_str(), ' ') || strchr(save.c_str(), '\t' ))
+            return (1);
+    }
+    else
+    {
+        if (complecatedValues(save))
+            return (1);
+    }
     value = save;
     return (0);
 }
@@ -70,7 +77,7 @@ int     isAgoodValue1(std::string &value)
 int     valueCheck(informations &tmp)
 {
     std::map<std::string, std::string>::iterator it = tmp.port.begin();
-    if (isAgoodValue1(it->second) || atoi(it->second.c_str()) <= 0)
+    if (isAgoodValue(it->second, 'N') || atoi(it->second.c_str()) <= 0)
     { std::cout << "Not A valid Port " + it->second << std::endl; return (1);}
     for (size_t i = 0; i < it->second.size(); i++)
     {
@@ -78,13 +85,13 @@ int     valueCheck(informations &tmp)
         { std::cout << "Not A valid Port " + it->second << std::endl; return (1);}
     }
     it = tmp.host.begin();
-    if (isAgoodValue1(it->second))
+    if (isAgoodValue(it->second, 'N'))
     { std::cout << "Not A valid Host " + it->second << std::endl; return (1);}
     it = tmp.serverName.begin();
-    if (isAgoodValue1(it->second))
+    if (isAgoodValue(it->second, 'N'))
     { std::cout << "Not A valid ServerName " + it->second << std::endl; return (1); }
     it = tmp.limitClientBody.begin();
-    if (isAgoodValue1(it->second))
+    if (isAgoodValue(it->second, 'N'))
     { std::cout << "Not A valid LimitClientBody " + it->second << std::endl; return (1); }
     for (size_t i = 0; i < it->second.size(); i++)
     {
@@ -95,18 +102,18 @@ int     valueCheck(informations &tmp)
         }
     }
     it = tmp.errorPage.begin();
-    if (isAgoodValue1(it->second))
+    if (isAgoodValue(it->second, 'N'))
     { std::cout << "Not A valid ErrorPage " + it->second << std::endl; return (1); }
     for (size_t i = 0; i < tmp.locationsInfo.size(); i++)
     {
         it = tmp.locationsInfo[i].directory.begin();
-        if (isAgoodValue1(it->second))
+        if (isAgoodValue(it->second, 'N'))
         { std::cout << "Not A Valid Location " + it->second << std::endl; return (1);}
         it = tmp.locationsInfo[i].root.begin();
-        if (isAgoodValue1(it->second))
+        if (isAgoodValue(it->second, 'N'))
         { std::cout << "Not A Valid Root " + it->second << std::endl; return (1);}
         it = tmp.locationsInfo[i].autoindex.begin();
-        if (isAgoodValue1(it->second))
+        if (isAgoodValue(it->second, 'N'))
         { std::cout << "Not A Valid AutoIndex " + it->second << std::endl; return (1);}
         if (it->second != "on" && it->second != "off")
         { std::cout << "Not A Valid AutoIndex " + it->second << std::endl; return (1);}

@@ -13,17 +13,17 @@
 __________________________________________________________
 
 - syntax :
-# server = server { ... } V
-# port = listen number V
-# host = host hotsName V
-# serverName = server_name name V
-# LimitClientBodySize = limit_client_body Number V
-# errorPage = error_page PATH V
-# locations = location /location{} X
-# root = root /path V
+# server = server { ... } --> VALID
+# port = listen number --> VALID
+# host = host hotsName --> VALID
+# serverName = server_name name --> VALID
+# LimitClientBodySize = limit_client_body Number --> VALID
+# errorPage = error_page PATH --> VALID
+# locations = location /location{} --> VALID
+# root = root /path --> VALID
+# autoIndex = autoindex off | on --> VALID
 # indexs = index .... X
 # allowedMethodes = allowed_methodes ... X
-# autoIndex = autoindex off | on V
 # return = return nbStatus website X
 # upload = upload on | off PATH X
 # cgi = cgi on | off address:port X
