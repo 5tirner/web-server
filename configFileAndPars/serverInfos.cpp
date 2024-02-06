@@ -65,36 +65,21 @@ int     valueCheck(informations &tmp)
 {
     std::map<std::string, std::string>::iterator it = tmp.port.begin();
     if (isAgoodValue1(it->second) || atoi(it->second.c_str()) <= 0)
-    {
-        std::cout << "Not A valid Port " + it->second << std::endl;
-        return (1);
-    }
+    { std::cout << "Not A valid Port " + it->second << std::endl; return (1);}
     for (size_t i = 0; i < it->second.size(); i++)
     {
         if (!isdigit(it->second[i]))
-        {
-            std::cout << "Not A valid Port " + it->second << std::endl;
-            return (1);
-        }
+        { std::cout << "Not A valid Port " + it->second << std::endl; return (1);}
     }
     it = tmp.host.begin();
     if (isAgoodValue1(it->second))
-    {
-        std::cout << "Not A valid Host " + it->second << std::endl;
-        return (1);
-    }
+    { std::cout << "Not A valid Host " + it->second << std::endl; return (1);}
     it = tmp.serverName.begin();
     if (isAgoodValue1(it->second))
-    {
-        std::cout << "Not A valid ServerName " + it->second << std::endl;
-        return (1);
-    }
+    { std::cout << "Not A valid ServerName " + it->second << std::endl; return (1); }
     it = tmp.limitClientBody.begin();
     if (isAgoodValue1(it->second))
-    {
-        std::cout << "Not A valid LimitClientBody " + it->second << std::endl;
-        return (1);
-    }
+    { std::cout << "Not A valid LimitClientBody " + it->second << std::endl; return (1); }
     for (size_t i = 0; i < it->second.size(); i++)
     {
         if (!isdigit(it->second[i]))
@@ -105,9 +90,17 @@ int     valueCheck(informations &tmp)
     }
     it = tmp.errorPage.begin();
     if (isAgoodValue1(it->second))
+    { std::cout << "Not A valid ErrorPage " + it->second << std::endl; return (1); }
+    for (size_t i = 0; i < tmp.locationsInfo.size(); i++)
     {
-        std::cout << "Not A valid ErrorPage " + it->second << std::endl;
-        return (1);
+        it = tmp.locationsInfo[i].root.begin();
+        if (isAgoodValue1(it->second))
+        { std::cout << "Not A Valid Root " + it->second << std::endl; return (1);}
+        it = tmp.locationsInfo[i].autoindex.begin();
+        if (isAgoodValue1(it->second))
+        { std::cout << "Not A Valid AutoIndex " + it->second << std::endl; return (1);}
+        if (it->second != "on" && it->second != "off")
+        { std::cout << "Not A Valid AutoIndex " + it->second << std::endl; return (1);}
     }
     return (0);
 }

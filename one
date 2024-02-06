@@ -1,13 +1,13 @@
 
 #example how the config file should be like:
 #server1
-server 
+server      
 
 {
 	      listen		1;
 
 	host      zasabri;
-	     server_name       		makalili;  
+	     server_name       		makalili  ;  
 
 	limit_client_body           20;
 	      error_page                 /home/zasabri/Desktop/errors;
@@ -15,7 +15,7 @@ location /test {
 		root	/var/www/html;   #hi 
 		index	index.html index.php;
 			allowed_methodes GET POST DELETE;
-		autoindex on |      off;  
+		autoindex       off;  
 return 301 	www.zasabri.ma;
 					upload	on | off /var/www/html;
 			cgi on | off adress:port;  
@@ -40,10 +40,10 @@ return 303 ysabr.ma;
 			cgi off adress:port;  
 	}   
 	location /nottest {
-		root	/rot;   #efgru 
+		root	/rot ;   #efgru 
 		index	index.back indx.bawn;
 			allowed_methodes  DLETE;
-		autoindex n;  
+		autoindex      off    ;  
 return 30 ysabr.ma;
 					upload	on | off /var/w/html;
 			cgi off adss:port;  
