@@ -13,6 +13,31 @@ servers&servers::operator=(const servers &other)
     return (*this);
 }
 
+int servers::isolateServers(std::string &s)
+{
+    size_t check = s.find("server");
+    if (check != 0)
+    {
+        std::cout << "Problem In The Top Of The File" << std::endl;
+        return (1);
+    }
+    std::string save;
+    for (size_t i = 0; i < s.size(); i++)
+    {
+        int checker = isServer(s, i);
+        if (!checker && i != 0)
+        {
+            this->server.push_back(save);
+            save.clear();
+        }
+        else if (checker == 2) return (1);
+        save.push_back(s[i]);
+    }
+    if (save.size())
+        this->server.push_back(save);
+    return (0);
+}
+
 servers::servers(configFile &cFile)
 {
     std::string buffer;
@@ -59,8 +84,11 @@ servers::servers(configFile &cFile)
     if (this->fillInfos())
         throw BadConetent();
     std::map<int, informations>::iterator it = this->serversInfo.begin();
+
     while (it != this->serversInfo.end())
     {
+        if (valueCheck(it->second))
+            throw BadConetent();
         std::cout << "Server Number " << it->first + 1 << ":" << std::endl;
         std::cout << "About Server:" << std::endl;
         showInfo(it->second);
@@ -75,29 +103,4 @@ servers::servers(configFile &cFile)
     //     std::cout << "Content Number " << i << ":\n"
     //     << this->server[i] << std::endl;
     // }
-}
-
-int servers::isolateServers(std::string &s)
-{
-    size_t check = s.find("server");
-    if (check != 0)
-    {
-        std::cout << "Problem In The Top Of The File" << std::endl;
-        return (1);
-    }
-    std::string save;
-    for (size_t i = 0; i < s.size(); i++)
-    {
-        int checker = isServer(s, i);
-        if (!checker && i != 0)
-        {
-            this->server.push_back(save);
-            save.clear();
-        }
-        else if (checker == 2) return (1);
-        save.push_back(s[i]);
-    }
-    if (save.size())
-        this->server.push_back(save);
-    return (0);
 }
