@@ -87,6 +87,7 @@ class   servers
         int             isolateServers(std::string &s);
         int             fillInfos(void);
         int             serverInfos(int i);
+        std::map<int, informations> &getMap(void);
 };
 
 int         isServer(std::string &s, size_t i);
