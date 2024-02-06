@@ -5,7 +5,6 @@ server
 
 {
 	      listen		1;
-
 	host      zasabri;
 	     server_name       		makalili  ;  
 

@@ -220,7 +220,7 @@ int checkInformations(informations &tmp)
         else if (key == "limit_client_body") tmp.limitClientBody[key] = &tmp.others[i][j];
         else
         {
-            std::cout << "Bad KeyWord " + key << std::endl; 
+            std::cout << "Bad KeyWord In Server Data" + key << std::endl; 
             return (1);
         }
     }
