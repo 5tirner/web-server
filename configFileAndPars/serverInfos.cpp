@@ -1,27 +1,31 @@
 #include "../include/mainHeader.hpp"
 
-// void    showInfo2(informations &tmp)
-// {
-//     std::cout << "For Locations" << std::endl;
-//     // for (size_t i = 0; i < tmp.locationsInfo.size(); i++)
-//     // {
-//     //     std::cout << "Location Number " << i << std::endl;
-//     //     std::cout << "Location - " + tmp.locationsInfo[i].directory << std::endl;
-//     //     std::cout << "root - " + tmp.locationsInfo[i].root << std::endl;
-//     //     std::cout << "index - " + tmp.locationsInfo[i].index << std::endl;
-//     //     std::cout << "methodes - " + tmp.locationsInfo[i].allowed_methodes << std::endl;
-//     //     std::cout << "autoidx - " + tmp.locationsInfo[i].autoindex << std::endl;
-//     //     std::cout << "return - " + tmp.locationsInfo[i].Return << std::endl;
-//     //     std::cout << "upload - " + tmp.locationsInfo[i].upload << std::endl;
-//     //     std::cout << "cgi - " + tmp.locationsInfo[i].cgi << std::endl;
-//     // }
-//     std::cout << "------------------------------------" << std::endl;
-// }
-
+void    showInfo2(informations &tmp)
+{
+    for (size_t i = 0; i < tmp.locationsInfo.size(); i++)
+    {
+        std::cout << "Location Number " << i + 1 << ':' << std::endl;
+        std::map<std::string, std::string>::iterator it
+        = tmp.locationsInfo[i].directory.begin();
+        std::cout << "Location "<< it->first + " - " + it->second << std::endl;
+        it = tmp.locationsInfo[i].root.begin();
+        std::cout << "Root " << it->first + " - " + it->second << std::endl;
+        it = tmp.locationsInfo[i].index.begin();
+        std::cout << "Index " << it->first + " - " + it->second << std::endl;
+        it = tmp.locationsInfo[i].allowed_methodes.begin();
+        std::cout << "AllowMethodes "<< it->first + " - " + it->second << std::endl;
+        it = tmp.locationsInfo[i].autoindex.begin();
+        std::cout << "AutoIndex " << it->first + " - " + it->second << std::endl;
+        it = tmp.locationsInfo[i].Return.begin();
+        std::cout << "Return "<< it->first + " - " + it->second << std::endl;
+        it = tmp.locationsInfo[i].upload.begin();
+        std::cout << "Upload "<< it->first + " - " + it->second << std::endl;
+        it = tmp.locationsInfo[i].cgi.begin();
+        std::cout << "Cgi " << it->first + " - " + it->second << std::endl;
+    }
+}
 void    showInfo(informations &tmp)
 {
-    //std::cout << "----------------------------------------" << std::endl;
-    //std::cout << "For Server" << std::endl;
     std::map<std::string, std::string>::iterator it = tmp.port.begin();
     std::cout << "Port " << it->first << " - " << it->second << std::endl;
     it = tmp.host.begin();
@@ -34,17 +38,39 @@ void    showInfo(informations &tmp)
     std::cout << "ErrorPage " << it->first << " - " << it->second << std::endl;
 }
 
+void    initialLocation(location &save)
+{
+    save.directory["location"] = "No_Location";
+    save.root["root"] = "No_root";
+    save.index["index"] = "index.html";
+    save.allowed_methodes["allowed_methodes"] = "GET";
+    save.autoindex["autoindex"] = "off";
+    save.Return["return"] = "0";
+    save.upload["upload"] = "off";
+    save.cgi["cgi"] = "off";
+}
+
+void    etatInitial(informations &tmp)
+{
+    tmp.port["listen"] = "No_Port";
+    tmp.host["host"] = "No_Host";
+    tmp.serverName["server_name"] = "defualt";
+    tmp.errorPage["error_page"] = "No_Error_Page";
+    tmp.limitClientBody["limit_client_body"] = "10";
+}
+
 int checkLocations(informations &tmp)
 {
+    std::cout << "I will Check The Location Info" << std::endl;
     for (size_t i = 0; i < tmp.locations.size(); i++)
     {
         std::stringstream input(tmp.locations[i]);
         std::string       buffer;
         location          save;
+        initialLocation(save);
         while (std::getline(input, buffer))
         {
-            std::string key;
-            size_t j = 0;
+            std::string key; size_t j = 0;
             for ( ; j < buffer.size(); j++)
             {
                 if (buffer[j] == ' ' || buffer[j] == '\t')
@@ -56,36 +82,34 @@ int checkLocations(informations &tmp)
                 }
                 key.push_back(buffer[j]);
             }
-            if (key == "location")
-                save.directory[key] = &buffer[j];
-            else if (key != "location"
+            if (key == "location") save.directory[key] = &buffer[j];
+            else if (key != "location" && key != "{"
                 && key != "}" && !strchr(&buffer[j], ';'))
+            {
+                std::cout << "Can't Find ; here " + buffer << std::endl;
                 return (1);
-            else if (key == "root")
-                save.root[key] = &buffer[j];
-            else if (key == "index")
-                save.index[key] = &buffer[j];
-            else if (key == "allowed_methodes")
-                save.allowed_methodes[key] = &buffer[j];
-            else if (key == "autoindex")
-                save.autoindex[key] = &buffer[j];
-            else if (key == "return")
-                save.Return[key] = &buffer[j];
-            else if (key == "upload")
-                save.upload[key] = &buffer[j];
-            else if (key == "cgi")
-                save.cgi[key] = &buffer[j];
-            else if (key != "}")
+            }
+            else if (key == "root") save.root[key] = &buffer[j];
+            else if (key == "index") save.index[key] = &buffer[j];
+            else if (key == "allowed_methodes") save.allowed_methodes[key] = &buffer[j];
+            else if (key == "autoindex") save.autoindex[key] = &buffer[j];
+            else if (key == "return") save.Return[key] = &buffer[j];
+            else if (key == "upload") save.upload[key] = &buffer[j];
+            else if (key == "cgi") save.cgi[key] = &buffer[j];
+            else if (key != "}" && key != "{")
+            {
+                std::cout << "Weird KeyWord " + key << std::endl;
                 return (1);
+            }
         }
         tmp.locationsInfo.push_back(save);
     }
-    //showInfo2(tmp);
     return (0);
 }
+
 int checkInformations(informations &tmp)
 {
-    //std::cout << "Others" << std::endl;
+    std::cout << "I will Check The info" << std::endl;
     for (size_t i = 0; i < tmp.others.size(); i++)
     {
         std::string key;
@@ -102,31 +126,22 @@ int checkInformations(informations &tmp)
             key.push_back(tmp.others[i][j]);
         }
         if (!strchr(&tmp.others[i][j], ';'))
+        {
+            std::cout << "Can't Find ; Here " + tmp.others[i] << std::endl; 
             return (1);
-        if (key == "listen")
-            tmp.port[key] = &tmp.others[i][j];
-        else if (key == "host")
-            tmp.host[key] = &tmp.others[i][j];
-        else if (key == "server_name")
-            tmp.serverName[key] = &tmp.others[i][j];
-        else if (key == "error_page")
-            tmp.errorPage[key] = &tmp.others[i][j];
-        else if (key == "limit_client_body")
-            tmp.limitClientBody[key] = &tmp.others[i][j];
+        }
+        if (key == "listen") tmp.port[key] = &tmp.others[i][j];
+        else if (key == "host") tmp.host[key] = &tmp.others[i][j];
+        else if (key == "server_name") tmp.serverName[key] = &tmp.others[i][j];
+        else if (key == "error_page") tmp.errorPage[key] = &tmp.others[i][j];
+        else if (key == "limit_client_body") tmp.limitClientBody[key] = &tmp.others[i][j];
         else
+        {
+            std::cout << "Bad KeyWord " + key << std::endl; 
             return (1);
+        }
     }
-    //showInfo(tmp);
     return (0);
-}
-
-void    etatInitial(informations &tmp)
-{
-    tmp.port["listen"] = "80";
-    tmp.host["host"] = "localhost";
-    tmp.serverName["server_name"] = "defualt";
-    tmp.errorPage["error_page"] = "/home/zasabri/Desktop/error.txt";
-    tmp.limitClientBody["limit_client_body"] = "10";
 }
 
 int servers::serverInfos(int i)
@@ -139,15 +154,12 @@ int servers::serverInfos(int i)
     std::string buffer;
     while (std::getline(input, buffer))
     {
-        //std::cout << "line= " + buffer << std::endl;
         if (!std::strncmp(buffer.c_str(), "location", 8))
         {
-            //std::cout << "Find Location Word: " + buffer << std::endl; 
             check = 1;
             save += buffer + "\n";
         }
-        else if (check == 0)
-            tmp.others.push_back(buffer);
+        else if (check == 0) tmp.others.push_back(buffer);
         else if (check == 1)
         {
             save += buffer + "\n";
@@ -160,7 +172,10 @@ int servers::serverInfos(int i)
         }
     }
     if (tmp.locations.size() == 0)
+    {
+        std::cout << "No Location Found" << std::endl;
         return (1);
+    }
     //std::cout << "Server Number " << i << " Informations" << std::endl;
     //size_t j = 0;
     //std::cout << "Not Location" << std::endl;
