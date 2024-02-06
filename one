@@ -39,12 +39,12 @@ return 303 ysabr.ma;
 			cgi off adress:port;  
 	}   
 	location /nottesttester {
-		root	/rot ;   #efgru 
-		index	index.back indx.bawn;
-			allowed_methodes  DELETE GET;
-		autoindex      off    ;  
-return 30 ysabr.ma;
-					upload	on | off /var/w/html;
-			cgi off adss:port;  
+		#root	/rot ;   #efgru 
+		#index	index.back indx.bawn;
+			#allowed_methodes  DELETE GET;
+		#autoindex      off    ;  
+#return 30 ysabr.ma;
+	#				upload	on | off /var/w/html;
+	#		cgi off adss:port;  
 	}  
 }  

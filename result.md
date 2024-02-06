@@ -42,11 +42,11 @@ Upload upload - |on | off /var/www/html;|
 Cgi cgi - |off adress:port; |
 Location Number 2:
 Location location - |/nottesttester|
-Root root - |/rot|
-Index index - |index.back indx.bawn;|
-AllowMethodes allowed_methodes - |DELETE GET|
+Root root - |No_root|
+Index index - |index.html|
+AllowMethodes allowed_methodes - |GET|
 AutoIndex autoindex - |off|
-Return return - |30 ysabr.ma;|
-Upload upload - |on | off /var/w/html;|
-Cgi cgi - |off adss:port; |
+Return return - |0|
+Upload upload - |off|
+Cgi cgi - |off|
 ////////////////////////////////////////////////
