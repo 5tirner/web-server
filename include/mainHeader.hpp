@@ -45,8 +45,8 @@ typedef struct routes
     std::map<std::string, std::string>  directory;
     std::map<std::string, std::string>  root;
     std::map<std::string, std::string>  index;
-    std::map<std::string, std::string>  allowed_methodes;
     std::map<std::string, std::string>  autoindex;
+    std::map<std::string, std::string>  allowed_methodes;
     std::map<std::string, std::string>  Return;
     std::map<std::string, std::string>  upload;
     std::map<std::string, std::string>  cgi;
@@ -84,9 +84,10 @@ class   servers
                 return ("Bad Config File Content");
             }
         };
-        int             isolateServers(std::string &s);
-        int             fillInfos(void);
-        int             serverInfos(int i);
+        int                         isolateServers(std::string &s);
+        int                         fillInfos(void);
+        int                         serverInfos(int i);
+        std::map<int, informations> &getMap(void);
 };
 
 int         isServer(std::string &s, size_t i);
@@ -98,7 +99,7 @@ int         checkLocations(informations &tmp);
 void        etatInitial(informations &tmp);
 void        showInfo(informations &tmp);
 void        showInfo2(informations &tmp);
-int         isAgoodValue1(std::string &value);
 int         valueCheck(informations &tmp);
+int         isAgoodValue(std::string &value, char c);
 
 #endif

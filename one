@@ -1,20 +1,20 @@
 
 #example how the config file should be like:
 #server1
-server      
+server     #hello  
 
 {
 	      listen		1;
-
+		listen 20;
 	host      zasabri;
-	     server_name       		makalili  ;  
+	     server_name       		makalili  ;  ;;;; ; ;;  ; ;;;;
 
 	limit_client_body           20;
 	      error_page                 /home/zasabri/Desktop/errors;
-location /test {
+location /test    {
 		root	/var/www/html;   #hi 
 		index	index.html index.php;
-			allowed_methodes GET POST DELETE;
+			allowed_methodes GET    POST  DELETE;
 		autoindex       off;  
 return 301 	www.zasabri.ma;
 					upload	on | off /var/www/html;
@@ -32,20 +32,20 @@ server
 	      error_page                 /home/ysabr/errors;
 location /nottest {
 		root	/root;   #efgru 
-		index	index.black index.brawn;
-			allowed_methodes  DELETE;
+		index	index.black index.brawn ghrefh;
+			allowed_methodes      GET;
 		autoindex on;  
 return 303 ysabr.ma;
 					upload	on | off /var/www/html;
 			cgi off adress:port;  
 	}   
-	location /nottest {
-		root	/rot ;   #efgru 
-		index	index.back indx.bawn;
-			allowed_methodes  DLETE;
-		autoindex      off    ;  
-return 30 ysabr.ma;
-					upload	on | off /var/w/html;
-			cgi off adss:port;  
+	location /nottesttester {
+		#root	/rot ;   #efgru 
+		#index	index.back indx.bawn;
+			#allowed_methodes  DELETE GET;
+		#autoindex      off    ;  
+#return 30 ysabr.ma;
+	#				upload	on | off /var/w/html;
+	#		cgi off adss:port;  
 	}  
 }  

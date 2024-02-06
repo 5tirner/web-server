@@ -1,5 +1,10 @@
 #include "../include/mainHeader.hpp"
 
+std::map<int, informations> &servers::getMap(void)
+{
+    return (this->serversInfo);
+}
+
 servers::servers(void) {}
 
 servers::~servers(void){}
