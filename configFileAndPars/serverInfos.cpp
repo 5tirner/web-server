@@ -38,11 +38,51 @@ void    showInfo(informations &tmp)
     std::cout << "ErrorPage " << it->first << " - " << "|"+it->second+"|" << std::endl;
 }
 
-int     complecatedValues(std::string &value)
+int     complecatedValues(std::string &value, char c)
 {
-    (void)value;
+    //std::cout << "rush -> " + value << std::endl;
+    if (c == 'M')
+    {
+        std::string check;
+        int Post = 0, Get = 0, Delete = 0; 
+        for (size_t i = 0; i < value.size(); i++)
+        {
+            if (value[i] == ' ' || value[i] == '\t')
+            {
+                //std::cout << "---->" << check << std::endl;
+                if (check == "POST") Post++;
+                else if (check == "DELETE") Delete++;
+                else if (check == "GET") Get++;
+                else return (1);
+                if (Post > 1 || Get > 1 || Delete > 1)
+                    return (1);
+                check.clear();
+            }
+            else
+                check.push_back(value[i]);
+        }
+        if (check.size())
+        {
+            if (check == "POST") Post++;
+            else if (check == "DELETE") Delete++;
+            else if (check == "GET") Get++;
+            else return (1);
+            if (Post > 1 || Get > 1 || Delete > 1)
+                return (1);
+        }
+
+    }
+    else if (c == 'I')
+    {
+
+    }
+    else if (c == 'C')
+    {
+
+    }
     return (0);
 }
+
 int     isAgoodValue(std::string &value, char c)
 {
     std::string save;
@@ -67,7 +107,7 @@ int     isAgoodValue(std::string &value, char c)
     }
     else
     {
-        if (complecatedValues(save))
+        if (complecatedValues(save, c))
             return (1);
     }
     value = save;
@@ -117,6 +157,9 @@ int     valueCheck(informations &tmp)
         { std::cout << "Not A Valid AutoIndex " + it->second << std::endl; return (1);}
         if (it->second != "on" && it->second != "off")
         { std::cout << "Not A Valid AutoIndex " + it->second << std::endl; return (1);}
+        it = tmp.locationsInfo[i].allowed_methodes.begin();
+        if (isAgoodValue(it->second, 'M'))
+        { std::cout << "Not A Valid Methodes " + it->second << std::endl; return (1);}
     }
     return (0);
 }
