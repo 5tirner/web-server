@@ -125,7 +125,13 @@ int checkLocations(informations &tmp)
             }
             else if (key == "return") save.Return[key] = &buffer[j];
             else if (key == "upload") save.upload[key] = &buffer[j];
-            else if (key == "cgi") save.cgi[key] = &buffer[j];
+            else if (key == "cgi")
+            {
+                save.cgi[key] = &buffer[j];
+                std::map<std::string, std::string>::iterator it = save.cgi.begin(); 
+                if (multiValues(key, it->second))
+                { std::cout << "Invalid `Methodes` Syntax: " + it->second << std::endl; return (1); }
+            }
             else if (key != "}" && key != "{")
             {
                 std::cout << "Weird KeyWord " + key << std::endl;
@@ -162,6 +168,8 @@ int checkInformations(informations &tmp)
             std::map<std::string, std::string>::iterator it = tmp.port.begin(); 
             if (normalCheck(it->second) || atoi(it->second.c_str()) <= 0)
             { std::cout << "Invalid `Port` Syntax: " + it->second << std::endl; return (1); }
+            //if (isInteger(it->second))
+            //     return (1);
         }
         else if (key == "host")
         {
@@ -169,6 +177,8 @@ int checkInformations(informations &tmp)
             std::map<std::string, std::string>::iterator it = tmp.host.begin(); 
             if (normalCheck(it->second))
             { std::cout << "Invalid `Host` Syntax: " + it->second << std::endl; return (1); }
+            // if (isValidIp4(it->second))
+            //     return (1);
         }
         else if (key == "server_name")
         {
@@ -177,14 +187,16 @@ int checkInformations(informations &tmp)
             if (multiValues(key, it->second))
             { std::cout << "Invalid `ServerName` Syntax: " + it->second << std::endl; return (1); }
         }
-        else if (key == "error_page") tmp.errorPage[key] = &tmp.others[i][j];
         else if (key == "limit_client_body")
         {
             tmp.limitClientBody[key] = &tmp.others[i][j];
             std::map<std::string, std::string>::iterator it = tmp.limitClientBody.begin(); 
             if (normalCheck(it->second) || atoi(it->second.c_str()) <= 0)
             { std::cout << "Invalid `ClienBody` Syntax: " + it->second << std::endl; return (1); }
+            // if (isInteger(it->second))
+            //     return (1);
         }
+        else if (key == "error_page") tmp.errorPage[key] = &tmp.others[i][j];
         else
         { std::cout << "Weird KeyWord " + key << std::endl; return (1); }
     }

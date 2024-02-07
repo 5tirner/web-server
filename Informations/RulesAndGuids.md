@@ -14,18 +14,18 @@
 __________________________________________________________
 
 - syntax :
-# server = server { ... } --> VALID
-# port = listen number --> VALID
-# host = host hotsName --> VALID
-# serverName = server_name name --> VALID
-# ClientBodySize = limit_client_body Number --> VALID
-# errorPage = error_page PATH --> X
+# server = server { ... } --> VALID N
+# port = listen number --> VALID N
+# host = host hotsName --> VALID N
+# serverName = server_name name --> VALID M
+# BodySize = limit_client_body Number --> VALID N
+# errorPage = error_page PATH --> X M
 
-# locations = location /location{} --> VALID
-# root = root /path --> VALID
-# indexs = index .... --> VALID
-# allowedMethodes = allowed_methodes ... --> VALID
-# autoIndex = autoindex off | on --> VALID
-# return = return nbStatus website X
-# upload = upload on | off PATH X
-# cgi = cgi on | off address:port X
+# locations = location /location{} --> VALID N
+# root = root /path --> VALID N
+# indexs = index .... --> VALID M
+# allowedMethodes = allowed_methodes ... --> VALID M
+# autoIndex = autoindex off | on --> VALID N
+# return = return nbStatus website X M
+# upload = upload on | off PATH X M
+# cgi = cgi on | off address:port X M

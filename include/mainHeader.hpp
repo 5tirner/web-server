@@ -50,6 +50,7 @@ typedef struct routes
     std::map<std::string, std::string>  Return;
     std::map<std::string, std::string>  upload;
     std::map<std::string, std::string>  cgi;
+    std::string                         cgiPass;
 }   location;
 
 typedef struct info
