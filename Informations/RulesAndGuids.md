@@ -1,5 +1,5 @@
 - Rules:
-# If U duplicate The keywords an override will be happen
+# If U duplicate The keywords an override will be happen except for error_page
 # don't put a server inside a server locations TOO
 # put the root inside each location
 # put all the indexes inside there locations

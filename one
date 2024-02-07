@@ -7,14 +7,14 @@ server     #hello
 	      listen		1;
 		listen 20;
 	host      zasabri;
-	     server_name       		makalili  ;  ;;;; ; ;;  ; ;;;;
-
-	limit_client_body           20;
-	      error_page                 /home/zasabri/Desktop/errors;
+	     server_name       		makalili ;	            
+	limit_client_body          10;
+	      error_page     301   /home/zasabri/Desktop/errors;
+	      error_page      304  /home/zasabri/Desktop/errorsat;
 location /test    {
 		root	/var/www/html;   #hi 
 		index	index.html index.php;
-			allowed_methodes GET    POST  DELETE;
+			allowed_methodes GET	  POST  DELETE;
 		autoindex       off;  
 return 301 	www.zasabri.ma;
 					upload	on | off /var/www/html;
