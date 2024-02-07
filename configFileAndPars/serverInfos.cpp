@@ -294,7 +294,7 @@ int checkInformations(informations &tmp)
             { std::cout << "Invalid `ClienBody` Syntax: " + it->second << std::endl; return (1); }
         }
         else
-        { std::cout << "Bad KeyWord In Server Data " + key << std::endl; return (1); }
+        { std::cout << "Weird KeyWord " + key << std::endl; return (1); }
     }
     return (0);
 }
