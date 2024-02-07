@@ -51,19 +51,23 @@ int multiValues(std::string &key, std::string &values)
     }
     else if (key == "allowed_methodes")
     {
-
+        if (justMakeItRight(values))
+            return (1);
     }
     else if (key == "cgi")
     {
-
+        if (justMakeItRight(values))
+            return (1);
     }
     else if (key == "return")
     {
-
+        if (justMakeItRight(values))
+            return (1);
     }
     else if (key == "upload")
     {
-
+        if (justMakeItRight(values))
+            return (1);
     }
     return (0);
 }

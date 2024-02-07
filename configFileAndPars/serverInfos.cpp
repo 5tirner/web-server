@@ -224,7 +224,7 @@ int checkLocations(informations &tmp)
             else if (key != "location" && key != "{"
                 && key != "}" && !strchr(&buffer[j], ';'))
             {
-                std::cout << "Can't Find ; here " + buffer << std::endl;
+                std::cout << "Can't Find `;` here " + buffer << std::endl;
                 return (1);
             }
             else if (key == "root")
@@ -281,7 +281,7 @@ int checkInformations(informations &tmp)
             key.push_back(tmp.others[i][j]);
         }
         if (!strchr(&tmp.others[i][j], ';'))
-        { std::cout << "Can't Find ; Here " + tmp.others[i] << std::endl;  return (1); }
+        { std::cout << "Can't Find `;` Here " + tmp.others[i] << std::endl;  return (1); }
         if (key == "listen")
         {
             tmp.port[key] = &tmp.others[i][j];
