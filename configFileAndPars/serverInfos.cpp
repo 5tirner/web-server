@@ -120,7 +120,12 @@ int checkLocations(informations &tmp)
                 if ((normalCheck(it->second)) || (it->second != "on" && it->second != "off"))
                 { std::cout << "Invalid `AutoIndex` Syntax: " + it->second << std::endl; return (1); }
             }
-            else if (key == "return") save.Return[key] = &buffer[j];
+            else if (key == "return")
+            {
+                save.Return[key] = &buffer[j];
+                // if (redirection(save.returnValue, &buffer[j]))
+                //     return (1);
+            }
             else if (key == "upload")
             {
                 save.upload[key] = &buffer[j];

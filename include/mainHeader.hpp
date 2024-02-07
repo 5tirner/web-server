@@ -47,10 +47,10 @@ typedef struct routes
     std::map<std::string, std::string>  index;
     std::map<std::string, std::string>  autoindex;
     std::map<std::string, std::string>  allowed_methodes;
-    std::map<std::string, std::string>  Return;
     std::map<std::string, std::string>  upload;
     std::map<std::string, std::string>  cgi;
-    std::string                         cgiPass;
+    std::map<std::string, std::string>  Return;
+    int                                 returnValue;
 }   location;
 
 typedef struct info
