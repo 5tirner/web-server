@@ -7,11 +7,11 @@ I will Check The info
 I will Check The Location Info
 Server Number 1:
 About Server:
-Port listen - |20;|
-Host host - |zasabri;|
+Port listen - |No_Port|
+Host host - |No_Host|
 ServerName server_name - |makalili ;	|
-LimitClient limit_client_body - |10;|
-ErrorPage error_page - |/home/zasabri/Desktop/errors;|
+LimitClient limit_client_body - |10|
+ErrorPage error_page - |304 /home/zasabri/Desktop/errorsat;|
 About Locations:
 Location Number 1:
 Location location - |/test {|
@@ -25,10 +25,10 @@ Cgi cgi - |on | off adress:port; |
 ////////////////////////////////////////////////
 Server Number 2:
 About Server:
-Port listen - |443; |
-Host host - |ysabr;|
+Port listen - |443|
+Host host - |ysabr|
 ServerName server_name - |sade_manio; |
-LimitClient limit_client_body - |100;|
+LimitClient limit_client_body - |100|
 ErrorPage error_page - |/home/ysabr/errors;|
 About Locations:
 Location Number 1:

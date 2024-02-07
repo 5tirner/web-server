@@ -1,4 +1,5 @@
 - Rules:
+# Except For Server KeyWord And Location KeyWord Don't Put Anything With The Brackets In the Same Line
 # If U duplicate The keywords an override will be happen except for error_page
 # don't put a server inside a server locations TOO
 # put the root inside each location

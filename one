@@ -4,15 +4,15 @@
 server     #hello  
 
 {
-	      listen		1;
+	      listen		1 ;
 		listen 20;
-	host      zasabri;
+	host      /zasabri;
 	     server_name       		makalili ;	            
 	limit_client_body          10;
 	      error_page     301   /home/zasabri/Desktop/errors;
 	      error_page      304  /home/zasabri/Desktop/errorsat;
 location /test    {
-		root	/var/www/html;   #hi 
+		root	/var/www/html  	 ; 		  #hi 
 		index	index.html index.php;
 			allowed_methodes GET	  POST  DELETE;
 		autoindex       off;  

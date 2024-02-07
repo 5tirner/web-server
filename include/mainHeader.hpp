@@ -99,6 +99,7 @@ int         checkLocations(informations &tmp);
 void        etatInitial(informations &tmp);
 void        showInfo(informations &tmp);
 void        showInfo2(informations &tmp);
+int         normalCheck(std::string &value);
 // int         valueCheck(informations &tmp);
 // int         isAgoodValue(std::string &value, char c);
 

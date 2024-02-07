@@ -221,7 +221,13 @@ int checkLocations(informations &tmp)
                 std::cout << "Can't Find ; here " + buffer << std::endl;
                 return (1);
             }
-            else if (key == "root") save.root[key] = &buffer[j];
+            else if (key == "root")
+            {
+                save.root[key] = &buffer[j];
+                std::map<std::string, std::string>::iterator it = save.root.begin(); 
+                if (normalCheck(it->second))
+                { std::cout << "Invalid `Root` Syntax: " + it->second << std::endl; return (1); }
+            }
             else if (key == "index") save.index[key] = &buffer[j];
             else if (key == "allowed_methodes") save.allowed_methodes[key] = &buffer[j];
             else if (key == "autoindex") save.autoindex[key] = &buffer[j];
@@ -244,8 +250,7 @@ int checkInformations(informations &tmp)
     std::cout << "I will Check The info" << std::endl;
     for (size_t i = 0; i < tmp.others.size(); i++)
     {
-        std::string key;
-        size_t j = 0;
+        std::string key; size_t j = 0;
         for (; j < tmp.others[i].size(); j++)
         {
             if (tmp.others[i][j] == ' ' || tmp.others[i][j] == '\t')
@@ -258,20 +263,32 @@ int checkInformations(informations &tmp)
             key.push_back(tmp.others[i][j]);
         }
         if (!strchr(&tmp.others[i][j], ';'))
+        { std::cout << "Can't Find ; Here " + tmp.others[i] << std::endl;  return (1); }
+        if (key == "listen")
         {
-            std::cout << "Can't Find ; Here " + tmp.others[i] << std::endl; 
-            return (1);
+            tmp.port[key] = &tmp.others[i][j];
+            std::map<std::string, std::string>::iterator it = tmp.port.begin(); 
+            if (normalCheck(it->second) || atoi(it->second.c_str()) <= 0)
+            { std::cout << "Invalid `Port` Syntax: " + it->second << std::endl; return (1); }
         }
-        if (key == "listen") tmp.port[key] = &tmp.others[i][j];
-        else if (key == "host") tmp.host[key] = &tmp.others[i][j];
+        else if (key == "host")
+        {
+            tmp.host[key] = &tmp.others[i][j];
+            std::map<std::string, std::string>::iterator it = tmp.host.begin(); 
+            if (normalCheck(it->second))
+            { std::cout << "Invalid `Host` Syntax: " + it->second << std::endl; return (1); }
+        }
         else if (key == "server_name") tmp.serverName[key] = &tmp.others[i][j];
         else if (key == "error_page") tmp.errorPage[key] = &tmp.others[i][j];
-        else if (key == "limit_client_body") tmp.limitClientBody[key] = &tmp.others[i][j];
-        else
+        else if (key == "limit_client_body")
         {
-            std::cout << "Bad KeyWord In Server Data " + key << std::endl; 
-            return (1);
+            tmp.limitClientBody[key] = &tmp.others[i][j];
+            std::map<std::string, std::string>::iterator it = tmp.limitClientBody.begin(); 
+            if (normalCheck(it->second) || atoi(it->second.c_str()) <= 0)
+            { std::cout << "Invalid `ClienBody` Syntax: " + it->second << std::endl; return (1); }
         }
+        else
+        { std::cout << "Bad KeyWord In Server Data " + key << std::endl; return (1); }
     }
     return (0);
 }
