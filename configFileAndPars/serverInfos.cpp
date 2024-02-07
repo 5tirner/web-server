@@ -40,7 +40,7 @@ void    initialLocation(location &save)
 {
     save.directory["location"] = "No_Location";
     save.root["root"] = "No_root";
-    save.index["index"] = "index.html";
+    save.index["index"] = "No_thing";
     save.allowed_methodes["allowed_methodes"] = "GET";
     save.autoindex["autoindex"] = "off";
     save.Return["return"] = "0";
@@ -50,8 +50,8 @@ void    initialLocation(location &save)
 
 void    etatInitial(informations &tmp)
 {
-    tmp.port["listen"] = "No_Port";
-    tmp.host["host"] = "No_Host";
+    tmp.port["listen"] = "1025";
+    tmp.host["host"] = "127.0.0.1";
     tmp.serverName["server_name"] = "defualt";
     tmp.limitClientBody["limit_client_body"] = "10";
 }
