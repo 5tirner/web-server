@@ -97,6 +97,8 @@ int cgiAndUploadSyntax(std::string &values)
         while ((i < values.size()) && (values[i] == ' ' || values[i] == '\t'))
             i++;
         values = &values[i];
+        if (values.size() == 0)
+            return (1);
     }
     else if (save == "off")
         values = "off";

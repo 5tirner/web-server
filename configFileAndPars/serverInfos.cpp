@@ -34,8 +34,6 @@ void    showInfo(informations &tmp)
     std::cout << "ServerName " << it->first << " - " << "|"+it->second+"|" << std::endl;
     it = tmp.limitClientBody.begin();
     std::cout << "LimitClient " << it->first << " - " << "|"+it->second+"|" << std::endl;
-    it = tmp.errorPage.begin();
-    std::cout << "ErrorPage " << it->first << " - " << "|"+it->second+"|" << std::endl;
 }
 
 void    initialLocation(location &save)
@@ -55,7 +53,6 @@ void    etatInitial(informations &tmp)
     tmp.port["listen"] = "No_Port";
     tmp.host["host"] = "No_Host";
     tmp.serverName["server_name"] = "defualt";
-    tmp.errorPage["error_page"] = "No_Error_Page";
     tmp.limitClientBody["limit_client_body"] = "10";
 }
 
@@ -202,7 +199,9 @@ int checkInformations(informations &tmp)
             // if (isInteger(it->second))
             //     return (1);
         }
-        else if (key == "error_page") tmp.errorPage[key] = &tmp.others[i][j];
+        else if (key == "error_page")
+        {
+        }
         else
         { std::cout << "Weird KeyWord " + key << std::endl; return (1); }
     }

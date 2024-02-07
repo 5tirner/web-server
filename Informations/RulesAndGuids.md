@@ -27,5 +27,5 @@ __________________________________________________________
 # allowedMethodes = allowed_methodes ... --> VALID M
 # autoIndex = autoindex off | on --> VALID N
 # return = return nbStatus website X M
-# upload = upload on | off PATH X M
-# cgi = cgi on | off address:port X M
+# upload = upload on | off PATH --> VALID M
+# cgi = cgi on | off address:port --> VALID M

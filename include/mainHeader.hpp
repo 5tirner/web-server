@@ -56,12 +56,12 @@ typedef struct routes
 typedef struct info
 {
     //others
-    std::vector<std::string>            others;
-    std::map<std::string, std::string>  limitClientBody;
-    std::map<std::string, std::string>  port;
-    std::map<std::string, std::string>  host;
-    std::map<std::string, std::string>  serverName;
-    std::map<std::string, std::string>  errorPage;
+    std::vector<std::string>                 others;
+    std::map<std::string, std::string>       limitClientBody;
+    std::map<std::string, std::string>       port;
+    std::map<std::string, std::string>       host;
+    std::map<std::string, std::string>       serverName;
+    std::map<int, std::vector<std::string> > error_page;
     //locations
     std::vector<std::string>            locations;
     std::vector<location>               locationsInfo;
