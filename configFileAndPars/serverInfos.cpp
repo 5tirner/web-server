@@ -214,7 +214,13 @@ int checkLocations(informations &tmp)
                 }
                 key.push_back(buffer[j]);
             }
-            if (key == "location") save.directory[key] = &buffer[j];
+            if (key == "location")
+            {
+                save.directory[key] = &buffer[j];
+                std::map<std::string, std::string>::iterator it = save.directory.begin(); 
+                if (normalCheck(it->second) || it->second == "{")
+                { std::cout << "Invalid `Location` Syntax: " + it->second << std::endl; return (1); }
+            }
             else if (key != "location" && key != "{"
                 && key != "}" && !strchr(&buffer[j], ';'))
             {
