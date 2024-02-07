@@ -18,13 +18,14 @@ __________________________________________________________
 # port = listen number --> VALID
 # host = host hotsName --> VALID
 # serverName = server_name name --> VALID
-# LimitClientBodySize = limit_client_body Number --> VALID
+# ClientBodySize = limit_client_body Number --> VALID
 # errorPage = error_page PATH --> X
+
 # locations = location /location{} --> VALID
 # root = root /path --> VALID
-# autoIndex = autoindex off | on --> VALID
-# allowedMethodes = allowed_methodes ... --> VALID
 # indexs = index .... --> VALID
+# allowedMethodes = allowed_methodes ... --> VALID
+# autoIndex = autoindex off | on --> VALID
 # return = return nbStatus website X
 # upload = upload on | off PATH X
 # cgi = cgi on | off address:port X
