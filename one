@@ -14,7 +14,7 @@ server     #hello
 location   / {
 		root	/var/www/html  	 ; 		  #hi 
 		index	index.html index.php index.py; 
-			allowed_methodes GET	  POST  DELETE;
+			allowed_methodes GET;
 		autoindex       on;  
 return 301 	www.zasabri.ma;
 					upload	on | off /var/www/html;
@@ -33,7 +33,7 @@ server
 location /nottest {
 		root	/root;   #efgru 
 		index	index.black index.brawn ghrefh;
-			allowed_methodes      GET;
+			allowed_methodes      GET POST;
 		autoindex on;  
 return 303 ysabr.ma;
 					upload	on | off /var/www/html;

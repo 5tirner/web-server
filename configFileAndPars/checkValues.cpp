@@ -22,6 +22,38 @@ int normalCheck(std::string &value)
     return (0);
 }
 
+int     methodesSyntax(std::string &value)
+{
+    std::string check;
+    int Post = 0, Get = 0, Delete = 0; 
+    for (size_t i = 0; i < value.size(); i++)
+    {
+        if (value[i] == ' ' || value[i] == '\t')
+        {
+            //std::cout << "---->" << check << std::endl;
+            if (check == "POST") Post++;
+            else if (check == "DELETE") Delete++;
+            else if (check == "GET") Get++;
+            else return (1);
+            if (Post > 1 || Get > 1 || Delete > 1)
+                return (1);
+            check.clear();
+        }
+        else
+            check.push_back(value[i]);
+    }
+    if (check.size())
+    {
+        if (check == "POST") Post++;
+        else if (check == "DELETE") Delete++;
+        else if (check == "GET") Get++;
+        else return (1);
+        if (Post > 1 || Get > 1 || Delete > 1)
+            return (1);
+    }
+    return (0);
+}
+
 int    justMakeItRight(std::string &values)
 {
     size_t i = 0, j = values.size() - 1;
@@ -51,7 +83,7 @@ int multiValues(std::string &key, std::string &values)
     }
     else if (key == "allowed_methodes")
     {
-        if (justMakeItRight(values))
+        if (justMakeItRight(values) || methodesSyntax(values))
             return (1);
     }
     else if (key == "cgi")

@@ -241,7 +241,13 @@ int checkLocations(informations &tmp)
                 if (multiValues(key, it->second))
                 { std::cout << "Invalid `Index` Syntax: " + it->second << std::endl; return (1); }
             }
-            else if (key == "allowed_methodes") save.allowed_methodes[key] = &buffer[j];
+            else if (key == "allowed_methodes")
+            {
+                save.allowed_methodes[key] = &buffer[j];
+                std::map<std::string, std::string>::iterator it = save.allowed_methodes.begin(); 
+                if (multiValues(key, it->second))
+                { std::cout << "Invalid `Methodes` Syntax: " + it->second << std::endl; return (1); }
+            }
             else if (key == "autoindex")
             {
                 save.autoindex[key] = &buffer[j];
