@@ -74,6 +74,36 @@ int    justMakeItRight(std::string &values)
     return (0);
 }
 
+int cgiAndUploadSyntax(std::string &values)
+{
+    std::string save;
+    size_t i = 0;
+    int check = 0;
+    for (; i < values.size(); i++)
+    {
+        if ((i != 0) && (values[i] != ' ' && values[i] != '\t'))
+        {
+            if (values[i - 1] == ' ' || values[i - 1] == '\t')
+                check++;
+        }
+    }
+    if (check > 1)
+        return (1);
+    i = 0;
+    for(; (i < values.size()) && (values[i] != ' ' && values[i] != '\t'); i++)
+        save.push_back(values[i]);
+    if (save == "on")
+    {
+        while ((i < values.size()) && (values[i] == ' ' || values[i] == '\t'))
+            i++;
+        values = &values[i];
+    }
+    else if (save == "off")
+        values = "off";
+    else
+        return (1);
+    return (0);
+}
 int multiValues(std::string &key, std::string &values)
 {
     if (key == "index" || key == "server_name")
@@ -88,15 +118,15 @@ int multiValues(std::string &key, std::string &values)
     }
     else if (key == "cgi")
     {
-        if (justMakeItRight(values))
-            return (1);
-    }
-    else if (key == "return")
-    {
-        if (justMakeItRight(values))
+        if (justMakeItRight(values) || cgiAndUploadSyntax(values))
             return (1);
     }
     else if (key == "upload")
+    {
+        if (justMakeItRight(values) || cgiAndUploadSyntax(values))
+            return (1);
+    }
+    else if (key == "return")
     {
         if (justMakeItRight(values))
             return (1);

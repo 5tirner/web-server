@@ -17,8 +17,8 @@ location   / {
 			allowed_methodes GET;
 		autoindex       on;  
 return 301 	www.zasabri.ma;
-					upload	on | off /var/www/html;
-			cgi on | off adress:port;  
+					upload	on  /var/www/html;
+			cgi off	 		adress:port;  
 	}   
 }        
 #server2
@@ -36,8 +36,8 @@ location /nottest {
 			allowed_methodes      GET POST;
 		autoindex on;  
 return 303 ysabr.ma;
-					upload	on | off /var/www/html;
-			cgi off adress:port;  
+					upload	  off /var/www/html;
+			cgi off adress:port 	; 
 	}   
 	location /nottesttester {
 		#root	/rot ;   #efgru 

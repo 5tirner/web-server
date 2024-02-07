@@ -124,13 +124,19 @@ int checkLocations(informations &tmp)
                 { std::cout << "Invalid `AutoIndex` Syntax: " + it->second << std::endl; return (1); }
             }
             else if (key == "return") save.Return[key] = &buffer[j];
-            else if (key == "upload") save.upload[key] = &buffer[j];
+            else if (key == "upload")
+            {
+                save.upload[key] = &buffer[j];
+                std::map<std::string, std::string>::iterator it = save.upload.begin(); 
+                if (multiValues(key, it->second))
+                { std::cout << "Invalid `Upload` Syntax: " + it->second << std::endl; return (1); }
+            }
             else if (key == "cgi")
             {
                 save.cgi[key] = &buffer[j];
                 std::map<std::string, std::string>::iterator it = save.cgi.begin(); 
                 if (multiValues(key, it->second))
-                { std::cout << "Invalid `Methodes` Syntax: " + it->second << std::endl; return (1); }
+                { std::cout << "Invalid `Cgi` Syntax: " + it->second << std::endl; return (1); }
             }
             else if (key != "}" && key != "{")
             {
