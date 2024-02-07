@@ -234,7 +234,13 @@ int checkLocations(informations &tmp)
                 if (normalCheck(it->second))
                 { std::cout << "Invalid `Root` Syntax: " + it->second << std::endl; return (1); }
             }
-            else if (key == "index") save.index[key] = &buffer[j];
+            else if (key == "index")
+            {
+                save.index[key] = &buffer[j];
+                std::map<std::string, std::string>::iterator it = save.index.begin(); 
+                if (multiValues(key, it->second))
+                { std::cout << "Invalid `Index` Syntax: " + it->second << std::endl; return (1); }
+            }
             else if (key == "allowed_methodes") save.allowed_methodes[key] = &buffer[j];
             else if (key == "autoindex")
             {
