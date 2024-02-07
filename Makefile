@@ -3,6 +3,7 @@ SRCS	= main.cpp\
 		./configFileAndPars/openFile.cpp\
 		./configFileAndPars/selectServers.cpp\
 		./configFileAndPars/serverInfos.cpp\
+		./configFileAndPars/checkValues.cpp\
 		./methods/get.cpp\
 		./methods/post.cpp\
 		./methods/delete.cpp\

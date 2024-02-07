@@ -50,17 +50,18 @@ typedef struct routes
     std::map<std::string, std::string>  Return;
     std::map<std::string, std::string>  upload;
     std::map<std::string, std::string>  cgi;
+    std::string                         cgiPass;
 }   location;
 
 typedef struct info
 {
     //others
-    std::vector<std::string>            others;
-    std::map<std::string, std::string>  limitClientBody;
-    std::map<std::string, std::string>  port;
-    std::map<std::string, std::string>  host;
-    std::map<std::string, std::string>  serverName;
-    std::map<std::string, std::string>  errorPage;
+    std::vector<std::string>                 others;
+    std::map<std::string, std::string>       limitClientBody;
+    std::map<std::string, std::string>       port;
+    std::map<std::string, std::string>       host;
+    std::map<std::string, std::string>       serverName;
+    std::map<int, std::vector<std::string> > error_page;
     //locations
     std::vector<std::string>            locations;
     std::vector<location>               locationsInfo;
@@ -99,7 +100,9 @@ int         checkLocations(informations &tmp);
 void        etatInitial(informations &tmp);
 void        showInfo(informations &tmp);
 void        showInfo2(informations &tmp);
-int         valueCheck(informations &tmp);
-int         isAgoodValue(std::string &value, char c);
+int         normalCheck(std::string &value);
+int         multiValues(std::string &key, std::string &values);
+// int         valueCheck(informations &tmp);
+// int         isAgoodValue(std::string &value, char c);
 
 #endif

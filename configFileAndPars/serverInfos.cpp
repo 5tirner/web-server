@@ -34,140 +34,6 @@ void    showInfo(informations &tmp)
     std::cout << "ServerName " << it->first << " - " << "|"+it->second+"|" << std::endl;
     it = tmp.limitClientBody.begin();
     std::cout << "LimitClient " << it->first << " - " << "|"+it->second+"|" << std::endl;
-    it = tmp.errorPage.begin();
-    std::cout << "ErrorPage " << it->first << " - " << "|"+it->second+"|" << std::endl;
-}
-
-int     complecatedValues(std::string &value, char c)
-{
-    //std::cout << "rush -> " + value << std::endl;
-    if (c == 'M')
-    {
-        std::string check;
-        int Post = 0, Get = 0, Delete = 0; 
-        for (size_t i = 0; i < value.size(); i++)
-        {
-            if (value[i] == ' ' || value[i] == '\t')
-            {
-                //std::cout << "---->" << check << std::endl;
-                if (check == "POST") Post++;
-                else if (check == "DELETE") Delete++;
-                else if (check == "GET") Get++;
-                else return (1);
-                if (Post > 1 || Get > 1 || Delete > 1)
-                    return (1);
-                check.clear();
-            }
-            else
-                check.push_back(value[i]);
-        }
-        if (check.size())
-        {
-            if (check == "POST") Post++;
-            else if (check == "DELETE") Delete++;
-            else if (check == "GET") Get++;
-            else return (1);
-            if (Post > 1 || Get > 1 || Delete > 1)
-                return (1);
-        }
-
-    }
-    else if (c == 'C')
-    {
-
-    }
-    else if (c == 'U')
-    {
-
-    }
-    else if (c == 'R')
-    {
-
-    }
-    return (0);
-}
-
-int     isAgoodValue(std::string &value, char c)
-{
-    std::string save;
-    size_t i = 0, j = value.size() - 1;
-    while ((i < value.size()) && (value[i] == ' ' || value[i] == '\t'))
-        i++;
-    while ((j) && (value[j] == ' ' || value[j] == '\t'
-            || value[j] == '\n' || value[j] == ';' || value[j] == '{'))
-        j--;
-    while (i <= j)
-    {
-        save.push_back(value[i]);
-        i++;
-    }
-    //std::cout << value + " Become " + save << std::endl;
-    if (save.size() == 0 || save == ";")
-        return (1);
-    if (c == 'N')
-    {
-        if (strchr(save.c_str(), ' ') || strchr(save.c_str(), '\t' ))
-            return (1);
-    }
-    else
-    {
-        if (complecatedValues(save, c))
-            return (1);
-    }
-    value = save;
-    return (0);
-}
-
-int     valueCheck(informations &tmp)
-{
-    std::map<std::string, std::string>::iterator it = tmp.port.begin();
-    if (isAgoodValue(it->second, 'N') || atoi(it->second.c_str()) <= 0)
-    { std::cout << "Not A valid Port " + it->second << std::endl; return (1);}
-    for (size_t i = 0; i < it->second.size(); i++)
-    {
-        if (!isdigit(it->second[i]))
-        { std::cout << "Not A valid Port " + it->second << std::endl; return (1);}
-    }
-    it = tmp.host.begin();
-    if (isAgoodValue(it->second, 'N'))
-    { std::cout << "Not A valid Host " + it->second << std::endl; return (1);}
-    it = tmp.serverName.begin();
-    if (isAgoodValue(it->second, 'N'))
-    { std::cout << "Not A valid ServerName " + it->second << std::endl; return (1); }
-    it = tmp.limitClientBody.begin();
-    if (isAgoodValue(it->second, 'N'))
-    { std::cout << "Not A valid LimitClientBody " + it->second << std::endl; return (1); }
-    for (size_t i = 0; i < it->second.size(); i++)
-    {
-        if (!isdigit(it->second[i]))
-        {
-            std::cout << "Not A valid Port " + it->second << std::endl;
-            return (1);
-        }
-    }
-    it = tmp.errorPage.begin();
-    if (isAgoodValue(it->second, 'N'))
-    { std::cout << "Not A valid ErrorPage " + it->second << std::endl; return (1); }
-    for (size_t i = 0; i < tmp.locationsInfo.size(); i++)
-    {
-        it = tmp.locationsInfo[i].directory.begin();
-        if (isAgoodValue(it->second, 'N'))
-        { std::cout << "Not A Valid Location " + it->second << std::endl; return (1);}
-        it = tmp.locationsInfo[i].root.begin();
-        if (isAgoodValue(it->second, 'N'))
-        { std::cout << "Not A Valid Root " + it->second << std::endl; return (1);}
-        it = tmp.locationsInfo[i].autoindex.begin();
-        if (isAgoodValue(it->second, 'N'))
-        { std::cout << "Not A Valid AutoIndex " + it->second << std::endl; return (1);}
-        if (it->second != "on" && it->second != "off")
-        { std::cout << "Not A Valid AutoIndex " + it->second << std::endl; return (1);}
-        it = tmp.locationsInfo[i].allowed_methodes.begin();
-        if (isAgoodValue(it->second, 'M'))
-        { std::cout << "Not A Valid Methodes " + it->second << std::endl; return (1);}
-        if (isAgoodValue(it->second, 'I'))
-        { std::cout << "Not A Valid Indexes " + it->second << std::endl; return (1); }
-    }
-    return (0);
 }
 
 void    initialLocation(location &save)
@@ -187,7 +53,6 @@ void    etatInitial(informations &tmp)
     tmp.port["listen"] = "No_Port";
     tmp.host["host"] = "No_Host";
     tmp.serverName["server_name"] = "defualt";
-    tmp.errorPage["error_page"] = "No_Error_Page";
     tmp.limitClientBody["limit_client_body"] = "10";
 }
 
@@ -214,20 +79,62 @@ int checkLocations(informations &tmp)
                 }
                 key.push_back(buffer[j]);
             }
-            if (key == "location") save.directory[key] = &buffer[j];
+            if (key == "location")
+            {
+                save.directory[key] = &buffer[j];
+                std::map<std::string, std::string>::iterator it = save.directory.begin(); 
+                if (normalCheck(it->second) || it->second == "{")
+                { std::cout << "Invalid `Location` Syntax: " + it->second << std::endl; return (1); }
+            }
             else if (key != "location" && key != "{"
                 && key != "}" && !strchr(&buffer[j], ';'))
             {
-                std::cout << "Can't Find ; here " + buffer << std::endl;
+                std::cout << "Can't Find `;` here " + buffer << std::endl;
                 return (1);
             }
-            else if (key == "root") save.root[key] = &buffer[j];
-            else if (key == "index") save.index[key] = &buffer[j];
-            else if (key == "allowed_methodes") save.allowed_methodes[key] = &buffer[j];
-            else if (key == "autoindex") save.autoindex[key] = &buffer[j];
+            else if (key == "root")
+            {
+                save.root[key] = &buffer[j];
+                std::map<std::string, std::string>::iterator it = save.root.begin(); 
+                if (normalCheck(it->second))
+                { std::cout << "Invalid `Root` Syntax: " + it->second << std::endl; return (1); }
+            }
+            else if (key == "index")
+            {
+                save.index[key] = &buffer[j];
+                std::map<std::string, std::string>::iterator it = save.index.begin(); 
+                if (multiValues(key, it->second))
+                { std::cout << "Invalid `Index` Syntax: " + it->second << std::endl; return (1); }
+            }
+            else if (key == "allowed_methodes")
+            {
+                save.allowed_methodes[key] = &buffer[j];
+                std::map<std::string, std::string>::iterator it = save.allowed_methodes.begin(); 
+                if (multiValues(key, it->second))
+                { std::cout << "Invalid `Methodes` Syntax: " + it->second << std::endl; return (1); }
+            }
+            else if (key == "autoindex")
+            {
+                save.autoindex[key] = &buffer[j];
+                std::map<std::string, std::string>::iterator it = save.autoindex.begin(); 
+                if ((normalCheck(it->second)) || (it->second != "on" && it->second != "off"))
+                { std::cout << "Invalid `AutoIndex` Syntax: " + it->second << std::endl; return (1); }
+            }
             else if (key == "return") save.Return[key] = &buffer[j];
-            else if (key == "upload") save.upload[key] = &buffer[j];
-            else if (key == "cgi") save.cgi[key] = &buffer[j];
+            else if (key == "upload")
+            {
+                save.upload[key] = &buffer[j];
+                std::map<std::string, std::string>::iterator it = save.upload.begin(); 
+                if (multiValues(key, it->second))
+                { std::cout << "Invalid `Upload` Syntax: " + it->second << std::endl; return (1); }
+            }
+            else if (key == "cgi")
+            {
+                save.cgi[key] = &buffer[j];
+                std::map<std::string, std::string>::iterator it = save.cgi.begin(); 
+                if (multiValues(key, it->second))
+                { std::cout << "Invalid `Cgi` Syntax: " + it->second << std::endl; return (1); }
+            }
             else if (key != "}" && key != "{")
             {
                 std::cout << "Weird KeyWord " + key << std::endl;
@@ -244,8 +151,7 @@ int checkInformations(informations &tmp)
     std::cout << "I will Check The info" << std::endl;
     for (size_t i = 0; i < tmp.others.size(); i++)
     {
-        std::string key;
-        size_t j = 0;
+        std::string key; size_t j = 0;
         for (; j < tmp.others[i].size(); j++)
         {
             if (tmp.others[i][j] == ' ' || tmp.others[i][j] == '\t')
@@ -258,20 +164,46 @@ int checkInformations(informations &tmp)
             key.push_back(tmp.others[i][j]);
         }
         if (!strchr(&tmp.others[i][j], ';'))
+        { std::cout << "Can't Find `;` Here " + tmp.others[i] << std::endl;  return (1); }
+        if (key == "listen")
         {
-            std::cout << "Can't Find ; Here " + tmp.others[i] << std::endl; 
-            return (1);
+            tmp.port[key] = &tmp.others[i][j];
+            std::map<std::string, std::string>::iterator it = tmp.port.begin(); 
+            if (normalCheck(it->second) || atoi(it->second.c_str()) <= 0)
+            { std::cout << "Invalid `Port` Syntax: " + it->second << std::endl; return (1); }
+            //if (isInteger(it->second))
+            //     return (1);
         }
-        if (key == "listen") tmp.port[key] = &tmp.others[i][j];
-        else if (key == "host") tmp.host[key] = &tmp.others[i][j];
-        else if (key == "server_name") tmp.serverName[key] = &tmp.others[i][j];
-        else if (key == "error_page") tmp.errorPage[key] = &tmp.others[i][j];
-        else if (key == "limit_client_body") tmp.limitClientBody[key] = &tmp.others[i][j];
+        else if (key == "host")
+        {
+            tmp.host[key] = &tmp.others[i][j];
+            std::map<std::string, std::string>::iterator it = tmp.host.begin(); 
+            if (normalCheck(it->second))
+            { std::cout << "Invalid `Host` Syntax: " + it->second << std::endl; return (1); }
+            // if (isValidIp4(it->second))
+            //     return (1);
+        }
+        else if (key == "server_name")
+        {
+            tmp.serverName[key] = &tmp.others[i][j];
+            std::map<std::string, std::string>::iterator it = tmp.serverName.begin(); 
+            if (multiValues(key, it->second))
+            { std::cout << "Invalid `ServerName` Syntax: " + it->second << std::endl; return (1); }
+        }
+        else if (key == "limit_client_body")
+        {
+            tmp.limitClientBody[key] = &tmp.others[i][j];
+            std::map<std::string, std::string>::iterator it = tmp.limitClientBody.begin(); 
+            if (normalCheck(it->second) || atoi(it->second.c_str()) <= 0)
+            { std::cout << "Invalid `ClienBody` Syntax: " + it->second << std::endl; return (1); }
+            // if (isInteger(it->second))
+            //     return (1);
+        }
+        else if (key == "error_page")
+        {
+        }
         else
-        {
-            std::cout << "Bad KeyWord In Server Data" + key << std::endl; 
-            return (1);
-        }
+        { std::cout << "Weird KeyWord " + key << std::endl; return (1); }
     }
     return (0);
 }
