@@ -4,11 +4,10 @@
 server     #hello  
 
 {
-	      listen		1;
-		listen 20;
+	      listen		65535;
 	host      zasabri;
 	     server_name hi by say tay;     ;;; 			            
-	limit_client_body          10;
+	limit_client_body          1;
 	      error_page     301   /home/zasabri/Desktop/errors;
 	      error_page      304  /home/zasabri/Desktop/errorsat;
 location   / {

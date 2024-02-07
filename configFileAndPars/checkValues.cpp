@@ -106,6 +106,29 @@ int cgiAndUploadSyntax(std::string &values)
         return (1);
     return (0);
 }
+
+int isInteger(std::string &value, char c)
+{
+    if ((c == 'P') && (atoi(value.c_str()) < 1024 || atoi(value.c_str()) > 65535))
+        return (1);
+    else if (c == 'N' && atoi(value.c_str()) <= 0)
+        return (1);
+    for (size_t i = 0; i < value.size(); i++)
+    {
+        if (!isdigit(value[i]))
+            return (1);
+        if (c == 'P' && i > 4)
+            return (1);
+    }
+    return (0);
+}
+
+int isValidIp4(std::string &value)
+{
+    (void)value;
+    return (0);
+}
+
 int multiValues(std::string &key, std::string &values)
 {
     if (key == "index" || key == "server_name")
@@ -135,3 +158,4 @@ int multiValues(std::string &key, std::string &values)
     }
     return (0);
 }
+

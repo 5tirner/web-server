@@ -102,6 +102,8 @@ void        showInfo(informations &tmp);
 void        showInfo2(informations &tmp);
 int         normalCheck(std::string &value);
 int         multiValues(std::string &key, std::string &values);
+int         isInteger(std::string &value, char c);
+int         isValidIp4(std::string &value);
 // int         valueCheck(informations &tmp);
 // int         isAgoodValue(std::string &value, char c);
 

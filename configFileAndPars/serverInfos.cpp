@@ -174,10 +174,8 @@ int checkInformations(informations &tmp)
         {
             tmp.port[key] = &tmp.others[i][j];
             std::map<std::string, std::string>::iterator it = tmp.port.begin(); 
-            if (normalCheck(it->second) || atoi(it->second.c_str()) <= 0)
+            if (normalCheck(it->second) || isInteger(it->second, 'P'))
             { std::cout << "Invalid `Port` Syntax: " + it->second << std::endl; return (1); }
-            //if (isInteger(it->second))
-            //     return (1);
         }
         else if (key == "host")
         {
@@ -199,10 +197,8 @@ int checkInformations(informations &tmp)
         {
             tmp.limitClientBody[key] = &tmp.others[i][j];
             std::map<std::string, std::string>::iterator it = tmp.limitClientBody.begin(); 
-            if (normalCheck(it->second) || atoi(it->second.c_str()) <= 0)
+            if (normalCheck(it->second) || isInteger(it->second, 'N'))
             { std::cout << "Invalid `ClienBody` Syntax: " + it->second << std::endl; return (1); }
-            // if (isInteger(it->second))
-            //     return (1);
         }
         else if (key == "error_page")
         {
