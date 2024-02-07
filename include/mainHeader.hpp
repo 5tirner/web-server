@@ -100,6 +100,7 @@ void        etatInitial(informations &tmp);
 void        showInfo(informations &tmp);
 void        showInfo2(informations &tmp);
 int         normalCheck(std::string &value);
+int         multiValues(std::string &key, std::string &values);
 // int         valueCheck(informations &tmp);
 // int         isAgoodValue(std::string &value, char c);
 

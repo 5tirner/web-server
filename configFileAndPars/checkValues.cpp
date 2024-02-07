@@ -21,3 +21,49 @@ int normalCheck(std::string &value)
     value = save;
     return (0);
 }
+
+int    justMakeItRight(std::string &values)
+{
+    size_t i = 0, j = values.size() - 1;
+    std::string save;
+    while ((i < values.size()) && (values[i] == ' ' || values[i] == '\t'))
+        i++;
+    while ((j > 0) && (values[j] == ' ' || values[j] == '\t'
+            || values[j] == ';' || values[j] == '\n'))
+            j--;
+    while (i <= j)
+    {
+        save.push_back(values[i]);
+        i++;
+    }
+    if (save == ";" || save.size() == 0)
+        return (1);
+    values = save;
+    return (0);
+}
+
+int multiValues(std::string &key, std::string &values)
+{
+    if (key == "index" || key == "server_name")
+    {
+        if (justMakeItRight(values))
+            return (1);
+    }
+    else if (key == "allowed_methodes")
+    {
+
+    }
+    else if (key == "cgi")
+    {
+
+    }
+    else if (key == "return")
+    {
+
+    }
+    else if (key == "upload")
+    {
+
+    }
+    return (0);
+}

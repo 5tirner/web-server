@@ -290,7 +290,13 @@ int checkInformations(informations &tmp)
             if (normalCheck(it->second))
             { std::cout << "Invalid `Host` Syntax: " + it->second << std::endl; return (1); }
         }
-        else if (key == "server_name") tmp.serverName[key] = &tmp.others[i][j];
+        else if (key == "server_name")
+        {
+            tmp.serverName[key] = &tmp.others[i][j];
+            std::map<std::string, std::string>::iterator it = tmp.serverName.begin(); 
+            if (multiValues(key, it->second))
+            { std::cout << "Invalid `ServerName` Syntax: " + it->second << std::endl; return (1); }
+        }
         else if (key == "error_page") tmp.errorPage[key] = &tmp.others[i][j];
         else if (key == "limit_client_body")
         {
