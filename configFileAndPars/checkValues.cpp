@@ -125,7 +125,33 @@ int isInteger(std::string &value, char c)
 
 int isValidIp4(std::string &value)
 {
-    (void)value;
+    std::string save;
+    int point = 0;
+    for (size_t i = 0; i < value.size(); i++)
+    {
+        if (value[i] == '.')
+        {
+            point++;
+            if (point > 2)
+                return (1);
+            if (save.size() > 3 || atoi(save.c_str()) > 255)
+                return (1);
+            if (save.size() > 1 && save[0] == '0')
+                return (1);
+            save.clear();
+        }
+        else if (!isdigit(value[i]))
+            return (1);
+        else
+            save.push_back(value[i]);
+    }
+    if (save.size())
+    {
+        if (save.size() > 3 || atoi(save.c_str()) > 255)
+                return (1);
+        if (save.size() > 1 && save[0] == '0')
+                return (1);
+    }
     return (0);
 }
 

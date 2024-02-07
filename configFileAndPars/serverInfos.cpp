@@ -181,10 +181,8 @@ int checkInformations(informations &tmp)
         {
             tmp.host[key] = &tmp.others[i][j];
             std::map<std::string, std::string>::iterator it = tmp.host.begin(); 
-            if (normalCheck(it->second))
+            if (normalCheck(it->second) || isValidIp4(it->second))
             { std::cout << "Invalid `Host` Syntax: " + it->second << std::endl; return (1); }
-            // if (isValidIp4(it->second))
-            //     return (1);
         }
         else if (key == "server_name")
         {
