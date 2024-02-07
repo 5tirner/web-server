@@ -1,4 +1,5 @@
 - Rules:
+# Fisrt: We Used Atoi To Convert Our NumberString So Make Some Logical Values For The Keys
 # Except For Server KeyWord And Location KeyWord Don't Put Anything With The Brackets In the Same Line
 # If U duplicate The keywords an override will be happen except for error_page
 # don't put a server inside a server locations TOO
@@ -8,7 +9,6 @@
 # LimitClientBodySize with megabytes
 # don't write two lines in one
 # feel free to do comments
-# lowercase syntax please
 # every line inside the server should end with ; except for locations
 
 __________________________________________________________

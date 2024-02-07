@@ -15,7 +15,7 @@ location /test    {
 		root	/var/www/html  	 ; 		  #hi 
 		index	index.html index.php;
 			allowed_methodes GET	  POST  DELETE;
-		autoindex       off;  
+		autoindex       on;  
 return 301 	www.zasabri.ma;
 					upload	on | off /var/www/html;
 			cgi on | off adress:port;  

@@ -230,7 +230,13 @@ int checkLocations(informations &tmp)
             }
             else if (key == "index") save.index[key] = &buffer[j];
             else if (key == "allowed_methodes") save.allowed_methodes[key] = &buffer[j];
-            else if (key == "autoindex") save.autoindex[key] = &buffer[j];
+            else if (key == "autoindex")
+            {
+                save.autoindex[key] = &buffer[j];
+                std::map<std::string, std::string>::iterator it = save.autoindex.begin(); 
+                if ((normalCheck(it->second)) || (it->second != "on" && it->second != "off"))
+                { std::cout << "Invalid `AutoIndex` Syntax: " + it->second << std::endl; return (1); }
+            }
             else if (key == "return") save.Return[key] = &buffer[j];
             else if (key == "upload") save.upload[key] = &buffer[j];
             else if (key == "cgi") save.cgi[key] = &buffer[j];
