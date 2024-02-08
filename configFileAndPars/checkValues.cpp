@@ -2,11 +2,12 @@
 
 int normalCheck(std::string &value)
 {
+
     std::string save;
     size_t i = 0, j = value.size() - 1;
     while ((i < value.size()) && (value[i] == ' ' || value[i] == '\t'))
         i++;
-    while ((j) && (value[j] == ' ' || value[j] == '\t'
+    while ((j > 0) && (value[j] == ' ' || value[j] == '\t'
             || value[j] == '\n' || value[j] == ';' || value[j] == '{'))
         j--;
     while (i <= j)
