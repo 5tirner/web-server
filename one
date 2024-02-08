@@ -5,7 +5,7 @@ server     #hello
 
 {
 	      listen		65535;
-	host      1.1.0;
+	host      1.1.111.111;
 	     server_name hi by say tay;     ;;; 			            
 	limit_client_body          1;
 	      error_page     301   /home/zasabri/Desktop/errors;

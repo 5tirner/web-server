@@ -136,7 +136,7 @@ int isValidIp4(std::string &value)
             if (save.size() == 0)
                 return (1);
             point++;
-            if (point > 2)
+            if (point > 3)
                 return (1);
             if (save.size() > 3 || atoi(save.c_str()) > 255)
                 return (1);
@@ -158,6 +158,8 @@ int isValidIp4(std::string &value)
         if (save.size() > 1 && save[0] == '0')
                 return (1);
     }
+    if (point != 3)
+        return (1);
     return (0);
 }
 
