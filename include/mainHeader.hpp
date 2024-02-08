@@ -47,10 +47,10 @@ typedef struct routes
     std::map<std::string, std::string>  index;
     std::map<std::string, std::string>  autoindex;
     std::map<std::string, std::string>  allowed_methodes;
-    std::map<std::string, std::string>  Return;
     std::map<std::string, std::string>  upload;
     std::map<std::string, std::string>  cgi;
-    std::string                         cgiPass;
+    std::map<std::string, std::string>  Return;
+    int                                 returnValue;
 }   location;
 
 typedef struct info
@@ -102,6 +102,8 @@ void        showInfo(informations &tmp);
 void        showInfo2(informations &tmp);
 int         normalCheck(std::string &value);
 int         multiValues(std::string &key, std::string &values);
+int         isInteger(std::string &value, char c);
+int         isValidIp4(std::string &value);
 // int         valueCheck(informations &tmp);
 // int         isAgoodValue(std::string &value, char c);
 

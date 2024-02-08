@@ -40,7 +40,7 @@ void    initialLocation(location &save)
 {
     save.directory["location"] = "No_Location";
     save.root["root"] = "No_root";
-    save.index["index"] = "index.html";
+    save.index["index"] = "No_thing";
     save.allowed_methodes["allowed_methodes"] = "GET";
     save.autoindex["autoindex"] = "off";
     save.Return["return"] = "0";
@@ -50,8 +50,8 @@ void    initialLocation(location &save)
 
 void    etatInitial(informations &tmp)
 {
-    tmp.port["listen"] = "No_Port";
-    tmp.host["host"] = "No_Host";
+    tmp.port["listen"] = "1025";
+    tmp.host["host"] = "127.0.0.1";
     tmp.serverName["server_name"] = "defualt";
     tmp.limitClientBody["limit_client_body"] = "10";
 }
@@ -120,7 +120,12 @@ int checkLocations(informations &tmp)
                 if ((normalCheck(it->second)) || (it->second != "on" && it->second != "off"))
                 { std::cout << "Invalid `AutoIndex` Syntax: " + it->second << std::endl; return (1); }
             }
-            else if (key == "return") save.Return[key] = &buffer[j];
+            else if (key == "return")
+            {
+                save.Return[key] = &buffer[j];
+                // if (redirection(save.returnValue, &buffer[j]))
+                //     return (1);
+            }
             else if (key == "upload")
             {
                 save.upload[key] = &buffer[j];
@@ -169,19 +174,15 @@ int checkInformations(informations &tmp)
         {
             tmp.port[key] = &tmp.others[i][j];
             std::map<std::string, std::string>::iterator it = tmp.port.begin(); 
-            if (normalCheck(it->second) || atoi(it->second.c_str()) <= 0)
+            if (normalCheck(it->second) || isInteger(it->second, 'P'))
             { std::cout << "Invalid `Port` Syntax: " + it->second << std::endl; return (1); }
-            //if (isInteger(it->second))
-            //     return (1);
         }
         else if (key == "host")
         {
             tmp.host[key] = &tmp.others[i][j];
             std::map<std::string, std::string>::iterator it = tmp.host.begin(); 
-            if (normalCheck(it->second))
+            if (normalCheck(it->second) || isValidIp4(it->second))
             { std::cout << "Invalid `Host` Syntax: " + it->second << std::endl; return (1); }
-            // if (isValidIp4(it->second))
-            //     return (1);
         }
         else if (key == "server_name")
         {
@@ -194,10 +195,8 @@ int checkInformations(informations &tmp)
         {
             tmp.limitClientBody[key] = &tmp.others[i][j];
             std::map<std::string, std::string>::iterator it = tmp.limitClientBody.begin(); 
-            if (normalCheck(it->second) || atoi(it->second.c_str()) <= 0)
+            if (normalCheck(it->second) || isInteger(it->second, 'N'))
             { std::cout << "Invalid `ClienBody` Syntax: " + it->second << std::endl; return (1); }
-            // if (isInteger(it->second))
-            //     return (1);
         }
         else if (key == "error_page")
         {
