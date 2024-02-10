@@ -92,8 +92,6 @@ servers::servers(configFile &cFile)
 
     while (it != this->serversInfo.end())
     {
-        // if (valueCheck(it->second))
-        //     throw BadConetent();
         std::cout << "Server Number " << it->first + 1 << ":" << std::endl;
         std::cout << "About Server:" << std::endl;
         showInfo(it->second);
