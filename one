@@ -4,11 +4,16 @@ server     #hello
 
 {
 	      listen		65535;
+<<<<<<< HEAD
 	host      1.1.0;
 	     server_name hi by say tay;     ;;;
 
 
 
+=======
+	host      1.1.111.111;
+	     server_name hi by say tay;     ;;; 			            
+>>>>>>> 105c9a5f842da83bf807bd28c99916ae97bb5b1b
 	limit_client_body          1;
 	      error_page     301   /home/zasabri/Desktop/errors;
 

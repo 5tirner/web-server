@@ -78,6 +78,7 @@ class   servers
         servers(const servers &other);
         servers&operator=(const servers &other);
         ~servers(void);
+        informations getServerInfo(int index);
         class   BadConetent : public std::exception
         {
             const char *what() const throw()

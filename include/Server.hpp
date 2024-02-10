@@ -14,6 +14,7 @@
 #include <fstream>
 #include <sys/time.h>
 #include <fcntl.h>
+#include "mainHeader.hpp"
 
 #define MAX_CLIENTS 30
 class HTTPRequest
@@ -35,18 +36,32 @@ class HTTPRequest
     std::string getFullRequest() const;
 };
 
+
 class Server
 {
     private:
         int sockfd;
         int client_socket[MAX_CLIENTS];
         std::map<int, HTTPRequest> requests;
+        informations serverConfig;
     public:
         Server();
-        int createSocet();
+        Server(informations config);
+        int createSocket();
         void bindSocket(int port, std::string& ip);
         void listenToSocket();
         void handleConnections();
+        void handleRequestGET( int clientSocket,  HTTPRequest& request,  informations& serverConfig);
+        void handleRequestPOST(int clientSocket,  HTTPRequest& request);   
+        void handleRequestDELETE(int clientSocket,  HTTPRequest& request,  informations& serverConfig);  
+        std::string readFileContent(const std::string& filePath);
+        std::string getMimeType(std::string& filePath);
+        bool fileExists(std::string& filePath);
+        std::string mapUriToFilePath( std::string& uri, location& routeConfig);
+        location findRouteConfig(std::string& uri, informations& serverConfig);
+        void sendErrorResponse(int clientSocket, int errorCode,const std::string& errorMessage);
+        void setConfig(const informations& config);
+
 };
 
 

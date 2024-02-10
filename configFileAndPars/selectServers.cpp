@@ -17,7 +17,12 @@ servers&servers::operator=(const servers &other)
         this->server[i] = other.server[i];
     return (*this);
 }
-
+informations servers::getServerInfo(int index)
+{
+    if (serversInfo.find(index) != serversInfo.end())
+        return serversInfo[index];
+    throw std::runtime_error("Server configuration not found for index: " + std::to_string(index));
+}
 int servers::isolateServers(std::string &s)
 {
     size_t check = s.find("server");
@@ -88,18 +93,17 @@ servers::servers(configFile &cFile)
     std::cout << "I will Fill Infos" << std::endl;
     if (this->fillInfos())
         throw BadConetent();
-    std::map<int, informations>::iterator it = this->serversInfo.begin();
-
-    while (it != this->serversInfo.end())
-    {
-        std::cout << "Server Number " << it->first + 1 << ":" << std::endl;
-        std::cout << "About Server:" << std::endl;
-        showInfo(it->second);
-        std::cout << "About Locations:" << std::endl;
-        showInfo2(it->second);
-        std::cout << "////////////////////////////////////////////////" << std::endl;
-        it++;
-    }
+    // std::map<int, informations>::iterator it = this->serversInfo.begin();
+    // while (it != this->serversInfo.end())
+    // {
+    //     std::cout << "Server Number " << it->first + 1 << ":" << std::endl;
+    //     std::cout << "About Server:" << std::endl;
+    //     showInfo(it->second);
+    //     std::cout << "About Locations:" << std::endl;
+    //     showInfo2(it->second);
+    //     std::cout << "////////////////////////////////////////////////" << std::endl;
+    //     it++;
+    // }
     // std::cout << "--------------------------------------------" << std::endl;
     // for (size_t i = 0; i < this->server.size(); i++)
     // {
