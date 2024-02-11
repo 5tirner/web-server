@@ -1,19 +1,7 @@
 #include "./include/mainHeader.hpp"
 
-int main(int ac, char **av)
+void showmeConfigthings(std::map<int, informations> &general)
 {
-    std::map<int, informations> general;
-    try
-    {
-        configFile cFile(ac, av);
-        servers    start(cFile);
-        general = start.getMap();
-    }
-    catch (std::exception &e)
-    {
-        std::cerr << e.what() << std::endl;
-        return (1);
-    }
     std::map<int, informations>::iterator it = general.begin();
     while (it != general.end())
     {
@@ -24,5 +12,20 @@ int main(int ac, char **av)
         showInfo2(it->second);
         std::cout << "////////////////////////////////////////////////" << std::endl;
         it++;
+    }
+}
+int main(int ac, char **av)
+{
+    try
+    {
+        configFile cFile(ac, av);
+        servers    start(cFile);
+        //showmeConfigthings(start.getMap());
+        connection doMuluplexing(start.getMap());
+    }
+    catch (std::exception &e)
+    {
+        std::cerr << e.what() << std::endl;
+        return (1);
     }
 }

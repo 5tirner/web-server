@@ -4,14 +4,14 @@
 server     #hello  
 
 {
-	      listen		65535;
-	host      1.1.111.111;
+	      #listen		65535;
+	#host      1.1.111.111;
 	     server_name hi by say tay;     ;;; 			            
 	limit_client_body          1;
 	      error_page     301   /home/zasabri/Desktop/errors;
 	      error_page      304  /home/zasabri/Desktop/errorsat;
-location   / {
-		root	/var/www/html  	 ; 		  #hi 
+location   ../ {
+		root	../ 	 ; 		  #hi 
 		index	index.html index.php index.py; 
 			allowed_methodes GET;
 		autoindex       on  	    ;  

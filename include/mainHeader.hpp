@@ -11,6 +11,10 @@
 # include <cstring>
 # include <cstdlib>
 # include <sstream>
+#include <asm-generic/socket.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <netinet/in.h>
 
 class   configFile
 {
@@ -89,6 +93,18 @@ class   servers
         int                         fillInfos(void);
         int                         serverInfos(int i);
         std::map<int, informations> &getMap(void);
+};
+
+class   connection
+{
+    private:
+        std::map<int, informations> configData;
+    public:
+        connection();
+        connection(const connection &other);
+        connection(std::map<int, informations> &infos);
+        connection&operator=(const connection &other);
+        ~connection();
 };
 
 int         isServer(std::string &s, size_t i);

@@ -4,6 +4,7 @@ SRCS	= main.cpp\
 		./configFileAndPars/selectServers.cpp\
 		./configFileAndPars/serverInfos.cpp\
 		./configFileAndPars/checkValues.cpp\
+		./multuplexing/endPointConnection.cpp\
 		./methods/get.cpp\
 		./methods/post.cpp\
 		./methods/delete.cpp\
