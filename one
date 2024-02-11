@@ -3,6 +3,7 @@
 server     #hello  
 
 {
+<<<<<<< HEAD
 	      listen		65535;
 <<<<<<< HEAD
 	host      1.1.0;
@@ -12,6 +13,10 @@ server     #hello
 
 =======
 	host      1.1.111.111;
+=======
+	      #listen		65535;
+	#host      1.1.111.111;
+>>>>>>> b0be3a55e3b129bdf9d3286bdc61025d5bd86684
 	     server_name hi by say tay;     ;;; 			            
 >>>>>>> 105c9a5f842da83bf807bd28c99916ae97bb5b1b
 	limit_client_body          1;
@@ -19,11 +24,16 @@ server     #hello
 
 
 	      error_page      304  /home/zasabri/Desktop/errorsat;
+<<<<<<< HEAD
 location   / {
 		root	/var/www/html  	 ; 		  #hi 
 
 
 
+=======
+location   ../ {
+		root	../ 	 ; 		  #hi 
+>>>>>>> b0be3a55e3b129bdf9d3286bdc61025d5bd86684
 		index	index.html index.php index.py; 
 			allowed_methodes GET;
 											autoindex       on  	   					     ;  
