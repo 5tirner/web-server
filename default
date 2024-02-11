@@ -1,80 +1,24 @@
-# If U duplicate The keywords an override will be happen
-# don't put a server inside a server
-# put the root inside each location
-     # put all the indexes inside there locations
-		   # one error page for each server
-#LimitClientBodySize with megabytes
-
-    # don't write two lines in one
-     #   feel free to do comments
-# lowercase syntax please
-#syntax :
-# server = server { }
-# port = listen number
-# host = host hotsName
-# serverName = serverName name
-# LimitClientBodySize = LimitClientBodySize Number
-# errorPage = errorPage PATH
-# locations = location /location{}
-# indexs = index ....
-# root = root /path
-
-server 
-
-
-
-
-
-
-
-		{#test;
-	LimitClientBodySize                     1;   #test
-	listen 80;;;;;
-	host localhost;
-	server_name _;#;;;;;;
-	location / {
-		allowed_methods POST GET DELETE;
-	}
-	location /test
-	{
-	    root /var/www/html;
-	    
-	    index index.html index.htm index.nginx-debian.html;
-	}
+server  {
+    listen       8080 ;       
+    
+    
+    
+    server_name _;
+    location /
+    {
+        root /var/www/html;
+        index index.html;
+    }
 }
-#hello
 
+server          {
+        listen 8880;
 
+        server_name _;
+        location /test
+        {
+            root /var/www/html;
 
-
-server           {
-	listen 80;
-	server_name _;
-	 
-	 test0
-	location / {
-		try_files $uri $uri/ =404;
-	}
-	location /test
-	{
-	    root /var/www/html;
-	    
-	    index index.html index.htm index.nginx-debian.html;
-	}
-
-
-
-					}
-#bad
-server   	
-{
-	listen 80;
-	server_name _;
-	location /test
-	{
-	    root /var/www/html;
-	    
-	    index index.html index.htm index.nginx-debian.html;
-	}
+            index index.html index.htm index.nginx-debian.html;
+        }
 }
-#end

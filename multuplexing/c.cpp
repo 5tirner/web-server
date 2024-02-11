@@ -3,6 +3,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <iostream>
+#include <sys/socket.h>
 #include <netinet/in.h>
 int main()
 {
@@ -56,6 +57,8 @@ int main()
                             else
                                 if (write(1, c, val) == -1)
                                     return (1);
+                            const char* response = "HTTP/1.1 200 OK\r\nContent-Type:  + getMimeType(filePath) + \r\nContent-Length:  + std::to_string(fileContent.size()) + \r\n\r\n";
+                            send(clientsock, response, strlen(response), 0);
                         }
                     }
                     if (close(clientsock) == -1)

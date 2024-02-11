@@ -14,9 +14,25 @@
 #include <fstream>
 #include <sys/time.h>
 #include <fcntl.h>
+
 #include "mainHeader.hpp"
 
 #define MAX_CLIENTS 30
+
+
+struct FormDataPart
+{
+    std::map<std::string, std::string> headers;
+    std::string body;
+};
+
+struct MultipartFormData
+{
+    std::vector<FormDataPart> parts;
+};
+
+typedef std::map<std::string, std::string> JsonData;
+
 class HTTPRequest
 {
     public:
@@ -48,14 +64,14 @@ class Server
         Server();
         Server(informations config);
         int createSocket();
-        void bindSocket(int port, std::string& ip);
+        void bindSocket(int port, const std::string& ip);
         void listenToSocket();
         void handleConnections();
+        std::string readFileContent(const std::string& filePath);
         void handleRequestGET( int clientSocket,  HTTPRequest& request,  informations& serverConfig);
+        std::string getMimeType(std::string& filePath);
         void handleRequestPOST(int clientSocket,  HTTPRequest& request);   
         void handleRequestDELETE(int clientSocket,  HTTPRequest& request,  informations& serverConfig);  
-        std::string readFileContent(const std::string& filePath);
-        std::string getMimeType(std::string& filePath);
         bool fileExists(std::string& filePath);
         std::string mapUriToFilePath( std::string& uri, location& routeConfig);
         location findRouteConfig(std::string& uri, informations& serverConfig);
@@ -63,7 +79,6 @@ class Server
         void setConfig(const informations& config);
 
 };
-
 
 
 
