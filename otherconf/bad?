@@ -1,9 +1,10 @@
-server  {
-    listen       8080 ;       
-    host 0.0.0;
+server   {
+    listen       80     ;       
+    
     
     
     server_name _;
+    
     location /test
     {
         root /var/www/html;
@@ -12,12 +13,12 @@ server  {
 }
 
 server          {
-        #listen 80;
+        listen 80;
 
         server_name _;
         location /test
         {
-           root /var/www/html;
+            root /var/www/html;
 
             index index.html index.htm index.nginx-debian.html;
         }

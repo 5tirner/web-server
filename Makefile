@@ -8,9 +8,6 @@ SRCS	= main.cpp\
 		./methods/get.cpp\
 		./methods/post.cpp\
 		./methods/delete.cpp\
-		./Server/Server.cpp\
-		./Server/HTTPRequest.cpp\
-		
 
 OBJS	= $(SRCS:.cpp=.o)
 

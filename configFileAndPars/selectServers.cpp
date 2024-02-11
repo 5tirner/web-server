@@ -17,12 +17,7 @@ servers&servers::operator=(const servers &other)
         this->server[i] = other.server[i];
     return (*this);
 }
-informations servers::getServerInfo(int index)
-{
-    if (serversInfo.find(index) != serversInfo.end())
-        return serversInfo[index];
-    throw std::runtime_error("Server configuration not found for index: " + std::to_string(index));
-}
+
 int servers::isolateServers(std::string &s)
 {
     size_t check = s.find("server");

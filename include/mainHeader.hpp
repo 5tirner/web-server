@@ -11,7 +11,7 @@
 # include <cstring>
 # include <cstdlib>
 # include <sstream>
-// #include <asm-generic/socket.h>
+#include <asm-generic/socket.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <netinet/in.h>
@@ -82,7 +82,6 @@ class   servers
         servers(const servers &other);
         servers&operator=(const servers &other);
         ~servers(void);
-        informations getServerInfo(int index);
         class   BadConetent : public std::exception
         {
             const char *what() const throw()
