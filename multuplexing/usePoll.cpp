@@ -10,7 +10,7 @@ int main()
     struct pollfd check;
     //init check;
     check.fd = 0;
-    check.events = POLLIN;
+    check.events = POLLOUT;
     std::cout << "Waitig For Events..." << std::endl;
     unsigned long timer = 0;
     char *buffer = (char *)malloc(1000);
