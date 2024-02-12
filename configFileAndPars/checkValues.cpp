@@ -3,7 +3,7 @@
 int normalCheck(std::string &value)
 {
     if (value.size() == 0)
-        return (0);
+        return (1);
     std::string save;
     size_t i = 0, j = value.size() - 1;
     while ((i < value.size()) && (value[i] == ' ' || value[i] == '\t'))

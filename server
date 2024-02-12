@@ -1,9 +1,5 @@
 server 		
 
 			{
-				location    	
-				{
-
-				}
 				location ;
 			}	

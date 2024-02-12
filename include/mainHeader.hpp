@@ -78,7 +78,7 @@ class   servers
         std::map<int, informations> serversInfo;
     public:
         servers(void);
-        servers(configFile &cFile);
+        servers(std::fstream &cFile);
         servers(const servers &other);
         servers&operator=(const servers &other);
         ~servers(void);

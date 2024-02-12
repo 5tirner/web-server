@@ -43,12 +43,12 @@ int servers::isolateServers(std::string &s)
     return (0);
 }
 
-servers::servers(configFile &cFile)
+servers::servers(std::fstream &cFile)
 {
     std::string buffer;
     std::string needed;
     std::string all;
-    while (std::getline(cFile.getFile(), buffer))
+    while (std::getline(cFile, buffer))
     {
         buffer.push_back('\n');
         all += buffer;
@@ -78,7 +78,10 @@ servers::servers(configFile &cFile)
     // std::cout << "-------------------------------------------" << std::endl;
     std::cout << "I will Isolate Servers" << std::endl;
     if (this->isolateServers(needed))
+    {
+        cFile.close();
         throw BadConetent();
+    }
     // for (size_t i = 0; i < this->server.size(); i++)
     // {
     //     std::cout << "Server Number " << i << ":\n"
@@ -87,7 +90,10 @@ servers::servers(configFile &cFile)
     //std::cout << "--------------------------------------------" << std::endl;
     std::cout << "I will Fill Infos" << std::endl;
     if (this->fillInfos())
+    {
+        cFile.close();
         throw BadConetent();
+    }
     // std::map<int, informations>::iterator it = this->serversInfo.begin();
     // while (it != this->serversInfo.end())
     // {
@@ -105,4 +111,5 @@ servers::servers(configFile &cFile)
     //     std::cout << "Content Number " << i << ":\n"
     //     << this->server[i] << std::endl;
     // }
+    cFile.close();
 }
