@@ -10,13 +10,13 @@ int main()
     struct pollfd check;
     //init check;
     check.fd = 0;
-    check.events = POLLOUT;
+    check.events = POLLIN;
     std::cout << "Waitig For Events..." << std::endl;
     unsigned long timer = 0;
     char *buffer = (char *)malloc(1000);
     while (1)
     {
-        int nfd = poll(&check, 1, 0);
+        int nfd = poll(&check, 1, 100);
         if (nfd == 1)
         {
             std::cout << "Event Happen In Fd " << nfd << std::endl;
