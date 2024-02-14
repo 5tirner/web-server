@@ -7,16 +7,16 @@
 int main()
 {
     int time;
-    struct pollfd check;
+    struct pollfd *check = new struct pollfd;
     //init check;
-    check.fd = 0;
-    check.events = POLLIN;
+    check->fd = 0;
+    check->events = POLLIN;
     std::cout << "Waitig For Events..." << std::endl;
     unsigned long timer = 0;
     char *buffer = (char *)malloc(1000);
     while (1)
     {
-        int nfd = poll(&check, 1, 100);
+        int nfd = poll(check, 100, 100);
         if (nfd == 1)
         {
             std::cout << "Event Happen In Fd " << nfd << std::endl;

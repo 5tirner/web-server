@@ -77,12 +77,12 @@ int main()
             write(1, buffer, grb);
             std::cout << std::endl;
         }
-        if (write(clientfd, "Welcome\n", std::strlen("Welcome\n")) == -1)
-        {
-            close(clientfd);
-            return (errorsGenerator("Can't Write Into Client Endpoint", serverFD));
-        }
-        sleep(5);
+        // if (write(clientfd, "Welcome\n", std::strlen("Welcome\n")) == -1)
+        // {
+        //     close(clientfd);
+        //     return (errorsGenerator("Can't Write Into Client Endpoint", serverFD));
+        // }
+        //sleep(5);
     }
     std::cout << "Connection Closed From Client Side" << std::endl;
     close(clientfd);
