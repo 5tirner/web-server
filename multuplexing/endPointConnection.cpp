@@ -39,17 +39,17 @@ int main()
     if (serverFD == -1) return (errorsGenerator("Fail To Creat Endpoint For Server", -1));
     std::cout << "Socket Created Successfully With Number: " << serverFD << '.' << std::endl;
     struct sockaddr_in SI;
-    SI.sin_family = AF_INET, SI.sin_port = htons(9000);
+    SI.sin_family = AF_INET, SI.sin_port = htons(8800);
     std::cout << "- Try To Allocate Buffer Space To The Socket " << serverFD << "..." << std::endl;
     int optval = 1;
-    int bufferSpace = setsockopt(serverFD, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
-    if (bufferSpace == -1)
-        return (errorsGenerator("Can't Aloccate Buffer Space For THe Socket", serverFD));
+    // int bufferSpace = setsockopt(serverFD, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+    // if (bufferSpace == -1)
+    //     return (errorsGenerator("Can't Aloccate Buffer Space For The Socket", serverFD));
     std::cout << "Buffer Allocated Successfully." << std::endl;
     std::cout << "- Try To Assigning Name To The Socket " << serverFD << "..." << std::endl;
     int socketName = bind(serverFD, (struct sockaddr *)&SI, sizeof(SI));
     if (socketName == -1)
-        return (errorsGenerator("Can't Assigning Name To THe Socket", serverFD));
+        return (errorsGenerator("Can't Assigning Name To The Socket", serverFD));
     std::cout << "Name Assigned Successfully." << std::endl;
     std::cout << "- Try To Turn Socket " << serverFD << " Into A Passive Socket..." << std::endl; 
     int turnPassive = listen(serverFD, INT32_MAX);
