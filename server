@@ -1,5 +1,16 @@
 server 		
 
 			{
-				location ;
+				location .../
+				{
+
+				}
+				location test
+				{
+					
+				}
+				location test
+				{
+					
+				}
 			}	

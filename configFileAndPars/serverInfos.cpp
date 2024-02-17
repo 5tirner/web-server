@@ -83,7 +83,7 @@ int checkLocations(informations &tmp)
             {
                 save.directory[key] = &buffer[j];
                 std::map<std::string, std::string>::iterator it = save.directory.begin(); 
-                if (normalCheck(it->second) || it->second == "{")
+                if (normalCheck(it->second) || it->second == "{" || (it->second[0] == '.' && (it->second[1] && it->second[1] == '.')))
                 { std::cout << "Invalid `Location` Syntax: " + it->second << std::endl; return (1); }
             }
             else if (key != "location" && key != "{"
