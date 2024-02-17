@@ -67,13 +67,13 @@ int    getClientsReq(std::map<int, std::string> &clientsRequests, int fd, std::v
         {
             clientsRequests[fd] = buffer;
         }
-        std::map<int, std::string>::iterator it = clientsRequests.begin();
-        while (it != clientsRequests.end())
-        {
-            std::cout << "Content Of Client Number: " << it->first << std::endl
-            << it->second;
-            it++;
-        }
+        // std::map<int, std::string>::iterator it = clientsRequests.begin();
+        // while (it != clientsRequests.end())
+        // {
+        //     std::cout << "Content Of Client Number: " << it->first << std::endl
+        //     << it->second;
+        //     it++;
+        // }
     }
     return (0);
 }
@@ -87,6 +87,14 @@ void    watchClient(struct pollfd &monitor, std::vector<int> &clientFds,
         if (getClientsReq(clientsReq, monitor.fd, clientFds, index))
             return ;
         std::cout << "-> Number Of Clinets Now: " << clientFds.size() << std::endl;
+        try
+        {
+            std::cout << "Client Number " << monitor.fd << " Content: " << std::endl << clientsReq.at(monitor.fd) << std::endl;
+        }
+        catch (...)
+        {
+            std::cout << "Client Lefted" << std::endl; 
+        }
     }
     else if (monitor.revents & POLLHUP)
     {
