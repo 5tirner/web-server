@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <iostream>
 #include <netinet/in.h>
+#include <string>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <vector>
@@ -24,6 +25,7 @@ int createServerEndpoit(int *server, struct sockaddr_in *sockInfo)
     if (passiveIt == -1) return (printf("listen Failed\n"));
     return (0);
 }
+
 struct  pollfd  fillMonitor(int fd)
 {
     struct pollfd toFill;
@@ -31,8 +33,99 @@ struct  pollfd  fillMonitor(int fd)
     return (toFill);
 }
 
-void    getClientsReq(std::map<int, std::string> &clientsRequests, int fd)
+int    getClientsReq(std::map<int, std::string> &clientsRequests, int fd, std::vector<int>&clientFds, int index)
 {
+    char buffer[2048];
+    int checker = read(fd, buffer, 2048);
+    if (checker == -1)
+    {
+        std::cerr << "Can't Read From Client Number: " << fd << " Endpoint" << std::endl;  
+        return (1);
+    }
+    else if (checker == 0)
+    {
+        close(fd);
+        std::cout << "Connection Closed By Client Number: " << fd << std::endl;
+        clientFds.erase(clientFds.begin() + index);
+        std::map<int, std::string>::iterator it = clientsRequests.begin();
+        while (it != clientsRequests.end())
+        {
+            if (it->first == fd)
+                break;
+            it++;
+        }
+        clientsRequests.erase(it);
+    }
+    else
+    {
+        buffer[checker] = '\0';
+        try
+        {
+            clientsRequests[fd] = clientsRequests.at(fd) + buffer;
+        }
+        catch (...)
+        {
+            clientsRequests[fd] = buffer;
+        }
+        std::map<int, std::string>::iterator it = clientsRequests.begin();
+        while (it != clientsRequests.end())
+        {
+            std::cout << "Client Number: " << it->first << " - It's Content `" + it->second + "`" << std::endl;
+            it++;
+        }
+    }
+    return (0);
+}
+
+void    watchClient(struct pollfd &monitor, std::vector<int> &clientFds,
+        int index, std::map<int, std::string> &clientsReq)
+{
+    if (monitor.revents & POLLIN)
+    {
+        std::cout << "Some Data Come From Client Number: " << monitor.fd << std::endl;
+        if (getClientsReq(clientsReq, monitor.fd, clientFds, index))
+            return ;
+        std::cout << "-> Number Of Clinets Now: " << clientFds.size() << std::endl;
+    }
+    else if (monitor.revents & POLLHUP)
+    {
+        std::cout << "Client Number " << clientFds[index] << " Has Been Closed" << std::endl;
+        clientFds.erase(clientFds.begin() + index);
+    }
+    else if (monitor.revents & POLLERR)
+    {
+        std::cout << "There Is An Error In Clinet Number" << monitor.fd << std::endl;
+        close(monitor.fd);
+        clientFds.erase(clientFds.begin() + index);
+    }
+}
+
+void    watchServers(int server, struct sockaddr_in sockInfo, struct pollfd monitor,
+                    std::vector<int>&servFds, std::vector<int>&clientFds, int index)
+{
+    if ((monitor.revents & POLLIN))
+    {
+        socklen_t a = 1;
+        int client = accept(server, (struct sockaddr*)&sockInfo, &a);
+        if (client == -1)
+        {
+            std::cerr << "accept Failed" << std::endl;
+            return;
+        }
+        clientFds.push_back(client);
+        std::cout << "Clinet NUmber " << client << " Added Successfully" << std::endl;
+    }
+    else if (monitor.revents & POLLHUP)
+    {
+        std::cout << "Server Number " << servFds[index] << " Has Been Closed" << std::endl;
+        servFds.erase(servFds.begin() + index);
+    }
+    else if (monitor.revents & POLLERR)
+    {
+        std::cout << "There Is An Error In Server NUmber " << monitor.fd << std::endl;
+        close(monitor.fd);
+        servFds.erase(servFds.begin() + index);
+    }
 }
 
 int main()
@@ -41,9 +134,10 @@ int main()
     struct sockaddr_in sockInfo;
     if (createServerEndpoit(&server, &sockInfo) != 0)
         return (1);
-    std::cout << "waiting For Clients" << std::endl;
+    std::cout << "waiting For Clients.." << std::endl;
     std::vector<int> servFds;
     std::vector<int> clientFds;
+    std::map<int, std::string> clinetsReq;
     servFds.push_back(server);
     while (1)
     {
@@ -57,57 +151,18 @@ int main()
             i++;
         }
         int checker = (poll(monitor, (servFds.size() + clientFds.size()), 1000));
-        if (checker == -1)  return (printf("poll Failed\n"));
-        else if (checker == 0)  continue;
+        if (checker == -1)
+            return (printf("poll Failed\n"));
+        else if (checker == 0)
+            continue;
         else
         {
-            // watchTheFds();
             i = 0, j = 0;
             for (; i < clientFds.size(); i++)
-            {
-                if ((monitor[i].revents & POLLIN))
-                {
-                    std::cout << "Some Data Come From Client Number: " << monitor[i].fd << std::endl;
-                    std::cout << "-> Number Of Clinets Now: " << clientFds.size() << std::endl;
-                    for (size_t i = 0; i < clientFds.size(); i++)
-                        std::cout << "C.Number: " << clientFds[i] << std::endl;
-                }
-                else if (monitor[i].revents & POLLHUP)
-                {
-                    std::cout << "Client Number " << monitor[i].fd << " Has Been Closed" << std::endl;
-                    clientFds.erase(clientFds.begin() + i);
-                }
-                else if (monitor[i].revents & POLLERR)
-                {
-                    std::cout << "There Is An Error In Clinet Number" << monitor[i].fd << std::endl;
-                    close(monitor[i].fd);
-                    clientFds.erase(clientFds.begin() + i);
-                }
-            }
+                watchClient(monitor[i], clientFds, i, clinetsReq);
             for (; j < servFds.size(); j++)
             {
-                if ((monitor[i].revents & POLLIN))
-                {
-                    socklen_t a = 1;
-                    int client = accept(server, (struct sockaddr*)&sockInfo, &a);
-                    if (client == -1) return (printf("accept Failed\n"));
-                    clientFds.push_back(client);
-                    std::cout << "Clinet NUmber " << client << " Added Successfully" << std::endl;
-                    std::cout << "-> Number Of Servers Now: " << servFds.size() << std::endl;
-                    for (size_t i = 0; i < servFds.size(); i++)
-                        std::cout << "S.Number: " << servFds[i] << std::endl;
-                }
-                else if (monitor[i].revents & POLLHUP)
-                {
-                    std::cout << "Server Number " << monitor[i].fd << " Has Been Closed" << std::endl;
-                    servFds.erase(servFds.begin() + i);
-                }
-                else if (monitor[i].revents & POLLERR)
-                {
-                    std::cout << "There Is An Error In Server NUmber " << monitor[i].fd << std::endl;
-                    close(monitor[i].fd);
-                    servFds.erase(servFds.begin() + i);
-                }
+                watchServers(server, sockInfo, monitor[i], servFds, clientFds, j);
                 i++;
             }
         }

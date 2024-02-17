@@ -97,8 +97,6 @@ class   servers
 
 class   connection
 {
-    private:
-        std::map<int, informations> configData;
     public:
         connection();
         connection(const connection &other);
