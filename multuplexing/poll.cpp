@@ -70,7 +70,8 @@ int    getClientsReq(std::map<int, std::string> &clientsRequests, int fd, std::v
         std::map<int, std::string>::iterator it = clientsRequests.begin();
         while (it != clientsRequests.end())
         {
-            std::cout << "Client Number: " << it->first << " - It's Content `" + it->second + "`" << std::endl;
+            std::cout << "Content Of Client Number: " << it->first << std::endl
+            << it->second;
             it++;
         }
     }
@@ -113,7 +114,7 @@ void    watchServers(int server, struct sockaddr_in sockInfo, struct pollfd moni
             return;
         }
         clientFds.push_back(client);
-        std::cout << "Clinet NUmber " << client << " Added Successfully" << std::endl;
+        std::cout << "Clinet Number " << client << " Added Successfully" << std::endl;
     }
     else if (monitor.revents & POLLHUP)
     {
