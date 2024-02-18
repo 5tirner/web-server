@@ -1,4 +1,16 @@
 #include "../include/mainHeader.hpp"
+#include <asm-generic/socket.h>
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
+#include <iostream>
+#include <netinet/in.h>
+#include <string>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <vector>
+#include <sys/poll.h>
+#include <map>
 
 connection::connection(void){}
 
@@ -12,63 +24,101 @@ connection &connection::operator=(const connection &other)
 
 connection::~connection(void){}
 
-connection::connection(std::map<int, informations> &configData)
+void errorGenerator(std::string err, int fd)
 {
-    (void)configData;
+    if (fd != -1)
+        close(fd);
+    std::cerr << err << std::endl;
 }
 
-// int main()
-// {
-//     std::cout << "- Try Create Socket..." << std::endl;
-//     int serverFD = socket(AF_INET, SOCK_STREAM, 0);
-//     if (serverFD == -1) return (errorsGenerator("Fail To Creat Endpoint For Server", -1));
-//     std::cout << "Socket Created Successfully With Number: " << serverFD << '.' << std::endl;
-//     struct sockaddr_in SI;
-//     SI.sin_family = AF_INET, SI.sin_port = htons(8800), SI.sin_addr.s_addr = 0;
-//     std::cout << "- Try To Allocate Buffer Space To The Socket " << serverFD << "..." << std::endl;
-//     int optval = 1;
-//     int bufferSpace = setsockopt(serverFD, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
-//     if (bufferSpace == -1)
-//         return (errorsGenerator("Can't Aloccate Buffer Space For The Socket", serverFD));
-//     std::cout << "Buffer Allocated Successfully." << std::endl;
-//     std::cout << "- Try To Assigning Name To The Socket " << serverFD << "..." << std::endl;
-//     int socketName = bind(serverFD, (struct sockaddr *)&SI, sizeof(SI));
-//     if (socketName == -1)
-//         return (errorsGenerator("Can't Assigning Name To The Socket", serverFD));
-//     std::cout << "Name Assigned Successfully." << std::endl;
-//     std::cout << "- Try To Turn Socket " << serverFD << " Into A Passive Socket..." << std::endl; 
-//     int turnPassive = listen(serverFD, INT32_MAX);
-//     if (turnPassive == -1)
-//         return (errorsGenerator("Can't Make THe Socket Passive", serverFD));
-//     std::cout << "Socket Ready To Listening." << std::endl;
-//     socklen_t grb = sizeof(SI);
-//     std::cout << "Waiting For Client..." << std::endl;
-//     int clientfd = accept(serverFD, (struct sockaddr*)&SI, &grb);
-//     if (clientfd == -1)
-//         return (errorsGenerator("Can't Create Endpoint For Client", serverFD));
-//     std::cout << "Client Is Here With The Number " << clientfd << '.' << std::endl;
-//     while (grb != 0)
-//     {
-//         char buffer[100000];
-//         grb = read(clientfd, buffer, 100000);
-//         if (grb == -1)
-//         {
-//             close(clientfd);
-//             return (errorsGenerator("Can't Read From Clinet Endpoint", serverFD));
-//         }
-//         else if (grb)
-//         {
-//             std::cout << "Reading " << grb << " Bytes From Client Side, Here Are These:" << std::endl;
-//             write(1, buffer, grb);
-//         }
-//         // if (write(clientfd, "Welcome\n", std::strlen("Welcome\n")) == -1)
-//         // {
-//         //     close(clientfd);
-//         //     return (errorsGenerator("Can't Write Into Client Endpoint", serverFD));
-//         // }
-//         //sleep(5);
-//     }
-//     std::cout << "Connection Closed From Client Side" << std::endl;
-//     close(clientfd);
-//     close(serverFD);
-// }
+void    connection::serversEndPoint(std::map<int, informations> &info)
+{
+    std::map<int, informations>::iterator it = info.begin();
+    while (it != info.end())
+    {
+        int fd = socket(AF_INET, SOCK_STREAM, 0);
+        if (fd == -1)
+        {
+            errorGenerator("Failed To Create Endpoint", -1);
+            it++;
+            continue;
+        }
+        socklen_t   optval = 1;
+        struct sockaddr_in sockInfo;
+        sockInfo.sin_port = htons(atoi(it->second.port.at("listen").c_str())),
+                                    sockInfo.sin_family = AF_INET, sockInfo.sin_addr.s_addr = 0;
+        int bufferAllocation = setsockopt(fd, SOL_SOCKET,
+                                            SO_REUSEADDR, &optval, sizeof(optval));
+        if (bufferAllocation == -1)
+        {
+            errorGenerator("Can't Allocate Buffer For A Socket", fd);
+            it++;
+            continue;
+        }
+        int AssignName = bind(fd, (struct sockaddr*)&sockInfo, sizeof(sockInfo));
+        if (AssignName == -1)
+        {
+            errorGenerator("Socket Can't Get A Name To Be Defined On The Network", fd);
+            it++;
+            continue;
+        }
+        int listening = listen(fd, 2147483647);
+        if (listening == -1)
+        {
+            errorGenerator("Can't Turn The Socket To Passive One", fd);
+            it++;
+            continue;
+        }
+        this->serversSock[fd] = sockInfo;
+        std::cout << "Socket Raedy To Listening For The Port: " << it->second.port.at("listen") << " With Number: " << fd << std::endl;
+        it++;
+    }
+}
+
+void    connection::checkForEvents(struct pollfd monitor[])
+{
+    int fdsNbr = poll(monitor, this->serversSock.size() + this->clientsSock.size(), 1);
+    if (fdsNbr == -1)
+    {
+        std::cerr << "Poll Failed When Tried To Looking For An event" << std::endl;
+        return ;
+    }
+    else if (fdsNbr != 0)
+    {
+        size_t i = 0;
+        std::map<int, struct sockaddr_in>::iterator it = this->serversSock.begin();
+        while (it != this->serversSock.end())
+        {
+            it++;
+            i++;
+        }
+    }
+}
+
+connection::connection(std::map<int, informations> &configData)
+{
+    this->serversEndPoint(configData);
+    while (1)
+    {
+        struct pollfd monitor[this->serversSock.size() + this->clientsSock.size()];
+        std::map<int, struct sockaddr_in>::iterator it = this->serversSock.begin();
+        size_t i = 0, j = 0;
+        while (it != this->serversSock.end())
+        {
+            monitor[i].events = POLLIN | POLLOUT;
+            monitor[i].fd = it->first; 
+            it++;
+            i++;
+        }
+        while (j < this->clientsSock.size())
+        {
+            monitor[i].events = POLLIN | POLLOUT;
+            monitor[i].fd = this->clientsSock[j];
+            i++;
+            j++;
+        }
+        checkForEvents(monitor);
+        break;
+    }
+}
+

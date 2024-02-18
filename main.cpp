@@ -20,7 +20,7 @@ int main(int ac, char **av)
     {
         configFile cFile(ac, av);
         servers    start(cFile.getFile());
-        showmeConfigthings(start.getMap());
+        //showmeConfigthings(start.getMap());
         connection doMuluplexing(start.getMap());
     }
     catch (std::exception &e)

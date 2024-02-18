@@ -97,12 +97,18 @@ class   servers
 
 class   connection
 {
+    private:
+        std::map<int, struct sockaddr_in> serversSock;
+        std::vector<int>                  clientsSock;
+        std::map<int, std::string>        clientsReq;
     public:
         connection();
         connection(const connection &other);
         connection(std::map<int, informations> &infos);
         connection&operator=(const connection &other);
         ~connection();
+        void    serversEndPoint(std::map<int, informations> &info);
+        void    checkForEvents(struct pollfd monitor[]);
 };
 
 int         isServer(std::string &s, size_t i);

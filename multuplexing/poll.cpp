@@ -89,11 +89,11 @@ void    watchClient(struct pollfd &monitor, std::vector<int> &clientFds,
         std::cout << "-> Number Of Clinets Now: " << clientFds.size() << std::endl;
         try
         {
-            std::cout << "Client Number " << monitor.fd << " Content: " << std::endl << clientsReq.at(monitor.fd) << std::endl;
+            std::cout << "Client Number " << monitor.fd << " Content: " << std::endl << clientsReq.at(monitor.fd);
         }
         catch (...)
         {
-            std::cout << "Client Lefted" << std::endl; 
+            std::cout << "X - Nothing Here" << std::endl; 
         }
     }
     else if (monitor.revents & POLLHUP)
