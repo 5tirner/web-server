@@ -77,7 +77,7 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
 
 void    connection::checkForEvents(struct pollfd monitor[])
 {
-    int fdsNbr = poll(monitor, this->serversSock.size() + this->clientsSock.size(), 1);
+    int fdsNbr = poll(monitor, this->serversSock.size() + this->clientsSock.size(), 100);
     if (fdsNbr == -1)
     {
         std::cerr << "Poll Failed When Tried To Looking For An event" << std::endl;
@@ -86,9 +86,79 @@ void    connection::checkForEvents(struct pollfd monitor[])
     else if (fdsNbr != 0)
     {
         size_t i = 0;
+        std::vector<int>::iterator it1 = this->clientsSock.begin();
+        while (it1 != this->clientsSock.end())
+        {
+            if (monitor[i].revents & POLLHUP)
+            {
+                std::cerr << "Error: The Connection Of The Client Number " << *it1 << std::endl;
+                this->clientsSock.erase(it1);
+            }
+            else if (monitor[i].revents & POLLERR)
+            {
+                std::cerr << "Error: Client Number " << *it1 << " Is Not Good" << std::endl;
+                close(*it1);
+                this->clientsSock.erase(it1);
+            }
+            else
+            {
+                char buffer[2048];
+                std::cout << "Some Data Coming From Client Number " << *it1 << std::endl;
+                int rd = read(*it1, buffer, 2048);
+                if (rd == -1)
+                {
+                    std::cerr << "Error: Can't Raed From Client Number " << *it1 << std::endl;
+                    close(*it1);
+                    this->clientsSock.erase(it1);
+                }
+                else if (rd == 0)
+                {
+                    std::cout << "Clinet Number " << *it1 << " Closed The Connection" << std::endl;
+                    close(*it1);
+                    this->clientsSock.erase(it1);
+                    std::cout << this->clientsSock.size() << " Client Left" << std::endl;
+                }
+                else
+                {
+                    buffer[rd] = 0;
+                    try
+                    {
+                        this->clientsReq[*it1] = clientsReq.at(*it1) + buffer;
+                    }
+                    catch(...)
+                    {
+                        this->clientsReq[*it1] = buffer;
+                    }
+                }
+            }
+            i++;
+        }
         std::map<int, struct sockaddr_in>::iterator it = this->serversSock.begin();
         while (it != this->serversSock.end())
         {
+            if (monitor[i].revents & POLLHUP)
+            {
+                std::cerr << "Server " << monitor[i].fd << " Connection Closed " << std::endl;
+                this->serversSock.erase(it);
+            }
+            else if (monitor[i].revents & POLLERR)
+            {
+                std::cerr << "Error: Server Number " << it->first << " Is Not Good" << std::endl;
+                close(it->first);
+                this->serversSock.erase(it);
+            }
+            else if ((monitor[i].revents & POLLIN) || (monitor[i].revents & POLLOUT))
+            {
+                socklen_t a = 1;
+                int newClient = accept(it->first, (struct sockaddr*)&it->second, &a);
+                if (newClient == -1)
+                    std::cerr << "Error: Accept Failed To Get New Client Endpoint For Server: " << it->first << std::endl;
+                else
+                {
+                    std::cout << "Client Number " << newClient << " Now Is Connected With The Server Number " << it->first << std::endl;
+                    this->clientsSock.push_back(newClient);
+                }
+            }
             it++;
             i++;
         }
@@ -103,13 +173,6 @@ connection::connection(std::map<int, informations> &configData)
         struct pollfd monitor[this->serversSock.size() + this->clientsSock.size()];
         std::map<int, struct sockaddr_in>::iterator it = this->serversSock.begin();
         size_t i = 0, j = 0;
-        while (it != this->serversSock.end())
-        {
-            monitor[i].events = POLLIN | POLLOUT;
-            monitor[i].fd = it->first; 
-            it++;
-            i++;
-        }
         while (j < this->clientsSock.size())
         {
             monitor[i].events = POLLIN | POLLOUT;
@@ -117,8 +180,15 @@ connection::connection(std::map<int, informations> &configData)
             i++;
             j++;
         }
+        while (it != this->serversSock.end())
+        {
+            monitor[i].events = POLLIN | POLLOUT;
+            monitor[i].fd = it->first; 
+            it++;
+            i++;
+        }
         checkForEvents(monitor);
-        break;
+        //break;
     }
 }
 
