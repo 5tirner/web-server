@@ -99,8 +99,8 @@ class   connection
 {
     private:
         std::map<int, struct sockaddr_in> serversSock;
-        std::vector<int>                  clientsSock;
-        std::map<int, std::string>        clientsReq;
+        std::map<int, int>                clientsSock;
+        std::map<int, std::string>        Requests;
     public:
         connection();
         connection(const connection &other);
@@ -108,7 +108,8 @@ class   connection
         connection&operator=(const connection &other);
         ~connection();
         void    serversEndPoint(std::map<int, informations> &info);
-        void    checkForEvents(struct pollfd monitor[]);
+        void    checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it);
+        void    checkServer(struct pollfd &monitor, std::map<int, struct sockaddr_in>::iterator &it);
 };
 
 int         isServer(std::string &s, size_t i);

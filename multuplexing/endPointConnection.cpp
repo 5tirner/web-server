@@ -1,14 +1,12 @@
 #include "../include/mainHeader.hpp"
 #include <asm-generic/socket.h>
 #include <cstddef>
-#include <cstdint>
 #include <cstdio>
 #include <iostream>
 #include <netinet/in.h>
 #include <string>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <vector>
 #include <sys/poll.h>
 #include <map>
 
@@ -40,8 +38,7 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
         if (fd == -1)
         {
             errorGenerator("Failed To Create Endpoint", -1);
-            it++;
-            continue;
+            it++; continue;
         }
         socklen_t   optval = 1;
         struct sockaddr_in sockInfo;
@@ -52,143 +49,147 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
         if (bufferAllocation == -1)
         {
             errorGenerator("Can't Allocate Buffer For A Socket", fd);
-            it++;
-            continue;
+            it++; continue;
         }
         int AssignName = bind(fd, (struct sockaddr*)&sockInfo, sizeof(sockInfo));
         if (AssignName == -1)
         {
             errorGenerator("Socket Can't Get A Name To Be Defined On The Network", fd);
-            it++;
-            continue;
+            it++; continue;
         }
         int listening = listen(fd, 2147483647);
         if (listening == -1)
         {
             errorGenerator("Can't Turn The Socket To Passive One", fd);
-            it++;
-            continue;
+            it++; continue;
         }
         this->serversSock[fd] = sockInfo;
-        std::cout << "Socket Raedy To Listening For The Port: " << it->second.port.at("listen") << " With Number: " << fd << std::endl;
+        std::cout << "Socket Ready To Listening For The Port: " << it->second.port.at("listen") << " With Number: " << fd << std::endl;
         it++;
     }
 }
 
-void    connection::checkForEvents(struct pollfd monitor[])
+void    initializeMonitor(struct pollfd &monitor, int fd)
 {
-    int fdsNbr = poll(monitor, this->serversSock.size() + this->clientsSock.size(), 100);
-    if (fdsNbr == -1)
+    monitor.fd = fd;
+    monitor.events = POLLIN;
+}
+
+void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it)
+{
+    if (monitor.revents & POLLIN)
     {
-        std::cerr << "Poll Failed When Tried To Looking For An event" << std::endl;
-        return ;
-    }
-    else if (fdsNbr != 0)
-    {
-        size_t i = 0;
-        std::vector<int>::iterator it1 = this->clientsSock.begin();
-        while (it1 != this->clientsSock.end())
+        std::cout << "Cleint-Side, An Event Happen Into " << monitor.fd << " Endpoint." << std::endl;
+        char buffer[2048];
+        int rd = read(monitor.fd, buffer, 2048);
+        if (rd == -1)
         {
-            if (monitor[i].revents & POLLHUP)
-            {
-                std::cerr << "Error: The Connection Of The Client Number " << *it1 << std::endl;
-                this->clientsSock.erase(it1);
-            }
-            else if (monitor[i].revents & POLLERR)
-            {
-                std::cerr << "Error: Client Number " << *it1 << " Is Not Good" << std::endl;
-                close(*it1);
-                this->clientsSock.erase(it1);
-            }
-            else
-            {
-                char buffer[2048];
-                std::cout << "Some Data Coming From Client Number " << *it1 << std::endl;
-                int rd = read(*it1, buffer, 2048);
-                if (rd == -1)
-                {
-                    std::cerr << "Error: Can't Raed From Client Number " << *it1 << std::endl;
-                    close(*it1);
-                    this->clientsSock.erase(it1);
-                }
-                else if (rd == 0)
-                {
-                    std::cout << "Clinet Number " << *it1 << " Closed The Connection" << std::endl;
-                    close(*it1);
-                    this->clientsSock.erase(it1);
-                    std::cout << this->clientsSock.size() << " Client Left" << std::endl;
-                }
-                else
-                {
-                    buffer[rd] = 0;
-                    try
-                    {
-                        this->clientsReq[*it1] = clientsReq.at(*it1) + buffer;
-                    }
-                    catch(...)
-                    {
-                        this->clientsReq[*it1] = buffer;
-                    }
-                }
-            }
-            i++;
+            std::cerr << "Error: Failed To Read From " << monitor.fd << " Endpoint." << std::endl;
+            close(monitor.fd);
+            this->clientsSock.erase(it);
         }
-        std::map<int, struct sockaddr_in>::iterator it = this->serversSock.begin();
-        while (it != this->serversSock.end())
+        else if (rd == 0)
         {
-            if (monitor[i].revents & POLLHUP)
+            std::cout << "Warrning: Connection Closed From Client " << monitor.fd << '.' << std::endl;
+            close(monitor.fd);
+            this->clientsSock.erase(it);
+        }
+        else
+        {
+            buffer[rd] = '\0';
+            try
             {
-                std::cerr << "Server " << monitor[i].fd << " Connection Closed " << std::endl;
-                this->serversSock.erase(it);
-            }
-            else if (monitor[i].revents & POLLERR)
+                this->Requests[monitor.fd] = this->Requests.at(monitor.fd) + buffer;
+            } catch (...)
             {
-                std::cerr << "Error: Server Number " << it->first << " Is Not Good" << std::endl;
-                close(it->first);
-                this->serversSock.erase(it);
+                this->Requests[monitor.fd] = buffer;
             }
-            else if ((monitor[i].revents & POLLIN) || (monitor[i].revents & POLLOUT))
-            {
-                socklen_t a = 1;
-                int newClient = accept(it->first, (struct sockaddr*)&it->second, &a);
-                if (newClient == -1)
-                    std::cerr << "Error: Accept Failed To Get New Client Endpoint For Server: " << it->first << std::endl;
-                else
-                {
-                    std::cout << "Client Number " << newClient << " Now Is Connected With The Server Number " << it->first << std::endl;
-                    this->clientsSock.push_back(newClient);
-                }
-            }
-            it++;
-            i++;
+            std::cout << "New Things: " << std::endl << buffer;
         }
     }
+    else if (monitor.revents & POLLHUP)
+    {
+        std::cerr << "Error: Client-Side, Connection Destroyed For " << monitor.fd << " Endpoint." << std::endl;
+        this->clientsSock.erase(it);
+    }
+    else if (monitor.revents & POLLERR)
+    {
+        std::cerr << "Error: Client-Side, Unexpected Error Happen Into " << monitor.fd << " Endpoint." << std::endl;
+        close(monitor.fd);
+        this->clientsSock.erase(it); 
+    }
+}
+
+void    connection::checkServer(struct pollfd &monitor, std::map<int, struct sockaddr_in>::iterator &it)
+{
+    if (monitor.revents & POLLIN)
+    {
+        std::cout << "Server-Side, An event Comming Into " << monitor.fd << " Endpoint." << std::endl;
+        socklen_t   addLen = sizeof(it->second);
+        int newClient = accept(monitor.fd, (struct sockaddr *)&it->second, &addLen);
+        if (newClient == -1)
+            std::cerr << "Error: Filed To Create New EndPoint With Socket " << monitor.fd << std::endl;
+        else
+        {
+            std::cout << "New Client Added To Endpoint " << monitor.fd << " With Number " << newClient << '.' << std::endl;
+            this->clientsSock[newClient] = monitor.fd;
+        }
+    }
+    else if (monitor.revents & POLLHUP)
+        std::cerr << "Error: Server-Side, Connection Destroyed For " << monitor.fd << " Endpoint." << std::endl;
+    else if (monitor.revents & POLLERR)
+        std::cerr << "Error: Server-Side, Unexpected Error Happen Into " << monitor.fd << " Endpoint." << std::endl;
 }
 
 connection::connection(std::map<int, informations> &configData)
 {
     this->serversEndPoint(configData);
+    // std::cout << "Servers Endpoint:" << std::endl; 
+    // while (it != this->serversSock.end())
+    // {
+    //     std::cout << "- Number: " << it->first << " -> It's Struct Info: "
+    //     << it->second.sin_family << "-" << it->second.sin_port << "-" << it->second.sin_addr.s_addr << std::endl;
+    //     it++;
+    // }
     while (1)
     {
         struct pollfd monitor[this->serversSock.size() + this->clientsSock.size()];
+        std::map<int, int>::iterator it1 = this->clientsSock.begin(); 
         std::map<int, struct sockaddr_in>::iterator it = this->serversSock.begin();
-        size_t i = 0, j = 0;
-        while (j < this->clientsSock.size())
+        size_t i = 0;
+        while (it1 != this->clientsSock.end())
         {
-            monitor[i].events = POLLIN | POLLOUT;
-            monitor[i].fd = this->clientsSock[j];
+            initializeMonitor(monitor[i], it1->first);
+            it1++;
             i++;
-            j++;
         }
         while (it != this->serversSock.end())
         {
-            monitor[i].events = POLLIN | POLLOUT;
-            monitor[i].fd = it->first; 
+            initializeMonitor(monitor[i], it->first);
             it++;
             i++;
         }
-        checkForEvents(monitor);
-        //break;
+        int eventChecker = poll(monitor, this->clientsSock.size() + this->serversSock.size(), 1000);
+        if (eventChecker == -1)
+            std::cerr << "Error: Poll Failed To When It's Looking For An Event." << std::endl;
+        else if (eventChecker)
+        {
+            i = 0;
+            it1 = this->clientsSock.begin();
+            while (it1 != this->clientsSock.end())
+            {
+                this->checkClient(monitor[i], it1);
+                it1++;
+                i++;
+            }
+            it = this->serversSock.begin();
+            while (it != this->serversSock.end())
+            {
+                checkServer(monitor[i], it);
+                it++;
+                i++;
+            }
+        }
     }
 }
 
