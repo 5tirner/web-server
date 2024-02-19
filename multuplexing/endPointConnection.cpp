@@ -108,8 +108,9 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 this->Requests.erase(toRemove);
                 std::cout << "Data Deleted." << std::endl;
             }
-            this->clientsSock.erase(it);
-            std::cout << "Number Of Client Left: " << this->clientsSock.size() << std::endl;
+            //this->clientsSock.erase(it);
+            this->exited.push_back(it);
+            std::cout << "Number Of Client Left: " << this->clientsSock.size() - 1 << std::endl;
         }
         else if (rd)
         {
@@ -159,6 +160,14 @@ void    connection::checkServer(struct pollfd &monitor, std::map<int, struct soc
         std::cerr << "Error: Server-Side, Unexpected Error Happen Into " << monitor.fd << " Endpoint." << std::endl;
 }
 
+void    connection::closeTheExitClients(void)
+{
+    for (size_t i = 0; i < this->exited.size(); i++)
+    {
+        this->clientsSock.erase(this->exited[i]);
+    }
+}
+
 connection::connection(std::map<int, informations> &configData)
 {
     this->serversEndPoint(configData);
@@ -171,7 +180,6 @@ connection::connection(std::map<int, informations> &configData)
     // }
     while (1)
     {
-        std::cout << "Start Make Connections..." << std::endl;
         struct pollfd monitor[this->serversSock.size() + this->clientsSock.size()];
         std::map<int, int>::iterator it1 = this->clientsSock.begin(); 
         std::map<int, struct sockaddr_in>::iterator it = this->serversSock.begin();
