@@ -80,6 +80,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
     if (monitor.revents & POLLIN)
     {
         std::cout << "Cleint-Side, An Event Happen Into " << monitor.fd << " Endpoint." << std::endl;
+        std::cout << "This Client Is Rlated With Server Endpoint " << it->second << std::endl;
         char buffer[2048];
         int rd = read(monitor.fd, buffer, 2048);
         if (rd == -1)
@@ -92,7 +93,16 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         {
             std::cout << "Warrning: Connection Closed From Client " << monitor.fd << '.' << std::endl;
             close(monitor.fd);
+            std::map<int, std::string>::iterator toRemove = this->Requests.begin();
+            while (toRemove != this->Requests.end())
+            {
+                if (toRemove->first == it->first)
+                    break ;
+                it++;
+            }
+            this->Requests.erase(toRemove);
             this->clientsSock.erase(it);
+            std::cout << "Number Of Client Left: " << this->clientsSock.size() << std::endl;
         }
         else
         {
@@ -104,7 +114,8 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
             {
                 this->Requests[monitor.fd] = buffer;
             }
-            std::cout << "New Things: " << std::endl << buffer;
+            std::cout << "New Data is:" << std::endl << buffer;
+            std::cout << "All Data For This Client:" << std::endl << this->Requests.at(monitor.fd); 
         }
     }
     else if (monitor.revents & POLLHUP)
