@@ -98,9 +98,9 @@ class   servers
 class   connection
 {
     private:
-        std::map<int, struct sockaddr_in> serversSock;
-        std::map<int, int>                clientsSock;
-        std::map<int, std::string>        Requests;
+        std::map<int, struct sockaddr_in> serversSock; // each server fd in key with a ready struct on it's value
+        std::map<int, int>                clientsSock; // each client fd with the server fd that he connect with it in it's value
+        std::map<int, std::string>        Requests; // each client fd with it's data in the value
     public:
         connection();
         connection(const connection &other);
@@ -112,6 +112,7 @@ class   connection
         void    checkServer(struct pollfd &monitor, std::map<int, struct sockaddr_in>::iterator &it);
 };
 
+//pars functions
 int         isServer(std::string &s, size_t i);
 std::string removeWhiteSpaces(std::string &s);
 int         isAgoodServer(std::string &server);
@@ -125,7 +126,9 @@ int         normalCheck(std::string &value);
 int         multiValues(std::string &key, std::string &values);
 int         isInteger(std::string &value, char c);
 int         isValidIp4(std::string &value);
-// int         valueCheck(informations &tmp);
-// int         isAgoodValue(std::string &value, char c);
+
+//multuplexing functions
+
+void    initializeMonitor(struct pollfd &monitor, int fd);
 
 #endif

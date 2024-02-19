@@ -17,7 +17,7 @@ NAME	= httpserver
 
 CXX		= c++
 
-CXXFLAGS = -Wall -Wextra -Werror  -fsanitize=address -g3
+CXXFLAGS = -Wall -Wextra -Werror  -std=c++98 -fsanitize=address -g3
 
 all : $(NAME)
 

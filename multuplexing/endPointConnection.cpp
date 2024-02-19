@@ -93,18 +93,25 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         {
             std::cout << "Warrning: Connection Closed From Client " << monitor.fd << '.' << std::endl;
             close(monitor.fd);
-            std::map<int, std::string>::iterator toRemove = this->Requests.begin();
-            while (toRemove != this->Requests.end())
+            std::cout << "-> Fd Closed." << std::endl;
+            std::cout << "Search For Data..." << std::endl;
+            std::map<int, std::string>::iterator toRemove = this->Requests.find(it->first);
+            // while (toRemove != this->Requests.end())
+            // {
+            //     if (toRemove->first == it->first)
+            //         break ;
+            //     it++;
+            // }
+            if (toRemove != this->Requests.end())
             {
-                if (toRemove->first == it->first)
-                    break ;
-                it++;
+                std::cout << "Found Some Data For: " << toRemove->first << std::endl;
+                this->Requests.erase(toRemove);
+                std::cout << "Data Deleted." << std::endl;
             }
-            this->Requests.erase(toRemove);
             this->clientsSock.erase(it);
             std::cout << "Number Of Client Left: " << this->clientsSock.size() << std::endl;
         }
-        else
+        else if (rd)
         {
             buffer[rd] = '\0';
             try
@@ -164,6 +171,7 @@ connection::connection(std::map<int, informations> &configData)
     // }
     while (1)
     {
+        std::cout << "Start Make Connections..." << std::endl;
         struct pollfd monitor[this->serversSock.size() + this->clientsSock.size()];
         std::map<int, int>::iterator it1 = this->clientsSock.begin(); 
         std::map<int, struct sockaddr_in>::iterator it = this->serversSock.begin();
@@ -180,7 +188,7 @@ connection::connection(std::map<int, informations> &configData)
             it++;
             i++;
         }
-        int eventChecker = poll(monitor, this->clientsSock.size() + this->serversSock.size(), 1000);
+        int eventChecker = poll(monitor, this->clientsSock.size() + this->serversSock.size(), 0);
         if (eventChecker == -1)
             std::cerr << "Error: Poll Failed To When It's Looking For An Event." << std::endl;
         else if (eventChecker)
