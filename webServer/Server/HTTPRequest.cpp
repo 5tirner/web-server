@@ -30,7 +30,8 @@ void HTTPRequest::parse(std::string& rawRequest)
         throw std::runtime_error("Wrong request line");
     // std::cout << "===uri: " << uri << std::endl;
     size_t queryPos = uri.find('?');
-    if (queryPos != std::string::npos) {
+    if (queryPos != std::string::npos)
+    {
         std::string queryString = uri.substr(queryPos + 1);
         uri = uri.substr(0, queryPos);
         std::istringstream queryStream(queryString);

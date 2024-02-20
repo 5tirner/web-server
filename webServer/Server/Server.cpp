@@ -130,11 +130,11 @@ void Server::sendErrorResponse(int clientSocket, int errorCode,const std::string
 void Server::initializeEpoll()
 {
     epoll_fd = epoll_create(1);
-    if (epoll_fd == -1) {
+    if (epoll_fd == -1)
+    {
         perror("epoll_create1");
         exit(EXIT_FAILURE);
     }
-
     struct epoll_event ev;
     ev.events = EPOLLIN; // We're interested in read events
     ev.data.fd = sockfd; // sockfd is your server's listening socket
