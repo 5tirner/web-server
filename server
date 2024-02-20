@@ -5,12 +5,4 @@ server
 				{
 
 				}
-				location test
-				{
-					
-				}
-				location test
-				{
-					
-				}
 			}

@@ -59,22 +59,24 @@ int createAndBindSocket(const std::string& port, const std::string& host)
     setNonBlocking(sockfd);
     // Enable SO_REUSEADDR
     int opt = 1;
+    // Bind socket
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_addr.s_addr = inet_addr(host.c_str());
+    serverAddr.sin_port = htons(atoi(port.c_str()));
     if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
     {
         perror("ERROR setting SO_REUSEADDR");
         close(sockfd);
         exit(1);
     }
-    // Bind socket
-    bzero((char *) &serverAddr, sizeof(serverAddr));
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_addr.s_addr = inet_addr(host.c_str());
-    serverAddr.sin_port = htons(atoi(port.c_str()));
-    if (bind(sockfd, (struct sockaddr *) &serverAddr, sizeof(serverAddr)) < 0)
+    std::cout << "scokfd: " << sockfd << std::endl;
+    int bid = bind(sockfd, (struct sockaddr *) &serverAddr, sizeof(serverAddr));
+    if (bid == -1)
     {
+        std::cout << "dkhal hna\n";
         perror("ERROR on binding");
         close(sockfd);
-        exit(1);
+        // exit(1);
     }
     return sockfd;
 }

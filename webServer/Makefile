@@ -14,7 +14,7 @@ OBJS	= $(SRCS:.cpp=.o)
 
 rm		= rm -rf
 
-NAME	= httpserver
+NAME	= server
 
 CXX		= c++
 

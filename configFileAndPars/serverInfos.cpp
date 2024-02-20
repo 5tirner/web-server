@@ -50,7 +50,7 @@ void    initialLocation(location &save)
 
 void    etatInitial(informations &tmp)
 {
-    tmp.port["listen"] = "1025";
+    tmp.port["listen"] = "1024";
     tmp.host["host"] = "127.0.0.1";
     tmp.serverName["server_name"] = "defualt";
     tmp.limitClientBody["limit_client_body"] = "10";
