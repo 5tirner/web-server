@@ -122,8 +122,8 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
             {
                 this->Requests[monitor.fd] = buffer;
             }
-            std::cout << "New Data is:" << std::endl << buffer;
             std::cout << "All Data For This Client:" << std::endl << this->Requests.at(monitor.fd); 
+            std::cout << "New Data is:" << std::endl << buffer;
         }
     }
     else if (monitor.revents & POLLHUP)
@@ -159,14 +159,6 @@ void    connection::checkServer(struct pollfd &monitor, std::map<int, struct soc
     else if (monitor.revents & POLLERR)
         std::cerr << "Error: Server-Side, Unexpected Error Happen Into " << monitor.fd << " Endpoint." << std::endl;
 }
-
-// void    connection::closeTheExitClients(void)
-// {
-//     for (size_t i = 0; i < this->exited.size(); i++)
-//     {
-//         this->clientsSock.erase(this->exited[i]);
-//     }
-// }
 
 connection::connection(std::map<int, informations> &configData)
 {

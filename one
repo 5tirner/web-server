@@ -30,7 +30,7 @@ server #hfgjknfjdkgbjk
 #heloo
 #hfjigh
 {
-	       listen		8880;     
+	       listen		1024;     
 	 host      1.1.1.1;
 	     server_name       		sade_manio 									fghr guyfg;     
 	limit_client_body           100;
