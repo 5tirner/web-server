@@ -72,12 +72,12 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
 void    initializeMonitor(struct pollfd &monitor, int fd)
 {
     monitor.fd = fd;
-    monitor.events = POLLIN;
+    monitor.events = POLLIN | POLLOUT;
 }
 
 void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it)
 {
-    if (monitor.revents & POLLIN)
+    if ((monitor.revents & POLLIN))
     {
         std::cout << "Cleint-Side, An Event Happen Into " << monitor.fd << " Endpoint." << std::endl;
         std::cout << "This Client Is Rlated With Server Endpoint " << it->second << std::endl;
@@ -109,7 +109,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 std::cout << "Data Deleted." << std::endl;
             }
             //this->clientsSock.erase(it);
-            this->exited.push_back(it);
+            //this->exited.push_back(it);
             std::cout << "Number Of Client Left: " << this->clientsSock.size() - 1 << std::endl;
         }
         else if (rd)
@@ -141,7 +141,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
 
 void    connection::checkServer(struct pollfd &monitor, std::map<int, struct sockaddr_in>::iterator &it)
 {
-    if (monitor.revents & POLLIN)
+    if ((monitor.revents & POLLIN))
     {
         std::cout << "Server-Side, An event Comming Into " << monitor.fd << " Endpoint." << std::endl;
         socklen_t   addLen = sizeof(it->second);
@@ -160,13 +160,13 @@ void    connection::checkServer(struct pollfd &monitor, std::map<int, struct soc
         std::cerr << "Error: Server-Side, Unexpected Error Happen Into " << monitor.fd << " Endpoint." << std::endl;
 }
 
-void    connection::closeTheExitClients(void)
-{
-    for (size_t i = 0; i < this->exited.size(); i++)
-    {
-        this->clientsSock.erase(this->exited[i]);
-    }
-}
+// void    connection::closeTheExitClients(void)
+// {
+//     for (size_t i = 0; i < this->exited.size(); i++)
+//     {
+//         this->clientsSock.erase(this->exited[i]);
+//     }
+// }
 
 connection::connection(std::map<int, informations> &configData)
 {
@@ -196,7 +196,7 @@ connection::connection(std::map<int, informations> &configData)
             it++;
             i++;
         }
-        int eventChecker = poll(monitor, this->clientsSock.size() + this->serversSock.size(), 0);
+        int eventChecker = poll(monitor, this->clientsSock.size() + this->serversSock.size(), 100);
         if (eventChecker == -1)
             std::cerr << "Error: Poll Failed To When It's Looking For An Event." << std::endl;
         else if (eventChecker)

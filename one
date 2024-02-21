@@ -6,9 +6,9 @@ server     #hello
 {
 	      listen		1024;
 	host      1.1.111.111;
-	     server_name hi by say tay;     ;;; 			            
-	limit_client_body          1;
-	      error_page     301   /home/zasabri/Desktop/errors;
+	     server_name hi by say tay;     ;;; 	;;;;;;		            
+	limit_client_body         1;;;;;;;;
+	error_page    301  /home/zasabri/Desktop/errors;
 	      error_page      304  /home/zasabri/Desktop/errorsat;
 location   / {
 		root	../ 	 ; 		  #hi 
@@ -26,8 +26,9 @@ return 301 	www.zasabri.ma;
 #hiksa
 #localhost: 65535/
 #server2
-server 
-
+server #hfgjknfjdkgbjk
+#heloo
+#hfjigh
 {
 	       listen		8880;     
 	 host      1.1.1.1;

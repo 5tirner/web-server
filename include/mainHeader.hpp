@@ -95,13 +95,20 @@ class   servers
         std::map<int, informations> &getMap(void);
 };
 
+//for multuplexing
+typedef struct clientRequest
+{
+    std::map<std::string, std::string>  header;
+    std::fstream                        body;
+} request;
+
 class   connection
 {
     private:
         std::map<int, struct sockaddr_in>           serversSock; // each server fd in key with a ready struct on it's value
         std::map<int, int>                          clientsSock; // each client fd with the server fd that he connect with it in it's value
         std::map<int, std::string>                  Requests; // each client fd with it's data in the value
-        std::vector<std::map<int, int>::iterator>   exited;
+        //std::vector<std::map<int, int>::iterator>   exited;
     public:
         connection();
         connection(const connection &other);
