@@ -10,11 +10,12 @@
 # include <map>
 # include <cstring>
 # include <cstdlib>
+# include <sys/poll.h>
 # include <sstream>
-#include <asm-generic/socket.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <netinet/in.h>
+# include <asm-generic/socket.h>
+# include <sys/socket.h>
+# include <unistd.h>
+# include <netinet/in.h>
 
 class   configFile
 {
@@ -127,7 +128,7 @@ class   connection
         void    checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it);
         void    checkServer(struct pollfd &monitor, std::map<int, struct sockaddr_in>::iterator &it);
         void    closeTheExitClients(void);
-        void    fillRequest(std::string buffer, std::map<int, int>::iterator &it);
+        //void    fillRequest(std::string buffer, std::map<int, int>::iterator &it);
 };
 
 //pars functions

@@ -1,15 +1,4 @@
 #include "../include/mainHeader.hpp"
-#include <algorithm>
-#include <asm-generic/socket.h>
-#include <cstddef>
-#include <cstdio>
-#include <iostream>
-#include <netinet/in.h>
-#include <string>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <sys/poll.h>
-#include <map>
 
 connection::connection(void){}
 
