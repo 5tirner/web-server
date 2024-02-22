@@ -10,7 +10,6 @@
 # don't write two lines in one
 # feel free to do comments
 # every line inside the server should end with ; except for locations
-
 __________________________________________________________
 
 - syntax :

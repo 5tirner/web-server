@@ -1,4 +1,5 @@
 #include "../include/mainHeader.hpp"
+#include <algorithm>
 #include <asm-generic/socket.h>
 #include <cstddef>
 #include <cstdio>
@@ -82,7 +83,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         std::cout << "Cleint-Side, An Event Happen Into " << monitor.fd << " Endpoint." << std::endl;
         std::cout << "This Client Is Rlated With Server Endpoint " << it->second << std::endl;
         char buffer[2048];
-        int rd = read(monitor.fd, buffer, 2048);
+        int rd = read(monitor.fd, buffer, 2047);
         if (rd == -1)
         {
             std::cerr << "Error: Failed To Read From " << monitor.fd << " Endpoint." << std::endl;
@@ -92,25 +93,18 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         else if (rd == 0)
         {
             std::cout << "Warrning: Connection Closed From Client " << monitor.fd << '.' << std::endl;
+            this->exited.push_back(monitor.fd);
             close(monitor.fd);
             std::cout << "-> Fd Closed." << std::endl;
             std::cout << "Search For Data..." << std::endl;
             std::map<int, std::string>::iterator toRemove = this->Requests.find(it->first);
-            // while (toRemove != this->Requests.end())
-            // {
-            //     if (toRemove->first == it->first)
-            //         break ;
-            //     it++;
-            // }
             if (toRemove != this->Requests.end())
             {
                 std::cout << "Found Some Data For: " << toRemove->first << std::endl;
                 this->Requests.erase(toRemove);
                 std::cout << "Data Deleted." << std::endl;
             }
-            //this->clientsSock.erase(it);
-            //this->exited.push_back(it);
-            std::cout << "Number Of Client Left: " << this->clientsSock.size() - 1 << std::endl;
+            std::cout << "Number Of Client Left: " << this->clientsSock.size() - this->exited.size() << std::endl;
         }
         else if (rd)
         {
@@ -118,12 +112,19 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
             try
             {
                 this->Requests[monitor.fd] = this->Requests.at(monitor.fd) + buffer;
-            } catch (...)
+            }
+            catch (...)
             {
                 this->Requests[monitor.fd] = buffer;
             }
             std::cout << "All Data For This Client:" << std::endl << this->Requests.at(monitor.fd); 
             std::cout << "New Data is:" << std::endl << buffer;
+            // if (this->Requests.find(it->first) == this->Requests.end())
+            // {
+            //     Request empty;
+            //     this->Requests[it->first] = empty; 
+            // }
+            // this->fillRequest(buffer, it);
         }
     }
     else if (monitor.revents & POLLHUP)
@@ -153,6 +154,7 @@ void    connection::checkServer(struct pollfd &monitor, std::map<int, struct soc
             std::cout << "New Client Added To Endpoint " << monitor.fd << " With Number " << newClient << '.' << std::endl;
             this->clientsSock[newClient] = monitor.fd;
         }
+        std::cout << "Number Of Client Now Is: " << this->clientsSock.size() << std::endl;
     }
     else if (monitor.revents & POLLHUP)
         std::cerr << "Error: Server-Side, Connection Destroyed For " << monitor.fd << " Endpoint." << std::endl;
@@ -163,13 +165,6 @@ void    connection::checkServer(struct pollfd &monitor, std::map<int, struct soc
 connection::connection(std::map<int, informations> &configData)
 {
     this->serversEndPoint(configData);
-    // std::cout << "Servers Endpoint:" << std::endl; 
-    // while (it != this->serversSock.end())
-    // {
-    //     std::cout << "- Number: " << it->first << " -> It's Struct Info: "
-    //     << it->second.sin_family << "-" << it->second.sin_port << "-" << it->second.sin_addr.s_addr << std::endl;
-    //     it++;
-    // }
     while (1)
     {
         struct pollfd monitor[this->serversSock.size() + this->clientsSock.size()];
@@ -201,6 +196,9 @@ connection::connection(std::map<int, informations> &configData)
                 it1++;
                 i++;
             }
+            for (size_t k = 0; k < this->exited.size(); k++)
+                this->clientsSock.erase(this->exited[k]);
+            this->exited.clear();
             it = this->serversSock.begin();
             while (it != this->serversSock.end())
             {

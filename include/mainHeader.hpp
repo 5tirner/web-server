@@ -96,19 +96,27 @@ class   servers
 };
 
 //for multuplexing
-typedef struct clientRequest
+class   Request
 {
-    std::map<std::string, std::string>  header;
-    std::fstream                        body;
-} Request;
+    public:
+        std::fstream    dataFile;
+        Request(){}
+        Request(const Request &other){*this = other;}
+        Request&operator=(const Request &other)
+        {
+            if (other.dataFile.is_open())
+                return (*this);
+            return (*this);
+        }
+};
 
 class   connection
 {
     private:
         std::map<int, struct sockaddr_in>           serversSock; // each server fd in key with a ready struct on it's value
         std::map<int, int>                          clientsSock; // each client fd with the server fd that he connect with it in it's value
-        std::map<int, std::string>                      Requests; // each client fd with it's data in the value
-        //std::vector<std::map<int, int>::iterator>   exited;
+        std::map<int, std::string>                  Requests; // each client fd with it's data in the value
+        std::vector<int>                            exited;
     public:
         connection();
         connection(const connection &other);
@@ -119,7 +127,7 @@ class   connection
         void    checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it);
         void    checkServer(struct pollfd &monitor, std::map<int, struct sockaddr_in>::iterator &it);
         void    closeTheExitClients(void);
-        void    fillRequest(void);
+        void    fillRequest(std::string buffer, std::map<int, int>::iterator &it);
 };
 
 //pars functions
