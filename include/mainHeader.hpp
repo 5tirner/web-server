@@ -127,7 +127,7 @@ typedef struct clientRequest
     bool        processingHeaderDone;
     std::string fullRequest;
     std::string remainingBody;
-    std::map<std::string, std::string> headers;
+    std::map<std::string, std::string> headers, queries;
     clientRequest ()
     {
         fetchHeaderDone = false;
@@ -158,6 +158,7 @@ class   connection
         /*-------------- yachaab code start ---------------*/
         void    fetchRequestHeader( Request&, char* );
         int     processingHeader( Request& );
+        void    dropClient( int&, std::map<int, int>::iterator & );
         code    codeMsg;
         /*-------------- yachaab code end -----------------*/
 };
@@ -178,6 +179,10 @@ int         isInteger(std::string &value, char c);
 int         isValidIp4(std::string &value);
 /*-------------- yachaab code start ---------------*/
 int         extractMethodAndUri( Request& );
+int	        validateUri( const std::string& );
+void	    decomposeQueryParameters( const std::string& );
+int         validateUriAndExtractQueries( Request& );
+int         extractHttpHeaders( Request& );
 /*-------------- yachaab code end -----------------*/
 //multuplexing functions
 

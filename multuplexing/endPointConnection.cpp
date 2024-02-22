@@ -2,6 +2,7 @@
 #include <asm-generic/socket.h>
 #include <cstddef>
 #include <cstdio>
+#include <exception>
 #include <iostream>
 #include <netinet/in.h>
 #include <string>
@@ -64,7 +65,7 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
             it++; continue;
         }
         this->serversSock[fd] = sockInfo;
-        std::cout << "Socket Ready To Listening For The Port: " << it->second.port.at("listen") << " With Number: " << fd << std::endl;
+        // std::cout << "Socket Ready To Listening For The Port: " << it->second.port.at("listen") << " With Number: " << fd << std::endl;
         it++;
     }
 }
@@ -79,8 +80,8 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
 {
     if ((monitor.revents & POLLIN))
     {
-        std::cout << "Cleint-Side, An Event Happen Into " << monitor.fd << " Endpoint." << std::endl;
-        std::cout << "This Client Is Rlated With Server Endpoint " << it->second << std::endl;
+        // std::cout << "Cleint-Side, An Event Happen Into " << monitor.fd << " Endpoint." << std::endl;
+        // std::cout << "This Client Is Rlated With Server Endpoint " << it->second << std::endl;
         char buffer[2048];
         int rd = read(monitor.fd, buffer, 2047);
         if (rd == -1)
@@ -91,26 +92,10 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         }
         else if (rd == 0)
         {
-            std::cout << "Warrning: Connection Closed From Client " << monitor.fd << '.' << std::endl;
-            close(monitor.fd);
-            std::cout << "-> Fd Closed." << std::endl;
-            std::cout << "Search For Data..." << std::endl;
-            std::map<int, Request>::iterator toRemove = this->Requests.find(it->first);
-            // while (toRemove != this->Requests.end())
-            // {
-            //     if (toRemove->first == it->first)
-            //         break ;
-            //     it++;
-            // }
-            if (toRemove != this->Requests.end())
-            {
-                std::cout << "Found Some Data For: " << toRemove->first << std::endl;
-                this->Requests.erase(toRemove);
-                std::cout << "Data Deleted." << std::endl;
-            }
-            //this->clientsSock.erase(it);
-            //this->exited.push_back(it);
-            std::cout << "Number Of Client Left: " << this->clientsSock.size() - 1 << std::endl;
+            // std::cout << "Warrning: Connection Closed From Client " << monitor.fd << '.' << std::endl;
+            /*-------------- yachaab edit start ---------------*/
+            dropClient( monitor.fd, it );
+            /*-------------- yachaab edit end ---------------*/
         }
         else if (rd)
         {
@@ -123,10 +108,11 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                     fetchRequestHeader( this->Requests[monitor.fd], buffer );
                 if ( this->Requests[monitor.fd].fetchHeaderDone == true && this->Requests[monitor.fd].processingHeaderDone == false )
                     processingHeader( this->Requests[monitor.fd] );
-            } catch (...) {
+            } catch ( std::exception& e ) {
                 // do somthis in case of error mostly drop client and check code status
+                std::cerr << e.what() << std::endl;
+                dropClient( monitor.fd, it );
             }
-            
             /*-------------- yachaab code end -----------------*/
         }
     }
@@ -147,14 +133,14 @@ void    connection::checkServer(struct pollfd &monitor, std::map<int, struct soc
 {
     if ((monitor.revents & POLLIN))
     {
-        std::cout << "Server-Side, An event Comming Into " << monitor.fd << " Endpoint." << std::endl;
+        // std::cout << "Server-Side, An event Comming Into " << monitor.fd << " Endpoint." << std::endl;
         socklen_t   addLen = sizeof(it->second);
         int newClient = accept(monitor.fd, (struct sockaddr *)&it->second, &addLen);
         if (newClient == -1)
             std::cerr << "Error: Filed To Create New EndPoint With Socket " << monitor.fd << std::endl;
         else
         {
-            std::cout << "New Client Added To Endpoint " << monitor.fd << " With Number " << newClient << '.' << std::endl;
+            // std::cout << "New Client Added To Endpoint " << monitor.fd << " With Number " << newClient << '.' << std::endl;
             this->clientsSock[newClient] = monitor.fd;
         }
     }
@@ -215,4 +201,27 @@ connection::connection(std::map<int, informations> &configData)
         }
     }
 }
-
+/*-------------- yachaab edit start ---------------*/
+void connection::dropClient( int& fd, std::map<int, int>::iterator &it )
+{
+    close( fd );
+    std::cout << "-> Fd Closed." << std::endl;
+    std::cout << "Search For Data..." << std::endl;
+    std::map<int, Request>::iterator toRemove = this->Requests.find(it->first);
+    // while (toRemove != this->Requests.end())
+    // {
+    //     if (toRemove->first == it->first)
+    //         break ;
+    //     it++;
+    // }
+    if (toRemove != this->Requests.end())
+    {
+        std::cout << "Found Some Data For: " << toRemove->first << std::endl;
+        this->Requests.erase(toRemove);
+        std::cout << "Data Deleted." << std::endl;
+    }
+    //this->clientsSock.erase(it);
+    //this->exited.push_back(it);
+    std::cout << "Number Of Client Left: " << this->clientsSock.size() - 1 << std::endl;
+}
+/*-------------- yachaab edit start ---------------*/

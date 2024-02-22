@@ -35,3 +35,8 @@ fclean : clean
 	$(RM) $(NAME)
 
 re : fclean all
+
+git: fclean
+	git add .
+	git commit -m "yachaab edit some request processing code"
+	git push origin yachaab
