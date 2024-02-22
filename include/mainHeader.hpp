@@ -96,10 +96,46 @@ class   servers
 };
 
 //for multuplexing
+/*-------------- yachaab code start ---------------*/
+typedef struct codeStat
+{
+    std::map<int, std::string> statMsg;
+    codeStat()
+    {
+        statMsg[ 200 ] = "OK";
+        statMsg[ 201 ] = "Created";
+        statMsg[ 204 ] = "No Content";
+        statMsg[ 301 ] = "Moved Permanently";
+        statMsg[ 400 ] = "Bad Request";
+        statMsg[ 403 ] = "Forbidden";
+        statMsg[ 404 ] = "Not Found";
+        statMsg[ 405 ] = "Method Not Allowed";
+        statMsg[ 409 ] = "Conflict";
+        statMsg[ 413 ] = "Request Entity Too Large";
+        statMsg[ 414 ] = "Request-URI Too Long";
+        statMsg[ 500 ] = "Internal Server Error";
+        statMsg[ 501 ] = "Not Implemented";
+    }
+} code;
+/*-------------- yachaab code start ---------------*/
+
 typedef struct clientRequest
 {
+    /*-------------- yachaab code start ---------------*/
+    int         stat;
+    bool        fetchHeaderDone;
+    bool        processingHeaderDone;
+    std::string fullRequest;
+    std::string remainingBody;
+    std::map<std::string, std::string> headers;
+    clientRequest ()
+    {
+        fetchHeaderDone = false;
+        processingHeaderDone = false;
+    }
+    /*-------------- yachaab code end -----------------*/
     std::map<std::string, std::string>  header;
-    std::fstream                        body;
+    // std::fstream                        body;
 } Request;
 
 class   connection
@@ -107,7 +143,7 @@ class   connection
     private:
         std::map<int, struct sockaddr_in>           serversSock; // each server fd in key with a ready struct on it's value
         std::map<int, int>                          clientsSock; // each client fd with the server fd that he connect with it in it's value
-        std::map<int, std::string>                      Requests; // each client fd with it's data in the value
+        std::map<int, Request>                      Requests; // each client fd with it's data in the value
         //std::vector<std::map<int, int>::iterator>   exited;
     public:
         connection();
@@ -119,7 +155,11 @@ class   connection
         void    checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it);
         void    checkServer(struct pollfd &monitor, std::map<int, struct sockaddr_in>::iterator &it);
         void    closeTheExitClients(void);
-        void    fillRequest(void);
+        /*-------------- yachaab code start ---------------*/
+        void    fetchRequestHeader( Request&, char* );
+        int     processingHeader( Request& );
+        code    codeMsg;
+        /*-------------- yachaab code end -----------------*/
 };
 
 //pars functions
@@ -136,7 +176,9 @@ int         normalCheck(std::string &value);
 int         multiValues(std::string &key, std::string &values);
 int         isInteger(std::string &value, char c);
 int         isValidIp4(std::string &value);
-
+/*-------------- yachaab code start ---------------*/
+int         extractMethodAndUri( Request& );
+/*-------------- yachaab code end -----------------*/
 //multuplexing functions
 
 void    initializeMonitor(struct pollfd &monitor, int fd);

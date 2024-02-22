@@ -82,7 +82,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         std::cout << "Cleint-Side, An Event Happen Into " << monitor.fd << " Endpoint." << std::endl;
         std::cout << "This Client Is Rlated With Server Endpoint " << it->second << std::endl;
         char buffer[2048];
-        int rd = read(monitor.fd, buffer, 2048);
+        int rd = read(monitor.fd, buffer, 2047);
         if (rd == -1)
         {
             std::cerr << "Error: Failed To Read From " << monitor.fd << " Endpoint." << std::endl;
@@ -95,7 +95,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
             close(monitor.fd);
             std::cout << "-> Fd Closed." << std::endl;
             std::cout << "Search For Data..." << std::endl;
-            std::map<int, std::string>::iterator toRemove = this->Requests.find(it->first);
+            std::map<int, Request>::iterator toRemove = this->Requests.find(it->first);
             // while (toRemove != this->Requests.end())
             // {
             //     if (toRemove->first == it->first)
@@ -115,15 +115,19 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         else if (rd)
         {
             buffer[rd] = '\0';
-            try
-            {
-                this->Requests[monitor.fd] = this->Requests.at(monitor.fd) + buffer;
-            } catch (...)
-            {
-                this->Requests[monitor.fd] = buffer;
+            /*-------------- yachaab code start ---------------*/
+            try {
+                if ( this->Requests.find(monitor.fd) == this->Requests.end() )
+                    this->Requests[monitor.fd] = clientRequest();
+                if (this->Requests[monitor.fd].fetchHeaderDone == false)
+                    fetchRequestHeader( this->Requests[monitor.fd], buffer );
+                if ( this->Requests[monitor.fd].fetchHeaderDone == true && this->Requests[monitor.fd].processingHeaderDone == false )
+                    processingHeader( this->Requests[monitor.fd] );
+            } catch (...) {
+                // do somthis in case of error mostly drop client and check code status
             }
-            std::cout << "All Data For This Client:" << std::endl << this->Requests.at(monitor.fd); 
-            std::cout << "New Data is:" << std::endl << buffer;
+            
+            /*-------------- yachaab code end -----------------*/
         }
     }
     else if (monitor.revents & POLLHUP)
@@ -173,7 +177,7 @@ connection::connection(std::map<int, informations> &configData)
     while (1)
     {
         struct pollfd monitor[this->serversSock.size() + this->clientsSock.size()];
-        std::map<int, int>::iterator it1 = this->clientsSock.begin(); 
+        std::map<int, int>::iterator it1 = this->clientsSock.begin();
         std::map<int, struct sockaddr_in>::iterator it = this->serversSock.begin();
         size_t i = 0;
         while (it1 != this->clientsSock.end())

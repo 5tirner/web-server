@@ -5,9 +5,10 @@ SRCS	= main.cpp\
 		./configFileAndPars/serverInfos.cpp\
 		./configFileAndPars/checkValues.cpp\
 		./multuplexing/endPointConnection.cpp\
-		./methods/get.cpp\
-		./methods/post.cpp\
-		./methods/delete.cpp\
+		./multuplexing/incomingData.cpp \
+		# ./methods/get.cpp\
+		# ./methods/post.cpp\
+		# ./methods/delete.cpp\
 
 OBJS	= $(SRCS:.cpp=.o)
 
