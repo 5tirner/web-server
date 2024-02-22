@@ -1,6 +1,7 @@
 #ifndef MAINHEADER_HPP
 # define MAINHEADER_HPP
 
+# include <sstream>
 # include <iostream>
 # include <cstddef>
 # include <exception>
@@ -11,7 +12,6 @@
 # include <cstring>
 # include <cstdlib>
 # include <sys/poll.h>
-# include <sstream>
 # include <asm-generic/socket.h>
 # include <sys/socket.h>
 # include <unistd.h>
