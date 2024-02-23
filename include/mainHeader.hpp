@@ -1,20 +1,37 @@
 #ifndef MAINHEADER_HPP
 # define MAINHEADER_HPP
 
-# include <iostream>
-# include <cstddef>
-# include <exception>
-# include <fstream>
-# include <vector>
-# include <string>
-# include <map>
-# include <cstring>
-# include <cstdlib>
-# include <sstream>
+#include <iostream>
+#include <cstddef>
+#include <exception>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <map>
+#include <cstring>
+#include <cstdlib>
+#include <sstream>
 #include <asm-generic/socket.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <netinet/in.h>
+#include <cstddef>
+#include <exception>
+#include <stdexcept>
+#include <asm-generic/socket.h>
+#include <cstddef>
+#include <cstdio>
+#include <exception>
+#include <netinet/in.h>
+#include <string>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <sys/poll.h>
+#include <map>
+#include <ctime>
+#include <climits>
+
+#define RES_HEADER	"HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\nConnection: close\r\n\r\n" // added by yachaab
 
 class   configFile
 {
@@ -123,19 +140,27 @@ typedef struct clientRequest
 {
     /*-------------- yachaab code start ---------------*/
     int         stat;
+    int         requestBodyLength;
     bool        fetchHeaderDone;
     bool        processingHeaderDone;
+    std::string transferEncoding;
     std::string fullRequest;
     std::string remainingBody;
     std::map<std::string, std::string> headers, queries;
+    /* ------------ chunked ----------- */
+    int     chunkHeaderStart;
+    long    currentChunkSize;
+    bool    isChunkHeader;
     clientRequest ()
     {
-        fetchHeaderDone = false;
-        processingHeaderDone = false;
+        fetchHeaderDone         = false;
+        processingHeaderDone    = false;
+        isChunkHeader           = true;
+        bodyStream              = new std::ofstream;
     }
     /*-------------- yachaab code end -----------------*/
     std::map<std::string, std::string>  header;
-    // std::fstream                        body;
+    std::ofstream                       *bodyStream;
 } Request;
 
 class   connection
@@ -158,6 +183,7 @@ class   connection
         /*-------------- yachaab code start ---------------*/
         void    fetchRequestHeader( Request&, char* );
         int     processingHeader( Request& );
+        void    processingBody( Request&, char*, int& );
         void    dropClient( int&, std::map<int, int>::iterator & );
         code    codeMsg;
         /*-------------- yachaab code end -----------------*/
@@ -183,6 +209,14 @@ int	        validateUri( const std::string& );
 void	    decomposeQueryParameters( const std::string& );
 int         validateUriAndExtractQueries( Request& );
 int         extractHttpHeaders( Request& );
+bool	    examinHeaders( Request&, std::string&, std::string& );
+void        lowcase( std::string& );
+int	        validateHeadersProcess( Request& );
+void        generateRandomFileName( Request& );
+long        parseChunkHeader( Request& rs, std::string& buffer );
+bool        chunkedComplete( Request& rs, std::string& buffer );
+void        processChunkedRequestBody( Request&, char*, int& );
+void        processRegularRequestBody( Request&, char* );
 /*-------------- yachaab code end -----------------*/
 //multuplexing functions
 

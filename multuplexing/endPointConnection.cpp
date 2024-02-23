@@ -1,15 +1,4 @@
 #include "../include/mainHeader.hpp"
-#include <asm-generic/socket.h>
-#include <cstddef>
-#include <cstdio>
-#include <exception>
-#include <iostream>
-#include <netinet/in.h>
-#include <string>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <sys/poll.h>
-#include <map>
 
 connection::connection(void){}
 
@@ -92,7 +81,6 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         }
         else if (rd == 0)
         {
-            // std::cout << "Warrning: Connection Closed From Client " << monitor.fd << '.' << std::endl;
             /*-------------- yachaab edit start ---------------*/
             dropClient( monitor.fd, it );
             /*-------------- yachaab edit end ---------------*/
@@ -108,6 +96,9 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                     fetchRequestHeader( this->Requests[monitor.fd], buffer );
                 if ( this->Requests[monitor.fd].fetchHeaderDone == true && this->Requests[monitor.fd].processingHeaderDone == false )
                     processingHeader( this->Requests[monitor.fd] );
+                if ( this->Requests[monitor.fd].processingHeaderDone == true )
+                    processingBody( this->Requests[monitor.fd], buffer, rd );
+                
             } catch ( std::exception& e ) {
                 // do somthis in case of error mostly drop client and check code status
                 std::cerr << e.what() << std::endl;
