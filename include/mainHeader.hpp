@@ -138,29 +138,29 @@ typedef struct codeStat
 
 typedef struct clientRequest
 {
-    /*-------------- yachaab code start ---------------*/
-    int         stat;
-    int         requestBodyLength;
-    bool        fetchHeaderDone;
-    bool        processingHeaderDone;
-    std::string transferEncoding;
-    std::string fullRequest;
-    std::string remainingBody;
-    std::map<std::string, std::string> headers, queries;
-    /* ------------ chunked ----------- */
-    int     chunkHeaderStart;
-    long    currentChunkSize;
-    bool    isChunkHeader;
-    clientRequest ()
+    clientRequest()
     {
         fetchHeaderDone         = false;
         processingHeaderDone    = false;
         isChunkHeader           = true;
         bodyStream              = new std::ofstream;
     }
-    /*-------------- yachaab code end -----------------*/
-    std::map<std::string, std::string>  header;
-    std::ofstream                       *bodyStream;
+
+    std::ofstream* bodyStream;
+    std::map<std::string, std::string> headers, queries;
+    std::string fullRequest;
+    std::string remainingBody;
+    std::string transferEncoding;
+
+    long currentChunkSize;
+    int stat;
+    int requestBodyLength;
+    int chunkHeaderStart;
+
+    bool fetchHeaderDone;
+    bool processingHeaderDone;
+    bool isChunkHeader;
+
 } Request;
 
 class   connection

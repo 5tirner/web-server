@@ -65,6 +65,9 @@ bool    chunkedComplete( Request& rs,  std::string& buffer )
 		if ( rs.currentChunkSize > static_cast<long>( buffer.length() ) )
 		{
 			rs.bodyStream->write( buffer.c_str(),  buffer.length() );
+			rs.bodyStream->flush();
+			if ( !rs.bodyStream->good() )
+				std::cout << "Error: body stream" << std::endl;
 			rs.currentChunkSize -= buffer.length();
 			rs.isChunkHeader = false;
 			return ( false );
@@ -72,6 +75,9 @@ bool    chunkedComplete( Request& rs,  std::string& buffer )
 		else if ( rs.currentChunkSize <= static_cast<long>( buffer.length() ) ) // add equal check it again
 		{
 			rs.bodyStream->write( buffer.c_str(),  rs.currentChunkSize );
+			rs.bodyStream->flush();
+			if ( !rs.bodyStream->good() )
+				std::cout << "Error: body stream" << std::endl;
 			bufflen -= rs.currentChunkSize + 2;
 			buffer = buffer.substr( rs.currentChunkSize + 2 );
 			rs.isChunkHeader = true;

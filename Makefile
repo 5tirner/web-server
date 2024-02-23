@@ -38,5 +38,5 @@ re : fclean all
 
 git: fclean
 	git add .
-	git commit -m "yachaab handling chunked post request: error at stream object"
+	git commit -m "yachaab handling chunked post request: stream object works after allocate for it and flush it"
 	git push origin yachaab
