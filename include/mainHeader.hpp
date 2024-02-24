@@ -143,19 +143,21 @@ typedef struct clientRequest
         fetchHeaderDone         = false;
         processingHeaderDone    = false;
         isChunkHeader           = true;
+        content_length          = 0;
         bodyStream              = new std::ofstream;
     }
 
-    std::ofstream* bodyStream;
     std::map<std::string, std::string> headers, queries;
-    std::string fullRequest;
-    std::string remainingBody;
-    std::string transferEncoding;
+    std::ofstream*  bodyStream;
+    std::string     fullRequest;
+    std::string     remainingBody;
+    std::string     transferEncoding;
 
-    long currentChunkSize;
-    int stat;
-    int requestBodyLength;
-    int chunkHeaderStart;
+    size_t  content_length;
+    size_t  requestBodyLength;
+    long    currentChunkSize;
+    int     stat;
+    int     chunkHeaderStart;
 
     bool fetchHeaderDone;
     bool processingHeaderDone;

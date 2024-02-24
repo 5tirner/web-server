@@ -1,4 +1,6 @@
 #include "../include/mainHeader.hpp"
+#include <cstddef>
+#include <stdexcept>
 
 void    connection::processingBody( Request& rs, char* buffer, int& rc )
 {
@@ -10,8 +12,8 @@ void    connection::processingBody( Request& rs, char* buffer, int& rc )
             generateRandomFileName( rs );
         if ( rs.transferEncoding == "chunked" )
             processChunkedRequestBody( rs, buffer, rc );
-        // if ( rs.transferEncoding == "content-length" )
-        //     processRegularRequestBody( rs, buffer );
+        if ( rs.transferEncoding == "content-length" )
+			processRegularRequestBody( rs, buffer );
     }
 }
 
@@ -67,7 +69,10 @@ bool    chunkedComplete( Request& rs,  std::string& buffer )
 			rs.bodyStream->write( buffer.c_str(),  buffer.length() );
 			rs.bodyStream->flush();
 			if ( !rs.bodyStream->good() )
-				std::cout << "Error: body stream" << std::endl;
+			{
+				rs.stat = 400; // not 400 for sure;
+				throw std::runtime_error( "Error: incomplete data trensfer" );
+			}
 			rs.currentChunkSize -= buffer.length();
 			rs.isChunkHeader = false;
 			return ( false );
@@ -77,7 +82,10 @@ bool    chunkedComplete( Request& rs,  std::string& buffer )
 			rs.bodyStream->write( buffer.c_str(),  rs.currentChunkSize );
 			rs.bodyStream->flush();
 			if ( !rs.bodyStream->good() )
-				std::cout << "Error: body stream" << std::endl;
+			{
+				rs.stat = 400; // not 400 for sure;
+				throw std::runtime_error( "Error: incomplete data trensfer" );
+			}
 			bufflen -= rs.currentChunkSize + 2;
 			buffer = buffer.substr( rs.currentChunkSize + 2 );
 			rs.isChunkHeader = true;
@@ -100,4 +108,41 @@ void    processChunkedRequestBody( Request& rs, char* buffer, int& rc )
         if ( chunkedComplete( rs, receivedData ) )
             throw std::invalid_argument( "SARF LI KATSAL HANTA KHDITIH" );
     }
+}
+
+size_t	ft_strlen( const char* str )
+{
+	size_t i ( 0 );
+
+	for ( ; str[ i ]; i++ );
+	return ( i );
+}
+
+void	processRegularRequestBody( Request& rs, char* buffer )
+{
+	size_t	bufferSize = ft_strlen( buffer );
+
+	if ( !rs.remainingBody.empty() )
+	{
+		rs.bodyStream->write( rs.remainingBody.c_str(),  rs.remainingBody.length() );
+		rs.bodyStream->flush();
+		rs.content_length += rs.remainingBody.length();
+		rs.remainingBody.clear();
+	}
+	else if ( bufferSize ){
+		rs.bodyStream->write( buffer,  bufferSize );
+		rs.bodyStream->flush();
+		rs.content_length += bufferSize;
+	}
+	if ( !rs.bodyStream->good() )
+	{
+		rs.stat = 400; // not 400 for sure;
+		throw std::runtime_error( "Error: incomplete data trensfer" );
+	}
+	std::cout << "rs.content_length: " << rs.content_length << " | " << "rs.requestBodyLength: " << rs.requestBodyLength << std::endl;
+	if ( rs.content_length == rs.requestBodyLength )
+	{
+		rs.stat = 200;
+		throw std::runtime_error( "SARF LI KATSAL HANTA KHDITIH" );
+	}
 }
