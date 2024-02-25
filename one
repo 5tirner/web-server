@@ -4,7 +4,7 @@
 server     #hello  
 
 {
-	      listen		1024;
+	      listen		9090;
 	host      1.1.111.111;
 	     server_name hi by say tay;     ;;; 	;;;;;;		            
 	limit_client_body         1;;;;;;;;
@@ -53,5 +53,5 @@ return 303 ysabr.ma;
 	#				upload	on | off /var/w/html;
 	#		cgi off adss:port;  
 	}  
-	#hhhh ;
+	#hhhh
 }  
