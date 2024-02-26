@@ -8,6 +8,7 @@ SRCS	= main.cpp\
 		./methods/get.cpp\
 		./methods/post.cpp\
 		./methods/delete.cpp\
+		./commonGateway/cgi.cpp\
 
 OBJS	= $(SRCS:.cpp=.o)
 
