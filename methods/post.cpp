@@ -1,13 +1,14 @@
 #include "../include/mainHeader.hpp"
-#include <cstddef>
 #include <stdexcept>
 
-void    connection::processingBody( Request& rs, char* buffer, int& rc )
+void    connection::processingBody( Request& rs, char* buffer, int& rc, const std::vector<location>& loc )
 {
     if ( rs.headers["method"] == "get" )
         throw std::invalid_argument( "OK" );
     if ( rs.headers["method"] == "post" )
     {
+		if ( location_support_upload( loc ) == -1 )
+			throw std::runtime_error( "You don't have the right to upload at this location" );
         if ( !rs.bodyStream->is_open() )
             generateRandomFileName( rs );
         if ( rs.transferEncoding == "chunked" )
@@ -15,6 +16,12 @@ void    connection::processingBody( Request& rs, char* buffer, int& rc )
         if ( rs.transferEncoding == "content-length" )
 			processRegularRequestBody( rs, buffer );
     }
+}
+
+int location_support_upload( const std::vector<location>& loc )
+{
+	std::cout << "upload location: " << loc.at(0).upload.at("ss") << std::endl;
+	return -1;
 }
 
 void generateRandomFileName( Request& rs )

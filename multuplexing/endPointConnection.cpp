@@ -65,7 +65,7 @@ void    initializeMonitor(struct pollfd &monitor, int fd)
     monitor.events = POLLIN | POLLOUT;
 }
 
-void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it)
+void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it, const std::vector<location>& loc) //!yachaab edit here: add localisation vector
 {
     if ((monitor.revents & POLLIN))
     {
@@ -97,7 +97,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 if ( this->Requests[monitor.fd].fetchHeaderDone == true && this->Requests[monitor.fd].processingHeaderDone == false )
                     processingHeader( this->Requests[monitor.fd] );
                 if ( this->Requests[monitor.fd].processingHeaderDone == true )
-                    processingBody( this->Requests[monitor.fd], buffer, rd );
+                    processingBody( this->Requests[monitor.fd], buffer, rd, loc );
                 
             } catch ( std::exception& e ) {
                 // do somthis in case of error mostly drop client and check code status
@@ -178,7 +178,7 @@ connection::connection(std::map<int, informations> &configData)
             it1 = this->clientsSock.begin();
             while (it1 != this->clientsSock.end())
             {
-                this->checkClient(monitor[i], it1);
+                this->checkClient(monitor[i], it1, configData[it1->second].locationsInfo);
                 it1++;
                 i++;
             }

@@ -174,18 +174,18 @@ class   connection
         //std::vector<std::map<int, int>::iterator>   exited;
     public:
         connection();
-        connection(const connection &other);
         connection(std::map<int, informations> &infos);
+        connection(const connection &other);
         connection&operator=(const connection &other);
         ~connection();
         void    serversEndPoint(std::map<int, informations> &info);
-        void    checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it);
+        void    checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it,  const std::vector<location>& loc );//!yachaab edit here: add localisation struct
         void    checkServer(struct pollfd &monitor, std::map<int, struct sockaddr_in>::iterator &it);
         void    closeTheExitClients(void);
         /*-------------- yachaab code start ---------------*/
         void    fetchRequestHeader( Request&, char* );
         int     processingHeader( Request& );
-        void    processingBody( Request&, char*, int& );
+        void    processingBody( Request&, char*, int&, const std::vector<location>& );
         void    dropClient( int&, std::map<int, int>::iterator & );
         code    codeMsg;
         /*-------------- yachaab code end -----------------*/
@@ -219,6 +219,7 @@ long        parseChunkHeader( Request& rs, std::string& buffer );
 bool        chunkedComplete( Request& rs, std::string& buffer );
 void        processChunkedRequestBody( Request&, char*, int& );
 void        processRegularRequestBody( Request&, char* );
+int         location_support_upload( const std::vector<location>& );
 /*-------------- yachaab code end -----------------*/
 //multuplexing functions
 

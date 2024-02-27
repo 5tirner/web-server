@@ -15,10 +15,8 @@ int connection::processingHeader( Request& rs )
 {
     if ( extractMethodAndUri( rs ) == -1 )
 		throw std::runtime_error( codeMsg.statMsg[rs.stat] );
-	
 	if ( validateUriAndExtractQueries( rs ) == -1 )
 		throw std::runtime_error( codeMsg.statMsg[rs.stat] );
-
 	if ( extractHttpHeaders( rs ) == -1)
 		throw std::runtime_error( codeMsg.statMsg[rs.stat] );
 	if ( validateHeadersProcess( rs ) == -1 )
