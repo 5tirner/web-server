@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <stdio.h>
 
 int main()
@@ -25,9 +26,26 @@ int main()
         }
         i++;
     }
+    //exit(1);
+    int firstTime = 0;
     i = 0;
-    while (i < n - 1)
+    while (i < n)
     {
-        if (arr[i])
+        int k = 0;
+        while (i < n - 1 && arr[i] == arr[i + 1])
+        {
+            k++ , i++;
+        }
+        if (firstTime == 0)
+        {
+            firstTime
+            times = k, target = arr[0];
+        }
+        else
+        {
+            if (k > times)
+                times = k, target = arr[i - 1];
+        }
+        printf("%d %d\n", times, target);
     }
 }

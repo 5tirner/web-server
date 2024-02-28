@@ -164,8 +164,12 @@ connection::connection(std::map<int, informations> &configData)
     {
         std::cout << "Socket For Server Number " << i << " is "
         << o->first << '.' << std::endl;
+        std::cout << o->second.port.at("listen") << std::endl;
+        std::cout << o->second.host.at("host") << std::endl;
+        std::cout << o->second.serverName.at("server_name") << std::endl;
         o++;
         i++;
+        std::cout << "\\\\" << std::endl;
     }
     std::cout << "----------------------------------------------------------" << std::endl;
     while (1)
