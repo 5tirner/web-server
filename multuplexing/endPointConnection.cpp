@@ -1,4 +1,5 @@
 #include "../include/mainHeader.hpp"
+#include <map>
 
 connection::connection(void){}
 
@@ -24,6 +25,7 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
     std::map<int, informations>::iterator it = info.begin();
     while (it != info.end())
     {
+        std::cout << "Server Come With Number: " << it->first << std::endl;
         int fd = socket(AF_INET, SOCK_STREAM, 0);
         if (fd == -1)
         {
@@ -54,6 +56,7 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
             it++; continue;
         }
         this->serversSock[fd] = sockInfo;
+        this->OverLoad[fd] = it->second;
         std::cout << "Socket Ready To Listening For The Port: " << it->second.port.at("listen") << " With Number: " << fd << std::endl;
         it++;
     }
@@ -154,6 +157,17 @@ void    connection::checkServer(struct pollfd &monitor, std::map<int, struct soc
 connection::connection(std::map<int, informations> &configData)
 {
     this->serversEndPoint(configData);
+    std::cout << "---------------Read This Before Start------------------" << std::endl;
+    std::map<int, informations>::iterator o = this->OverLoad.begin();
+    int i = 1;
+    while (o != this->OverLoad.end())
+    {
+        std::cout << "Socket For Server Number " << i << " is "
+        << o->first << '.' << std::endl;
+        o++;
+        i++;
+    }
+    std::cout << "----------------------------------------------------------" << std::endl;
     while (1)
     {
         struct pollfd monitor[this->serversSock.size() + this->clientsSock.size()];
