@@ -1,12 +1,12 @@
 #include "../include/mainHeader.hpp"
 
-void    connection::processingBody( Request& rs, char* buffer, int& rc, const std::vector<location>& loc )
+void    connection::processingBody( Request& rs, char* buffer, int& rc, const informations& infoStruct )
 {
     if ( rs.headers["method"] == "get" )
         throw std::invalid_argument( "OK" );
     if ( rs.headers["method"] == "post" )
     {
-		if ( location_support_upload( loc ) == -1 )
+		if ( location_support_upload( infoStruct ) == -1 )
 			throw std::runtime_error( "You don't have the right to upload at this location" );
         if ( !rs.bodyStream->is_open() )
             generateRandomFileName( rs );
@@ -17,9 +17,22 @@ void    connection::processingBody( Request& rs, char* buffer, int& rc, const st
     }
 }
 
-int location_support_upload( const std::vector<location>& loc )
+int location_support_upload( const informations& infoStruct)
 {
-	std::cout << "upload location: " << loc.at(0).upload.at("ss") << std::endl;
+	// for ( size_t i = 0; i < infoStruct.locationsInfo.size(); i++ )
+	// {
+	// 	if ( infoStruct.locationsInfo[i].upload.at("upload") != "off" ) // off should be replaced by \0
+	// 	{
+	// 		// check the absolute path
+	// 		if ( infoStruct.locationsInfo[i].directory.at("location") )
+
+	// 	}
+	// 	std::cout << "Location: ";
+	// 	std::cout << infoStruct.locationsInfo[i].upload.at("upload") << std::endl;
+	// 	std::cout << "dir: ";
+	// 	std::cout << infoStruct.locationsInfo[i].directory.at("location") << std::endl;
+
+	// }
 	return -1;
 }
 

@@ -5,18 +5,11 @@ SRCS	= main.cpp\
 		./configFileAndPars/serverInfos.cpp\
 		./configFileAndPars/checkValues.cpp\
 		./multuplexing/endPointConnection.cpp\
-<<<<<<< HEAD
-		./methods/get.cpp\
-		./methods/post.cpp\
-		./methods/delete.cpp\
-		./commonGateway/cgi.cpp\
-=======
 		./multuplexing/incomingData.cpp \
 		./methods/post.cpp \
 		# ./methods/get.cpp\
 		# ./methods/post.cpp\
 		# ./methods/delete.cpp\
->>>>>>> yachaab
 
 OBJS	= $(SRCS:.cpp=.o)
 

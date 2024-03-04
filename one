@@ -41,7 +41,7 @@ location /nottest {
 			allowed_methodes      GET POST;
 		autoindex on;  
 return 303 ysabr.ma;
-					upload	  off /var/www/html;
+					upload	  on /var/www/html;
 			cgi off adress:port 	; 
 	}   
 	location /nottesttester {

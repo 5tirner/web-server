@@ -68,7 +68,7 @@ void    initializeMonitor(struct pollfd &monitor, int fd)
     monitor.events = POLLIN | POLLOUT;
 }
 
-void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it, const std::vector<location>& loc) //!yachaab edit here: add localisation vector
+void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it, const std::map<int, informations>& infoMap) //!yachaab edit here: add localisation vector
 {
     if ((monitor.revents & POLLIN))
     {
@@ -95,12 +95,12 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
             try {
                 if ( this->Requests.find(monitor.fd) == this->Requests.end() )
                     this->Requests[monitor.fd] = clientRequest();
-                if (this->Requests[monitor.fd].fetchHeaderDone == false)
+                if ( this->Requests[monitor.fd].fetchHeaderDone == false )
                     fetchRequestHeader( this->Requests[monitor.fd], buffer );
                 if ( this->Requests[monitor.fd].fetchHeaderDone == true && this->Requests[monitor.fd].processingHeaderDone == false )
                     processingHeader( this->Requests[monitor.fd] );
                 if ( this->Requests[monitor.fd].processingHeaderDone == true )
-                    processingBody( this->Requests[monitor.fd], buffer, rd, loc );
+                    processingBody( this->Requests[monitor.fd], buffer, rd, infoMap.at( it->second ) );
                 
             } catch ( std::exception& e ) {
                 // do somthis in case of error mostly drop client and check code status
@@ -148,21 +148,21 @@ void    connection::checkServer(struct pollfd &monitor, std::map<int, struct soc
 connection::connection(std::map<int, informations> &configData)
 {
     this->serversEndPoint(configData);
-    // std::cout << "---------------Read This Before Start------------------" << std::endl;
-    // std::map<int, informations>::iterator o = this->OverLoad.begin();
-    // int i = 1;
-    // while (o != this->OverLoad.end())
-    // {
-    //     std::cout << "Socket For Server Number " << i << " is "
-    //     << o->first << '.' << std::endl;
-    //     std::cout << o->second.port.at("listen") << std::endl;
-    //     std::cout << o->second.host.at("host") << std::endl;
-    //     std::cout << o->second.serverName.at("server_name") << std::endl;
-    //     o++;
-    //     i++;
-    //     std::cout << "\\\\" << std::endl;
-    // }
-    // std::cout << "----------------------------------------------------------" << std::endl;
+    std::cout << "---------------Read This Before Start------------------" << std::endl;
+    std::map<int, informations>::iterator o = this->OverLoad.begin();
+    int i = 1;
+    while (o != this->OverLoad.end())
+    {
+        std::cout << "Socket For Server Number " << i << " is "
+        << o->first << '.' << std::endl;
+        std::cout << o->second.port.at("listen") << std::endl;
+        std::cout << o->second.host.at("host") << std::endl;
+        std::cout << o->second.serverName.at("server_name") << std::endl;
+        o++;
+        i++;
+        std::cout << "\\\\" << std::endl;
+    }
+    std::cout << "----------------------------------------------------------" << std::endl;
     while (1)
     {
         struct pollfd monitor[this->serversSock.size() + this->clientsSock.size()];
@@ -190,13 +190,13 @@ connection::connection(std::map<int, informations> &configData)
             it1 = this->clientsSock.begin();
             while (it1 != this->clientsSock.end())
             {
-                this->checkClient(monitor[i], it1, OverLoad[ monitor.fd ]);
+                this->checkClient(monitor[i], it1, OverLoad);
                 it1++;
                 i++;
             }
-            for (size_t k = 0; k < this->exited.size(); k++)
-                this->clientsSock.erase(this->exited[k]);
-            this->exited.clear();
+            // for (size_t k = 0; k < this->exited.size(); k++)
+            //     this->clientsSock.erase(this->exited[k]);
+            // this->exited.clear();
             it = this->serversSock.begin();
             while (it != this->serversSock.end())
             {
