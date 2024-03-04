@@ -1,21 +1,35 @@
 #ifndef MAINHEADER_HPP
 # define MAINHEADER_HPP
 
-# include <sstream>
-# include <iostream>
-# include <cstddef>
-# include <exception>
-# include <fstream>
-# include <vector>
-# include <string>
-# include <map>
-# include <cstring>
-# include <cstdlib>
-# include <sys/poll.h>
-# include <asm-generic/socket.h>
-# include <sys/socket.h>
-# include <unistd.h>
-# include <netinet/in.h>
+#include <iostream>
+#include <cstddef>
+#include <exception>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <map>
+#include <cstring>
+#include <cstdlib>
+#include <sstream>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <netinet/in.h>
+#include <cstddef>
+#include <exception>
+#include <stdexcept>
+#include <cstddef>
+#include <cstdio>
+#include <exception>
+#include <netinet/in.h>
+#include <string>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <sys/poll.h>
+#include <map>
+#include <ctime>
+#include <climits>
+
+#define RES_HEADER	"HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\nConnection: close\r\n\r\n" // added by yachaab
 
 class   configFile
 {
@@ -97,19 +111,57 @@ class   servers
 };
 
 //for multuplexing
-class   Request
+/*-------------- yachaab code start ---------------*/
+typedef struct codeStat
 {
-    public:
-        std::fstream    dataFile;
-        Request(){}
-        Request(const Request &other){*this = other;}
-        Request&operator=(const Request &other)
-        {
-            if (other.dataFile.is_open())
-                return (*this);
-            return (*this);
-        }
-};
+    std::map<int, std::string> statMsg;
+    codeStat()
+    {
+        statMsg[ 200 ] = "OK";
+        statMsg[ 201 ] = "Created";
+        statMsg[ 204 ] = "No Content";
+        statMsg[ 301 ] = "Moved Permanently";
+        statMsg[ 400 ] = "Bad Request";
+        statMsg[ 403 ] = "Forbidden";
+        statMsg[ 404 ] = "Not Found";
+        statMsg[ 405 ] = "Method Not Allowed";
+        statMsg[ 409 ] = "Conflict";
+        statMsg[ 413 ] = "Request Entity Too Large";
+        statMsg[ 414 ] = "Request-URI Too Long";
+        statMsg[ 500 ] = "Internal Server Error";
+        statMsg[ 501 ] = "Not Implemented";
+    }
+} code;
+/*-------------- yachaab code start ---------------*/
+
+typedef struct clientRequest
+{
+    clientRequest()
+    {
+        fetchHeaderDone         = false;
+        processingHeaderDone    = false;
+        isChunkHeader           = true;
+        content_length          = 0;
+        bodyStream              = new std::ofstream;
+    }
+
+    std::map<std::string, std::string> headers, queries;
+    std::ofstream*  bodyStream;
+    std::string     fullRequest;
+    std::string     remainingBody;
+    std::string     transferEncoding;
+
+    size_t  content_length;
+    size_t  requestBodyLength;
+    long    currentChunkSize;
+    int     stat;
+    int     chunkHeaderStart;
+
+    bool fetchHeaderDone;
+    bool processingHeaderDone;
+    bool isChunkHeader;
+
+} Request;
 
 class   connection
 {
@@ -117,18 +169,25 @@ class   connection
         std::map<int, informations>                 OverLoad; //Here You Will Find The Informations As A Values For The Fds Of The Sockets Servers
         std::map<int, struct sockaddr_in>           serversSock; // each server fd in key with a ready struct on it's value
         std::map<int, int>                          clientsSock; // each client fd with the server fd that he connect with it in it's value
-        std::map<int, std::string>                  Requests; // each client fd with it's data in the value
-        std::vector<int>                            exited;
+        std::map<int, Request>                      Requests; // each client fd with it's data in the value
+        //std::vector<std::map<int, int>::iterator>   exited;
     public:
         connection();
-        connection(const connection &other);
         connection(std::map<int, informations> &infos);
+        connection(const connection &other);
         connection&operator=(const connection &other);
         ~connection();
         void    serversEndPoint(std::map<int, informations> &info);
-        void    checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it);
+        void    checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it,  const std::vector<location>& loc );//!yachaab edit here: add localisation struct
         void    checkServer(struct pollfd &monitor, std::map<int, struct sockaddr_in>::iterator &it);
         void    closeTheExitClients(void);
+        /*-------------- yachaab code start ---------------*/
+        void    fetchRequestHeader( Request&, char* );
+        int     processingHeader( Request& );
+        void    processingBody( Request&, char*, int&, const std::vector<location>& );
+        void    dropClient( int&, std::map<int, int>::iterator & );
+        code    codeMsg;
+        /*-------------- yachaab code end -----------------*/
 };
 
 //pars functions
@@ -145,7 +204,22 @@ int         normalCheck(std::string &value);
 int         multiValues(std::string &key, std::string &values);
 int         isInteger(std::string &value, char c);
 int         isValidIp4(std::string &value);
-
+/*-------------- yachaab code start ---------------*/
+int         extractMethodAndUri( Request& );
+int	        validateUri( const std::string& );
+void	    decomposeQueryParameters( const std::string& );
+int         validateUriAndExtractQueries( Request& );
+int         extractHttpHeaders( Request& );
+bool	    examinHeaders( Request&, std::string&, std::string& );
+void        lowcase( std::string& );
+int	        validateHeadersProcess( Request& );
+void        generateRandomFileName( Request& );
+long        parseChunkHeader( Request& rs, std::string& buffer );
+bool        chunkedComplete( Request& rs, std::string& buffer );
+void        processChunkedRequestBody( Request&, char*, int& );
+void        processRegularRequestBody( Request&, char* );
+int         location_support_upload( const std::vector<location>& );
+/*-------------- yachaab code end -----------------*/
 //multuplexing functions
 
 void    initializeMonitor(struct pollfd &monitor, int fd);
