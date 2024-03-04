@@ -33,7 +33,7 @@ server #hfgjknfjdkgbjk
 	       listen		1024;     
 	 host      1.1.1.1;
 	     server_name       		sade_manio 									fghr guyfg;     
-	limit_client_body           10htiuhg0;
+	limit_client_body           10    ;
 	      error_page                 /home/ysabr/errors/g.htlm;
 location /nottest {
 		root	/root;   #efgru 
