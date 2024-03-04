@@ -33,8 +33,8 @@ server #hfgjknfjdkgbjk
 	       listen		1024;     
 	 host      1.1.1.1;
 	     server_name       		sade_manio 									fghr guyfg;     
-	limit_client_body           100;
-	      error_page                 /home/ysabr/errors;
+	limit_client_body           10htiuhg0;
+	      error_page                 /home/ysabr/errors/g.htlm;
 location /nottest {
 		root	/root;   #efgru 
 		index	index.black index.brawn ghrefh;
@@ -44,13 +44,13 @@ return 303 ysabr.ma;
 					upload	  off /var/www/html;
 			cgi off adress:port 	; 
 	}   
-	location /nottesttester {
+	location /uplod {
 		#root	/rot ;   #efgru 
 		#index	index.back indx.bawn;
-			#allowed_methodes  DELETE GET;
+			allowed_methodes DELETE POST;
 		#autoindex      off    ;  
 #return 30 ysabr.ma;
-	#				upload	on | off /var/w/html;
+					upload	on /var/w/html;
 	#		cgi off adss:port;  
 	}  
 	#hhhh
