@@ -38,14 +38,14 @@ void    showInfo(informations &tmp)
 
 void    initialLocation(location &save)
 {
-    save.directory["location"] = "No_Location";
-    save.root["root"] = "No_root";
-    save.index["index"] = "No_thing";
+    save.directory["location"] = "";
+    save.root["root"] = "";
+    save.index["index"] = "index.html";
     save.allowed_methodes["allowed_methodes"] = "GET";
     save.autoindex["autoindex"] = "off";
-    save.Return["return"] = "0";
-    save.upload["upload"] = "off";
-    save.cgi["cgi"] = "off";
+    save.Return["return"] = "";
+    save.upload["upload"] = "";
+    save.cgi["cgi"] = "on";
 }
 
 void    etatInitial(informations &tmp)
