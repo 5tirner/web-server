@@ -6,7 +6,7 @@ void    connection::processingBody( Request& rs, char* buffer, int& rc, const in
         throw std::invalid_argument( "OK" );
     if ( rs.headers["method"] == "post" )
     {
-		if ( location_support_upload( infoStruct ) == -1 )
+		if ( location_support_upload( rs, infoStruct ) == -1 )
 			throw std::runtime_error( "You don't have the right to upload at this location" );
         if ( !rs.bodyStream->is_open() )
             generateRandomFileName( rs );
@@ -17,30 +17,40 @@ void    connection::processingBody( Request& rs, char* buffer, int& rc, const in
     }
 }
 
-int location_support_upload( const informations& infoStruct)
-{
-	// for ( size_t i = 0; i < infoStruct.locationsInfo.size(); i++ )
-	// {
-	// 	if ( infoStruct.locationsInfo[i].upload.at("upload") != "off" ) // off should be replaced by \0
-	// 	{
-	// 		// check the absolute path
-	// 		if ( infoStruct.locationsInfo[i].directory.at("location") )
+int location_support_upload( Request& rs,  const informations& infoStruct )
+{	
+	std::string location;
+	std::string upload;
+	std::string method;
 
-	// 	}
-	// 	std::cout << "Location: ";
-	// 	std::cout << infoStruct.locationsInfo[i].upload.at("upload") << std::endl;
-	// 	std::cout << "dir: ";
-	// 	std::cout << infoStruct.locationsInfo[i].directory.at("location") << std::endl;
-
-	// }
-	return -1;
+	for ( size_t i = 0; i < infoStruct.locationsInfo.size(); i++ )
+	{
+		// location = infoStruct.locationsInfo.at( i ).directory.at( "location" );
+		upload   = infoStruct.locationsInfo.at( i ).upload.at( "upload" );
+		method	 = infoStruct.locationsInfo.at( i ).allowed_methodes.at( "allowed_methodes" );
+		if ( upload[0] != 0 )
+		{
+			if ( method.find( "POST" ) )
+			{
+				rs.stat = 201;
+				return ( 0 );
+			}
+			else
+			{
+				rs.stat = 403;
+				return ( -1 );
+			}
+		}
+	}
+	rs.stat = 405;
+	return ( -1 );
 }
 
 void generateRandomFileName( Request& rs )
 {
 	const std::string CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 	std::srand( std::time( NULL ) );
-	std::string	filename( "./data/" );
+	std::string	filename( "./upload/" );
 
 	for ( int i = 0; i < 25; i++ )
 		filename.push_back( CHARACTERS[ rand() % CHARACTERS.length() ] );
@@ -161,7 +171,7 @@ void	processRegularRequestBody( Request& rs, char* buffer )
 	std::cout << "rs.content_length: " << rs.content_length << " | " << "rs.requestBodyLength: " << rs.requestBodyLength << std::endl;
 	if ( rs.content_length == rs.requestBodyLength )
 	{
-		rs.stat = 200;
+		rs.stat = 201;
 		throw std::runtime_error( "SARF LI KATSAL HANTA KHDITIH" );
 	}
 }

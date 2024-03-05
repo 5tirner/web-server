@@ -214,11 +214,11 @@ bool	    examinHeaders( Request&, std::string&, std::string& );
 void        lowcase( std::string& );
 int	        validateHeadersProcess( Request& );
 void        generateRandomFileName( Request& );
-long        parseChunkHeader( Request& rs, std::string& buffer );
-bool        chunkedComplete( Request& rs, std::string& buffer );
+long        parseChunkHeader( Request&, std::string& );
+bool        chunkedComplete( Request&, std::string& );
 void        processChunkedRequestBody( Request&, char*, int& );
 void        processRegularRequestBody( Request&, char* );
-int         location_support_upload( const informations& );
+int         location_support_upload( Request&,  const informations& );
 /*-------------- yachaab code end -----------------*/
 //multuplexing functions
 
