@@ -84,12 +84,15 @@ int checkLocations(informations &tmp)
                 save.directory[key] = &buffer[j];
                 std::map<std::string, std::string>::iterator it = save.directory.begin(); 
                 if (normalCheck(it->second) || it->second == "{" || (it->second[0] == '.' && (it->second[1] && it->second[1] == '.')))
-                { std::cout << "Invalid `Location` Syntax: " + it->second << std::endl; return (1); }
+                { std::cerr << "Invalid `Location` Syntax: " + it->second << std::endl; return (1); }
+                struct stat metadata;
+                if (stat(it->second.c_str(), &metadata))
+                { std::cerr << "Invalid Location Path " + it->second << std::endl; return (1);}
             }
             else if (key != "location" && key != "{"
                 && key != "}" && !strchr(&buffer[j], ';'))
             {
-                std::cout << "Can't Find `;` here " + buffer << std::endl;
+                std::cerr << "Can't Find `;` here " + buffer << std::endl;
                 return (1);
             }
             else if (key == "root")
@@ -97,28 +100,28 @@ int checkLocations(informations &tmp)
                 save.root[key] = &buffer[j];
                 std::map<std::string, std::string>::iterator it = save.root.begin(); 
                 if (normalCheck(it->second))
-                { std::cout << "Invalid `Root` Syntax: " + it->second << std::endl; return (1); }
+                { std::cerr << "Invalid `Root` Syntax: " + it->second << std::endl; return (1); }
             }
             else if (key == "index")
             {
                 save.index[key] = &buffer[j];
                 std::map<std::string, std::string>::iterator it = save.index.begin(); 
                 if (multiValues(key, it->second))
-                { std::cout << "Invalid `Index` Syntax: " + it->second << std::endl; return (1); }
+                { std::cerr << "Invalid `Index` Syntax: " + it->second << std::endl; return (1); }
             }
             else if (key == "allowed_methodes")
             {
                 save.allowed_methodes[key] = &buffer[j];
                 std::map<std::string, std::string>::iterator it = save.allowed_methodes.begin(); 
                 if (multiValues(key, it->second))
-                { std::cout << "Invalid `Methodes` Syntax: " + it->second << std::endl; return (1); }
+                { std::cerr << "Invalid `Methodes` Syntax: " + it->second << std::endl; return (1); }
             }
             else if (key == "autoindex")
             {
                 save.autoindex[key] = &buffer[j];
                 std::map<std::string, std::string>::iterator it = save.autoindex.begin(); 
                 if ((normalCheck(it->second)) || (it->second != "on" && it->second != "off"))
-                { std::cout << "Invalid `AutoIndex` Syntax: " + it->second << std::endl; return (1); }
+                { std::cerr << "Invalid `AutoIndex` Syntax: " + it->second << std::endl; return (1); }
             }
             else if (key == "return")
             {
@@ -131,18 +134,21 @@ int checkLocations(informations &tmp)
                 save.upload[key] = &buffer[j];
                 std::map<std::string, std::string>::iterator it = save.upload.begin(); 
                 if (multiValues(key, it->second))
-                { std::cout << "Invalid `Upload` Syntax: " + it->second << std::endl; return (1); }
+                { std::cerr << "Invalid `Upload` Syntax: " + it->second << std::endl; return (1); }
+                struct stat metadata;
+                if (stat(it->second.c_str(), &metadata))
+                { std::cerr << "Invalid Upload Path " + it->second << std::endl; return (1);}
             }
             else if (key == "cgi")
             {
                 save.cgi[key] = &buffer[j];
                 std::map<std::string, std::string>::iterator it = save.cgi.begin(); 
                 if (multiValues(key, it->second))
-                { std::cout << "Invalid `Cgi` Syntax: " + it->second << std::endl; return (1); }
+                { std::cerr << "Invalid `Cgi` Syntax: " + it->second << std::endl; return (1); }
             }
             else if (key != "}" && key != "{")
             {
-                std::cout << "Weird KeyWord " + key << std::endl;
+                std::cerr << "Weird KeyWord " + key << std::endl;
                 return (1);
             }
         }

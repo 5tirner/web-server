@@ -19,39 +19,39 @@ return 301 	www.zasabri.ma;
 					upload	on  /var/www/html;
 			cgi                  off;  
 	}
-	location /youness {
+	location / {
 		
 	}
 }       
 #hiksa
 #localhost: 65535/
 #server2
-server #hfgjknfjdkgbjk
+#server #hfgjknfjdkgbjk
 #heloo
 #hfjigh
-{
-	       listen		1024;     
-	 host      1.1.1.1;
-	     server_name       		sade_manio 									fghr guyfg;     
-	limit_client_body           10    ;
-	      error_page                 /home/ysabr/errors/g.htlm;
-location /nottest {
-		root	/root;   #efgru 
-		index	index.black index.brawn ghrefh;
-			allowed_methodes      GET POST;
-		autoindex on;  
-return 303 ysabr.ma;
-					upload	  off /var/www/html;
-			cgi off adress:port 	; 
-	}   
-	location /uplod {
-		#root	/rot ;   #efgru 
-		#index	index.back indx.bawn;
-			allowed_methodes DELETE POST;
-		#autoindex      off    ;  
-#return 30 ysabr.ma;
-					upload	on /var/w/html;
-	#		cgi off adss:port;  
-	}  
-	#hhhh
-}  
+# {
+# 	       listen		1024;     
+# 	 host      1.1.1.1;
+# 	     server_name       		sade_manio 									fghr guyfg;     
+# 	limit_client_body           10    ;
+# 	      error_page                 /home/ysabr/errors/g.htlm;
+# location /nottest {
+# 		root	/root;   #efgru 
+# 		index	index.black index.brawn ghrefh;
+# 			allowed_methodes      GET POST;
+# 		autoindex on;  
+# return 303 ysabr.ma;
+# 					upload	  off /var/www/html;
+# 			cgi off adress:port 	; 
+# 	}   
+# 	location /uplod {
+# 		#root	/rot ;   #efgru 
+# 		#index	index.back indx.bawn;
+# 			allowed_methodes DELETE POST;
+# 		#autoindex      off    ;  
+# #return 30 ysabr.ma;
+# 					upload	on /var/w/html;
+# 	#		cgi off adss:port;  
+# 	}  
+# 	#hhhh
+# }  
