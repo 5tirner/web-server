@@ -103,7 +103,7 @@ int cgiAndUploadSyntax(std::string &values)
             return (1);
     }
     else if (save == "off")
-        values = "off";
+        values = "";
     else
         return (1);
     return (0);

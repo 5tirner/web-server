@@ -11,12 +11,12 @@ server     #hello
 	error_page    301  /home/zasabri/Desktop/errors;
 	      error_page      304  /home/zasabri/Desktop/errorsat;
 location   / {
-		root	../ 	 ; 		  #hi 
+		root	/var/www/html	 ; 		  #hi 
 		index	index.html index.php index.py; 
 			allowed_methodes GET;
 		autoindex       on  	    ;  
 return 301 	www.zasabri.ma;
-					upload	on  /var/www/html;
+					upload	on;
 			cgi                  off;  
 	}
 	location / {

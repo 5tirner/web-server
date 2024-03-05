@@ -42,10 +42,10 @@ void    initialLocation(location &save)
     save.root["root"] = "";
     save.index["index"] = "index.html";
     save.allowed_methodes["allowed_methodes"] = "GET";
-    save.autoindex["autoindex"] = "off";
+    save.autoindex["autoindex"] = "";
     save.Return["return"] = "";
     save.upload["upload"] = "";
-    save.cgi["cgi"] = "on";
+    save.cgi["cgi"] = "";
 }
 
 void    etatInitial(informations &tmp)
@@ -86,7 +86,7 @@ int checkLocations(informations &tmp)
                 if (normalCheck(it->second) || it->second == "{" || (it->second[0] == '.' && (it->second[1] && it->second[1] == '.')))
                 { std::cerr << "Invalid `Location` Syntax: " + it->second << std::endl; return (1); }
                 struct stat metadata;
-                if (stat(it->second.c_str(), &metadata))
+                if (it->second[0] && stat(it->second.c_str(), &metadata))
                 { std::cerr << "Invalid Location Path " + it->second << std::endl; return (1);}
             }
             else if (key != "location" && key != "{"
@@ -101,6 +101,9 @@ int checkLocations(informations &tmp)
                 std::map<std::string, std::string>::iterator it = save.root.begin(); 
                 if (normalCheck(it->second))
                 { std::cerr << "Invalid `Root` Syntax: " + it->second << std::endl; return (1); }
+                struct stat metadata;
+                if (it->second[i] && stat(it->second.c_str(), &metadata))
+                { std::cerr << "Invalid Root Path " + it->second << std::endl; return (1);}
             }
             else if (key == "index")
             {
@@ -136,7 +139,7 @@ int checkLocations(informations &tmp)
                 if (multiValues(key, it->second))
                 { std::cerr << "Invalid `Upload` Syntax: " + it->second << std::endl; return (1); }
                 struct stat metadata;
-                if (stat(it->second.c_str(), &metadata))
+                if (it->second[i] && stat(it->second.c_str(), &metadata))
                 { std::cerr << "Invalid Upload Path " + it->second << std::endl; return (1);}
             }
             else if (key == "cgi")
