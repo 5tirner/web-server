@@ -5,6 +5,7 @@
 void    connection::fetchRequestHeader( Request& rs, char* buffer )
 {
     rs.fullRequest.append( buffer, rs.rc );
+	OUT(buffer);
     if ( rs.fullRequest.find("\r\n\r\n") != std::string::npos )
     {
         rs.fetchHeaderDone = true;

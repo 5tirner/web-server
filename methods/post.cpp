@@ -67,7 +67,6 @@ long    parseChunkHeader( Request& rs, std::string& buffer )
 		throw std::invalid_argument( "Bad request: invalid chunk size header" );
 
 	buffer = buffer.substr( chunkHead.length() + 2 );
-	OUT( buffer );
 	return ( rs.currentChunkSize );
 }
 
@@ -91,32 +90,25 @@ bool    chunkedComplete( Request& rs,  std::string& buffer )
 		}
 		if ( rs.currentChunkSize > static_cast<long>( buffer.length() ) )
 		{
-			// if ( buffer.length() < 2047 )
-			// {
-
-			// }
-			// std::cout << "current chunk size: " << rs.currentChunkSize << " bufflen:" << bufflen  << " Buffer length: " << buffer.length() << std::endl;
 			rs.bodyStream->write( buffer.c_str(),  buffer.length() );
-			// if ( !rs.bodyStream->good() )
-			// {
-			// 	rs.stat = 400; // not 400 for sure;
-			// 	throw std::runtime_error( "Error: incomplete data trensfer" );
-			// }
+			if ( !rs.bodyStream->good() )
+			{
+				rs.stat = 400; // not 400 for sure;
+				throw std::runtime_error( "Error: incomplete data trensfer" );
+			}
 			rs.bodyStream->flush();
 			rs.currentChunkSize -= buffer.length();
 			rs.isChunkHeader = false;
-			// std::cout << "1current chunk size: " << rs.currentChunkSize << " 1bufflen:" << bufflen  << " 1Buffer length: " << buffer.length() << std::endl;
 			return ( false );
 		}
 		if ( rs.currentChunkSize <= static_cast<long>( buffer.length() ) ) // add equal check it again
 		{
 			rs.bodyStream->write( buffer.c_str(),  rs.currentChunkSize );
-			// if ( !rs.bodyStream->good() )
-			// {
-			// 	rs.stat = 400; // not 400 for sure;
-			// 	throw std::runtime_error( "Error: incomplete data trensfer" );
-			// }
-			// std::cout << "1current chunk size: " << rs.currentChunkSize << " 1bufflen:" << bufflen  << " 1Buffer length: " << buffer.length() << std::endl;
+			if ( !rs.bodyStream->good() )
+			{
+				rs.stat = 400; // not 400 for sure;
+				throw std::runtime_error( "Error: incomplete data trensfer" );
+			}
 			rs.bodyStream->flush();
 			bufflen -= rs.currentChunkSize + 2;
 			buffer = buffer.substr( rs.currentChunkSize + 2 );
@@ -153,7 +145,7 @@ size_t	ft_strlen( const char* str )
 
 void	processRegularRequestBody( Request& rs, char* buffer )
 {
-	size_t	bufferSize = ft_strlen( buffer );
+	//size_t	bufferSize = ft_strlen( buffer ); // \0 problem cam be happened again here
 
 	if ( !rs.remainingBody.empty() )
 	{
@@ -162,10 +154,10 @@ void	processRegularRequestBody( Request& rs, char* buffer )
 		rs.content_length += rs.remainingBody.length();
 		rs.remainingBody.clear();
 	}
-	else if ( bufferSize ){
-		rs.bodyStream->write( buffer,  bufferSize );
+	else if ( rs.rc ){
+		rs.bodyStream->write( buffer,  rs.rc );
 		rs.bodyStream->flush();
-		rs.content_length += bufferSize;
+		rs.content_length += rs.rc;
 	}
 	if ( !rs.bodyStream->good() )
 	{
