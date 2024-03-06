@@ -90,11 +90,12 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         }
         else if (rd)
         {
+            
             buffer[rd] = '\0';
             /*-------------- yachaab code start ---------------*/
             try {
                 if ( this->Requests.find(monitor.fd) == this->Requests.end() )
-                    this->Requests[monitor.fd] = clientRequest();
+                    this->Requests[monitor.fd] = clientRequest(rd);
                 if ( this->Requests[monitor.fd].fetchHeaderDone == false )
                     fetchRequestHeader( this->Requests[monitor.fd], buffer );
                 if ( this->Requests[monitor.fd].fetchHeaderDone == true && this->Requests[monitor.fd].processingHeaderDone == false )

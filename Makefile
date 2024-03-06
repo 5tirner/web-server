@@ -31,12 +31,12 @@ clean :
 	$(RM) $(OBJS)
 
 fclean : clean
-	@rm -fr ./data/*
+	@rm -fr ./upload/*
 	$(RM) $(NAME)
 
 re : fclean all
 
 git: fclean
 	git add .
-	git commit -m "yachaab handling chunked post request: add some error checks"
-	git push origin yachaab
+	git commit -m "yachaab handling chunked post request: fix chunk request '\0' problem"
+	git push origin merged

@@ -30,6 +30,7 @@
 #include <climits>
 
 #define RES_HEADER	"HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\nConnection: close\r\n\r\n" // added by yachaab
+#define OUT( val ) std::cout << val << std::endl;
 
 class   configFile
 {
@@ -136,13 +137,16 @@ typedef struct codeStat
 
 typedef struct clientRequest
 {
-    clientRequest()
+    clientRequest() {}
+    clientRequest(int rd)
     {
         fetchHeaderDone         = false;
         processingHeaderDone    = false;
         isChunkHeader           = true;
         content_length          = 0;
         bodyStream              = new std::ofstream;
+        fileName                = "./upload/";
+        rc                      = rd;
     }
 
     std::map<std::string, std::string> headers, queries;
@@ -150,12 +154,14 @@ typedef struct clientRequest
     std::string     fullRequest;
     std::string     remainingBody;
     std::string     transferEncoding;
+    std::string     fileName;
 
     size_t  content_length;
     size_t  requestBodyLength;
     long    currentChunkSize;
     int     stat;
     int     chunkHeaderStart;
+    int     rc;
 
     bool fetchHeaderDone;
     bool processingHeaderDone;

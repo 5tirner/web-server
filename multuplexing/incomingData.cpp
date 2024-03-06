@@ -1,9 +1,10 @@
 #include "../include/mainHeader.hpp"
+#include <cstring>
 
 /*-------------- yachaab code start ---------------*/
 void    connection::fetchRequestHeader( Request& rs, char* buffer )
 {
-    rs.fullRequest.append( buffer );
+    rs.fullRequest.append( buffer, rs.rc );
     if ( rs.fullRequest.find("\r\n\r\n") != std::string::npos )
     {
         rs.fetchHeaderDone = true;
@@ -43,8 +44,7 @@ int extractMethodAndUri( Request& rs )
 
 	}catch( const std::exception& e )
 	{
-		rs.stat = 400;
-		return ( -1 );
+		return ( rs.stat = 400, -1 );
 	}
 	return ( 0 );
 }
@@ -82,12 +82,8 @@ int validateUriAndExtractQueries( Request& rs )
 	if ( validateUri( rs.headers["uri"] ) == -1 )
 	{
 		if ( rs.headers["uri"].length() > 2048 )
-		{
-			rs.stat = 414;
-			return ( -1 );
-		}
-		rs.stat = 400;
-		return ( -1 );
+			return ( rs.stat = 414, -1 );
+		return ( rs.stat = 400, -1 );
 	}
 	size_t queryPos = rs.headers["uri"].find('?');
     if ( queryPos != std::string::npos )
@@ -158,8 +154,7 @@ int	extractHttpHeaders( Request& rs )
 	}
 	catch( const std::exception& e )
 	{
-		rs.stat = 400;
-		return ( -1 );
+		return ( rs.stat = 400, -1 );
 	}
 	return ( 0 );
 }
@@ -169,28 +164,19 @@ int	validateHeadersProcess( Request& rs )
 	if ( rs.headers.find( "transfer-encoding" ) != rs.headers.end() )
 	{
 		if ( rs.headers[ "transfer-encoding" ] != "chunked" )
-		{
-			rs.stat = 501;
-			return ( -1 );
-		}
+			return ( rs.stat = 501, -1 );
 	}
 	if ( rs.headers["method"] == "post" )
 	{
 		if ( rs.headers.find( "transfer-encoding" ) == rs.headers.end() )
 		{
 			if ( rs.headers.find( "content-length" ) == rs.headers.end() )
-			{
-				rs.stat = 400;
-				return ( -1 );
-			}
+				return ( rs.stat = 400, -1 );
 		}
 		else
 		{
 			if ( rs.headers.find( "content-length" ) != rs.headers.end() )
-			{
-				rs.stat = 400;
-				return ( -1 );
-			}
+				return ( rs.stat = 400, -1 );
 		}
 	}
 	// if ( rs.requestBodyLength > rs.maxBodySize ) // timssah need to give the body size 

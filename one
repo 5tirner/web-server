@@ -1,5 +1,4 @@
 server
-
 {
 	listen				1024;
 	host      			1.1.111.111;
@@ -8,13 +7,13 @@ server
 	error_page    		301  /home/zasabri/Desktop/errors;
 	error_page      	304  /home/zasabri/Desktop/errorsat;
 
-location	/	{
+location / {
 		root				../;
 		index				index.html index.php index.py;
-		allowed_methodes	GET;
+		allowed_methodes	POST GET DELETE;
 		autoindex			on;  
 		return				301 	www.zasabri.ma;
-		upload				on  /www/var/ddcdc;
+		upload				on  /home/yachaab/Desktop/web-server/upload;
 		cgi					off;
 	}
 location /slow {
@@ -23,7 +22,7 @@ location /slow {
 }
 #hiksa
 #localhost: 65535/
-#server2
+# server2
 # server #hfgjknfjdkgbjk
 # #heloo
 # #hfjigh
