@@ -1,8 +1,11 @@
 #include "../include/mainHeader.hpp"
+#include <exception>
 
 /*-------------- yachaab code start ---------------*/
 void    connection::fetchRequestHeader( Request& rs, char* buffer )
 {
+	std::cout << "buffer: " << buffer << "  " << rs.rc << std::endl;
+	throw std::exception();
     rs.fullRequest.append( buffer, rs.rc );
 	
     if ( rs.fullRequest.find("\r\n\r\n") != std::string::npos )
@@ -15,13 +18,13 @@ void    connection::fetchRequestHeader( Request& rs, char* buffer )
 int connection::processingHeader( Request& rs )
 {
     if ( extractMethodAndUri( rs ) == -1 )
-		throw std::runtime_error( codeMsg.statMsg[rs.stat] );
+		throw std::exception();
 	if ( validateUriAndExtractQueries( rs ) == -1 )
-		throw std::runtime_error( codeMsg.statMsg[rs.stat] );
+		throw std::exception();
 	if ( extractHttpHeaders( rs ) == -1)
-		throw std::runtime_error( codeMsg.statMsg[rs.stat] );
+		throw std::exception();
 	if ( validateHeadersProcess( rs ) == -1 )
-		throw std::runtime_error( codeMsg.statMsg[rs.stat] );
+		throw std::exception();
     return ( 0 );
 }
 
@@ -35,14 +38,23 @@ int extractMethodAndUri( Request& rs )
 		startLine = rs.fullRequest.substr( 0, rs.fullRequest.find( "\n" ) );
         carriagepos = startLine.find("\r");
         startLine.resize(carriagepos);
+
+		int spNbr = std::count( startLine.begin(), startLine.end(), ' ' );
+		if ( spNbr != 2 )
+			throw std::exception();
+
 		rs.headers["method"]    =	startLine.substr( 0, startLine.find( ' ' )  );
 		rs.headers["uri"]       =	startLine.substr( rs.headers["method"].length() + 1, startLine.find_last_of( ' ' ) -  rs.headers["method"].length() - 1 );
-		rs.headers["version"]   =	startLine.substr( rs.headers["uri"].length() + rs.headers["uri"].length() + 2 );
+		rs.headers["version"]   =	startLine.substr( rs.headers["method"].length() + rs.headers["uri"].length() + 2 );
 		lowcase( rs.headers["method"] );
 		lowcase( rs.headers["uri"] );
 		lowcase( rs.headers["version"] );
 
-	}catch( const std::exception& e )
+		if ( rs.headers["version"] != "http/1.1" )
+			throw std::exception();
+		if ( rs.headers["method"] != "get" && rs.headers["method"] != "post" && rs.headers["method"] != "delete" )
+			throw std::exception();
+	}catch( ... )
 	{
 		return ( rs.stat = 400, -1 );
 	}
@@ -77,6 +89,27 @@ void	decomposeQueryParameters( const std::string& query, Request& rs )
     }
 }
 
+std::string decodeURI(const std::string& uri)
+{
+    std::string result;
+    for (std::size_t i = 0; i < uri.length(); ++i)
+    {
+        if (uri[i] == '%' && i + 2 < uri.length())
+        {
+            std::string hex = uri.substr(i + 1, 2);
+            std::stringstream ss;
+            int ch;
+            ss << std::hex << hex;
+            ss >> ch;
+            result += static_cast<char>(ch);
+            i += 2;
+        }
+        else
+            result += uri[i];
+    }
+    return result;
+}
+
 int validateUriAndExtractQueries( Request& rs )
 {
 	if ( validateUri( rs.headers["uri"] ) == -1 )
@@ -85,6 +118,9 @@ int validateUriAndExtractQueries( Request& rs )
 			return ( rs.stat = 414, -1 );
 		return ( rs.stat = 400, -1 );
 	}
+
+	rs.headers["uri"] = decodeURI(rs.headers["uri"]);
+
 	size_t queryPos = rs.headers["uri"].find('?');
     if ( queryPos != std::string::npos )
 	{
@@ -125,6 +161,11 @@ bool	examinHeaders( Request& rs, std::string& first, std::string& second )
 		if ( rs.requestBodyLength == 0 )
 			return ( rs.stat = 400, false );
 	}
+	if ( first == "host" )
+	{
+		if ( second.empty() )
+			return ( rs.stat = 400, false );
+	}
 	return true;
 }
 
@@ -149,7 +190,7 @@ int	extractHttpHeaders( Request& rs )
 		for ( it = header_lines.begin(); it != header_lines.end(); ++it )
 		{
 			first	=	it->substr( 0, it->find_first_of( ':' ) );
-			second	=	it->substr( it->find_first_of( ':' ) + 2 );
+			second	=	it->substr( it->find_first_of( ':' ) + 2 ); // ! need adding space and tab handler
 			
 			lowcase( first );
 			lowcase( second );
@@ -171,6 +212,8 @@ int	extractHttpHeaders( Request& rs )
 
 int	validateHeadersProcess( Request& rs )
 {
+	if ( rs.headers.find( "host" ) == rs.headers.end() )
+		return ( rs.stat = 400, -1 );
 	if ( rs.headers["method"] == "post" )
 	{
 		if ( rs.transferEncoding == false )

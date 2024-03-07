@@ -12,7 +12,10 @@ SRC     = main.cpp\
 		  ./configFileAndPars/checkValues.cpp\
 		  ./multuplexing/endPointConnection.cpp\
 		  ./multuplexing/incomingData.cpp \
-		  ./methods/post.cpp
+		  ./methods/post.cpp\
+		  ./methods/get.cpp \
+		  ./methods/delete.cpp \
+		  ./multuplexing/sendResponse.cpp
 
 OBJ     = $(addprefix $(OBJDIR)/, $(SRC:.cpp=.o))
 

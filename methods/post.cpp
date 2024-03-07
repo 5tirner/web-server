@@ -2,8 +2,6 @@
 
 void    connection::processingBody( Request& rs, char* buffer, int rc, const informations& infoStruct )
 {
-    if ( rs.headers["method"] == "get" )
-        throw std::invalid_argument( "OK" );
     if ( rs.headers["method"] == "post" )
     {
 		if ( location_support_upload( rs, infoStruct ) == -1 )
@@ -18,7 +16,6 @@ void    connection::processingBody( Request& rs, char* buffer, int rc, const inf
 				processRegularRequestBody( rs, buffer , rc);
 			else
 			{
-				std::cout << "Hello" << std::endl;
 				rs.stat = 413;
 				throw std::exception();
 			}
@@ -140,7 +137,10 @@ void    processChunkedRequestBody( Request& rs, char* buffer, int& rc )
     {
         std::string receivedData( buffer, rc );
         if ( chunkedComplete( rs, receivedData ) )
+		{
+			rs.processingRequestDone = true;
             throw std::invalid_argument( "CHUNK LI KATSAL HANTA KHDITIH" );
+		}
     }
 }
 

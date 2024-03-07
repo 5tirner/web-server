@@ -1,4 +1,5 @@
 #include "../include/mainHeader.hpp"
+#include <csignal>
 
 connection::connection(void){}
 
@@ -68,8 +69,17 @@ void    initializeMonitor(struct pollfd &monitor, int fd)
     monitor.events = POLLIN | POLLOUT;
 }
 
+// void connection::handler(int sig)
+// {
+//     if (sig == SIGINT)
+//     {
+        
+//     }
+// }
 void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it, const std::map<int, informations>& infoMap) //!yachaab edit here: add localisation vector
 {
+    // void (*ptr)(int) = &this->handler;
+    // signal(SIGINT, this->handler);
     if ((monitor.revents & POLLIN))
     {
         // std::cout << "Cleint-Side, An Event Happen Into " << monitor.fd << " Endpoint." << std::endl;
@@ -95,13 +105,18 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
             /*-------------- yachaab code start ---------------*/
             try {
                 if ( this->Requests.find(monitor.fd) == this->Requests.end() )
+                {
                     this->Requests[monitor.fd] = clientRequest( rd );
+                }
                 if ( this->Requests[monitor.fd].fetchHeaderDone == false )
                     fetchRequestHeader( this->Requests[monitor.fd], buffer );
                 if ( this->Requests[monitor.fd].fetchHeaderDone == true && this->Requests[monitor.fd].processingHeaderDone == false )
                     processingHeader( this->Requests[monitor.fd] );
                 if ( this->Requests[monitor.fd].processingHeaderDone == true )
                     processingBody( this->Requests[monitor.fd], buffer, rd, infoMap.at( it->second ) );
+                // if ( this->Requests[monitor.fd].processingRequestDone == true )
+                if (this->Requests[monitor.fd].headers["method"] == "get" || this->Requests[monitor.fd].headers["method"] == "delete")
+                    this->Requests[monitor.fd].processingRequestDone = true;
                 
             } catch ( ... ) {
                 // do somthis in case of error mostly drop client and check code status
@@ -111,6 +126,17 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 dropClient( monitor.fd, it );
             }
             /*-------------- yachaab code end -----------------*/
+        }
+    }
+    if (monitor.revents & POLLOUT & this->Requests[monitor.fd].processingRequestDone)
+    {
+        std::cout << "hello\n";
+        if (!this->Requests[monitor.fd].storeHeader)
+        {
+            if (this->Requests[monitor.fd].headers["method"] == "get")
+                handleRequestGET(monitor.fd, this->Requests[monitor.fd], infoMap.at(it->second));
+            else if (this->Requests[monitor.fd].headers["method"] == "delete")
+                handleRequestDELETE(monitor.fd, this->Requests[monitor.fd], infoMap.at(it->second));
         }
     }
     else if (monitor.revents & POLLHUP)

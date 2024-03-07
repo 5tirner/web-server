@@ -23,6 +23,9 @@
 #include <asm-generic/socket.h>
 #include <netinet/in.h>
 #include <sys/stat.h>
+#include <algorithm>
+#include <dirent.h>
+#include<csignal>
 
 #define RES_HEADER	"HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\nConnection: close\r\n\r\n" // added by yachaab
 #define OUT( val ) std::cout << val << std::endl;
@@ -136,17 +139,20 @@ typedef struct clientRequest
     clientRequest() {}
     clientRequest( int rd )
     {
+        rc                      = rd;
         fetchHeaderDone         = false;
         processingHeaderDone    = false;
         transferEncoding        = false;
         contentLength           = false;
+        processingRequestDone   = false;
+        storeHeader             = false;
         isChunkHeader           = true;
         content_length          = 0;
         bodyStream              = new std::ofstream;
         fileName                = "./upload/";
-        rc                      = rd;
         chunkSizeSum            = 0;
         limitClientBodySize     = 0;
+        std::cout<< "I'm constructor\n";
     }
 
     std::map<std::string, std::string> headers, queries;
@@ -169,11 +175,35 @@ typedef struct clientRequest
     bool    isChunkHeader;
     bool    transferEncoding;
     bool    contentLength;
+
+    bool    processingRequestDone;
+    bool    storeHeader;
 } Request;
+
+typedef struct clientResponse
+{
+    std::ifstream   fileStream;
+    std::string     filePath;
+    size_t          totalSize;
+    size_t          bytesSent;
+    std::string     responseHeader;
+    enum Status
+    {
+        Pending,
+        InProgress,
+        Complete
+    } status;
+    clientResponse();
+    clientResponse(const clientResponse& other);
+    clientResponse& operator=(const clientResponse& other);
+    void setResponseHeader(const std::string& header);
+} response;
+
 
 class   connection
 {
     private:
+        std::map<int, response>                     Response;
         std::map<int, informations>                 OverLoad; //Here You Will Find The Informations As A Values For The Fds Of The Sockets Servers
         std::map<int, struct sockaddr_in>           serversSock; // each server fd in key with a ready struct on it's value
         std::map<int, int>                          clientsSock; // each client fd with the server fd that he connect with it in it's value
@@ -195,8 +225,16 @@ class   connection
         void    processingBody( Request&, char*, int, const informations& );
         void    dropClient( int&, std::map<int, int>::iterator & );
         code    codeMsg;
+        void    handler(int);
         /*-------------- yachaab code end -----------------*/
+    
+        /*-------------- ysabr code start ---------------*/
+        void    handleRequestGET(int, Request&, const informations&);
+        void    handleRequestDELETE(int, Request&, const informations&);
+        /*-------------- ysabr code end -----------------*/
 };
+
+
 
 //pars functions
 int         isServer(std::string &s, size_t i);
@@ -227,7 +265,26 @@ bool        chunkedComplete( Request&, std::string& );
 void        processChunkedRequestBody( Request&, char*, int& );
 void        processRegularRequestBody( Request&, char*, int& );
 int         location_support_upload( Request&,  const informations& );
+int         validateUriAndExtractQueries( Request& rs );
 /*-------------- yachaab code end -----------------*/
+
+/*-------------- ysabr code start ---------------*/
+location    findRouteConfig(std::string&, const informations&);
+void        openFile(response&,const std::string&);
+void        closeFile(response&);
+bool        hasNextChunk(response&);
+bool        isRegularFile(const std::string&);
+bool        isDirectory(const std::string&);
+std::string generateDirectoryListing(const std::string&);
+std::string to_string(int);
+std::string getNextChunk(response&,size_t);
+std::string getMimeType(std::string&);
+std::string mapUriToFilePath(std::string&, location&);
+bool        fileExists(std::string&);
+bool removeDirectory(const std::string& path);
+/*-------------- ysabr code end ---------------*/
+
+
 //multuplexing functions
 
 void    initializeMonitor(struct pollfd &monitor, int fd);
