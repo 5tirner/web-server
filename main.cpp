@@ -14,8 +14,9 @@ void showmeConfigthings(std::map<int, informations> &general)
         it++;
     }
 }
-int main(int ac, char **av)
+int main(int ac, char **av, char **env)
 {
+    (void)env;
     try
     {
         configFile cFile(ac, av);

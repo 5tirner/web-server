@@ -18,6 +18,7 @@ void    connection::processingBody( Request& rs, char* buffer, int rc, const inf
 				processRegularRequestBody( rs, buffer , rc);
 			else
 			{
+				std::cout << "Hello" << std::endl;
 				rs.stat = 413;
 				throw std::exception();
 			}
@@ -41,7 +42,9 @@ int location_support_upload( Request& rs,  const informations& infoStruct )
 			{
 				if ( access( upload.c_str(), F_OK | W_OK ) != 0 )
 					return ( rs.stat = 403, -1 );
-				rs.limitClientBodySize = std::atol( infoStruct.limitClientBody.at("limit_client_body").c_str() );
+				rs.limitClientBodySize = std::atol( infoStruct.limitClientBody.at("limit_client_body").c_str() ) * 10000000;
+				if ( rs.limitClientBodySize == 0 )
+					return ( rs.stat = 400, -1 );
 				return ( rs.stat = 201, 0 );
 			}
 		}
@@ -167,6 +170,7 @@ void	processRegularRequestBody( Request& rs, char* buffer, int& rc )
 	}
 	else if ( rs.content_length > rs.requestBodyLength )
 	{
+		std::cout << "Hello3" << std::endl;
 		rs.stat = 413;
 		throw std::exception();
 	}

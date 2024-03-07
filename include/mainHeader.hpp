@@ -1,7 +1,6 @@
 #ifndef MAINHEADER_HPP
 # define MAINHEADER_HPP
 #include <iostream>
-#include <cstddef>
 #include <exception>
 #include <fstream>
 #include <vector>
@@ -13,24 +12,21 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <netinet/in.h>
-#include <cstddef>
 #include <exception>
 #include <stdexcept>
-#include <cstddef>
 #include <cstdio>
-#include <exception>
 #include <netinet/in.h>
 #include <string>
-#include <sys/socket.h>
-#include <unistd.h>
 #include <sys/poll.h>
 #include <map>
 #include <ctime>
-#include <cstring>
-#include <unistd.h>
+#include <asm-generic/socket.h>
+#include <netinet/in.h>
+#include <sys/stat.h>
 
 #define RES_HEADER	"HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\nConnection: close\r\n\r\n" // added by yachaab
 #define OUT( val ) std::cout << val << std::endl;
+
 
 class   configFile
 {

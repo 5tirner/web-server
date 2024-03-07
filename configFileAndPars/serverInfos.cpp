@@ -38,14 +38,14 @@ void    showInfo(informations &tmp)
 
 void    initialLocation(location &save)
 {
-    save.directory["location"] = "No_Location";
-    save.root["root"] = "No_root";
-    save.index["index"] = "No_thing";
+    save.directory["location"] = "";
+    save.root["root"] = "";
+    save.index["index"] = "index.html";
     save.allowed_methodes["allowed_methodes"] = "GET";
-    save.autoindex["autoindex"] = "off";
-    save.Return["return"] = "0";
-    save.upload["upload"] = "off";
-    save.cgi["cgi"] = "off";
+    save.autoindex["autoindex"] = "";
+    save.Return["return"] = "";
+    save.upload["upload"] = "";
+    save.cgi["cgi"] = "";
 }
 
 void    etatInitial(informations &tmp)
@@ -53,7 +53,7 @@ void    etatInitial(informations &tmp)
     tmp.port["listen"] = "1024";
     tmp.host["host"] = "127.0.0.1";
     tmp.serverName["server_name"] = "defualt";
-    tmp.limitClientBody["limit_client_body"] = "10";
+    tmp.limitClientBody["limit_client_body"] = "100";
 }
 
 int checkLocations(informations &tmp)
@@ -84,12 +84,15 @@ int checkLocations(informations &tmp)
                 save.directory[key] = &buffer[j];
                 std::map<std::string, std::string>::iterator it = save.directory.begin(); 
                 if (normalCheck(it->second) || it->second == "{" || (it->second[0] == '.' && (it->second[1] && it->second[1] == '.')))
-                { std::cout << "Invalid `Location` Syntax: " + it->second << std::endl; return (1); }
+                { std::cerr << "Invalid `Location` Syntax: " + it->second << std::endl; return (1); }
+                struct stat metadata;
+                if (it->second[0] && stat(it->second.c_str(), &metadata))
+                { std::cerr << "Invalid Location Path " + it->second << std::endl; return (1);}
             }
             else if (key != "location" && key != "{"
                 && key != "}" && !strchr(&buffer[j], ';'))
             {
-                std::cout << "Can't Find `;` here " + buffer << std::endl;
+                std::cerr << "Can't Find `;` here " + buffer << std::endl;
                 return (1);
             }
             else if (key == "root")
@@ -97,28 +100,31 @@ int checkLocations(informations &tmp)
                 save.root[key] = &buffer[j];
                 std::map<std::string, std::string>::iterator it = save.root.begin(); 
                 if (normalCheck(it->second))
-                { std::cout << "Invalid `Root` Syntax: " + it->second << std::endl; return (1); }
+                { std::cerr << "Invalid `Root` Syntax: " + it->second << std::endl; return (1); }
+                struct stat metadata;
+                if (it->second[i] && stat(it->second.c_str(), &metadata))
+                { std::cerr << "Invalid Root Path " + it->second << std::endl; return (1);}
             }
             else if (key == "index")
             {
                 save.index[key] = &buffer[j];
                 std::map<std::string, std::string>::iterator it = save.index.begin(); 
                 if (multiValues(key, it->second))
-                { std::cout << "Invalid `Index` Syntax: " + it->second << std::endl; return (1); }
+                { std::cerr << "Invalid `Index` Syntax: " + it->second << std::endl; return (1); }
             }
             else if (key == "allowed_methodes")
             {
                 save.allowed_methodes[key] = &buffer[j];
                 std::map<std::string, std::string>::iterator it = save.allowed_methodes.begin(); 
                 if (multiValues(key, it->second))
-                { std::cout << "Invalid `Methodes` Syntax: " + it->second << std::endl; return (1); }
+                { std::cerr << "Invalid `Methodes` Syntax: " + it->second << std::endl; return (1); }
             }
             else if (key == "autoindex")
             {
                 save.autoindex[key] = &buffer[j];
                 std::map<std::string, std::string>::iterator it = save.autoindex.begin(); 
                 if ((normalCheck(it->second)) || (it->second != "on" && it->second != "off"))
-                { std::cout << "Invalid `AutoIndex` Syntax: " + it->second << std::endl; return (1); }
+                { std::cerr << "Invalid `AutoIndex` Syntax: " + it->second << std::endl; return (1); }
             }
             else if (key == "return")
             {
@@ -131,18 +137,21 @@ int checkLocations(informations &tmp)
                 save.upload[key] = &buffer[j];
                 std::map<std::string, std::string>::iterator it = save.upload.begin(); 
                 if (multiValues(key, it->second))
-                { std::cout << "Invalid `Upload` Syntax: " + it->second << std::endl; return (1); }
+                { std::cerr << "Invalid `Upload` Syntax: " + it->second << std::endl; return (1); }
+                struct stat metadata;
+                if (it->second[i] && stat(it->second.c_str(), &metadata))
+                { std::cerr << "Invalid Upload Path " + it->second << std::endl; return (1);}
             }
             else if (key == "cgi")
             {
                 save.cgi[key] = &buffer[j];
                 std::map<std::string, std::string>::iterator it = save.cgi.begin(); 
                 if (multiValues(key, it->second))
-                { std::cout << "Invalid `Cgi` Syntax: " + it->second << std::endl; return (1); }
+                { std::cerr << "Invalid `Cgi` Syntax: " + it->second << std::endl; return (1); }
             }
             else if (key != "}" && key != "{")
             {
-                std::cout << "Weird KeyWord " + key << std::endl;
+                std::cerr << "Weird KeyWord " + key << std::endl;
                 return (1);
             }
         }

@@ -36,7 +36,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "Fix some error in post and headers eximen"
+	@git commit -m "after the merge with 5triner"
 	@git push origin merged
 	@echo "Pushed to merged"
 
