@@ -1,6 +1,5 @@
 #ifndef MAINHEADER_HPP
 # define MAINHEADER_HPP
-
 #include <iostream>
 #include <cstddef>
 #include <exception>
@@ -27,7 +26,8 @@
 #include <sys/poll.h>
 #include <map>
 #include <ctime>
-#include <climits>
+#include <cstring>
+#include <unistd.h>
 
 #define RES_HEADER	"HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\nConnection: close\r\n\r\n" // added by yachaab
 #define OUT( val ) std::cout << val << std::endl;
@@ -196,7 +196,7 @@ class   connection
         /*-------------- yachaab code start ---------------*/
         void    fetchRequestHeader( Request&, char* );
         int     processingHeader( Request& );
-        void    processingBody( Request&, char*, int&, const informations& );
+        void    processingBody( Request&, char*, int, const informations& );
         void    dropClient( int&, std::map<int, int>::iterator & );
         code    codeMsg;
         /*-------------- yachaab code end -----------------*/
@@ -229,7 +229,7 @@ void        generateRandomFileName( Request& );
 long        parseChunkHeader( Request&, std::string& );
 bool        chunkedComplete( Request&, std::string& );
 void        processChunkedRequestBody( Request&, char*, int& );
-void        processRegularRequestBody( Request&, char* );
+void        processRegularRequestBody( Request&, char*, int& );
 int         location_support_upload( Request&,  const informations& );
 /*-------------- yachaab code end -----------------*/
 //multuplexing functions

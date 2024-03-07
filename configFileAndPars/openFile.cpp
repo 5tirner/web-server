@@ -15,7 +15,7 @@ configFile &configFile::operator=(const configFile &other)
 configFile::configFile(int ac, char **av)
 {
     if (ac == 1)
-        this->fileName = "one";
+        this->fileName = "server.conf";
     else if (ac == 2)
         this->fileName = av[1];
     else

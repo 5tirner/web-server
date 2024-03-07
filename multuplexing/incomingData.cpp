@@ -1,5 +1,4 @@
 #include "../include/mainHeader.hpp"
-#include <cstring>
 
 /*-------------- yachaab code start ---------------*/
 void    connection::fetchRequestHeader( Request& rs, char* buffer )

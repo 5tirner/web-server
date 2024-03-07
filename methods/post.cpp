@@ -1,11 +1,6 @@
 #include "../include/mainHeader.hpp"
-#include <climits>
-#include <exception>
-#include <iostream>
-#include <stdexcept>
-#include <unistd.h>
 
-void    connection::processingBody( Request& rs, char* buffer, int& rc, const informations& infoStruct )
+void    connection::processingBody( Request& rs, char* buffer, int rc, const informations& infoStruct )
 {
     if ( rs.headers["method"] == "get" )
         throw std::invalid_argument( "OK" );
@@ -20,7 +15,7 @@ void    connection::processingBody( Request& rs, char* buffer, int& rc, const in
 		if ( rs.contentLength == true )
 		{
 			if ( rs.contentLength <= rs.limitClientBodySize )
-				processRegularRequestBody( rs, buffer );
+				processRegularRequestBody( rs, buffer , rc);
 			else
 			{
 				rs.stat = 413;
@@ -146,31 +141,19 @@ void    processChunkedRequestBody( Request& rs, char* buffer, int& rc )
     }
 }
 
-// size_t	ft_strlen( const char* str )
-// {
-// 	size_t i ( 0 );
-
-// 	for ( ; str[ i ]; i++ );
-// 	return ( i );
-// }
-
-void	processRegularRequestBody( Request& rs, char* buffer )
+void	processRegularRequestBody( Request& rs, char* buffer, int& rc )
 {
-	//size_t	bufferSize = ft_strlen( buffer ); // \0 problem cam be happened again here
-
 	if ( !rs.remainingBody.empty() )
 	{
 		rs.bodyStream->write( rs.remainingBody.c_str(),  rs.remainingBody.length() );
 		rs.bodyStream->flush();
 		rs.content_length += rs.remainingBody.length();
-		OUT( rs.content_length );
 		rs.remainingBody.clear();
 	}
-	else if ( rs.rc ){
-		rs.bodyStream->write( buffer,  rs.rc );
+	else if ( rc ){
+		rs.bodyStream->write( buffer,  rc );
 		rs.bodyStream->flush();
-		rs.content_length += strlen(buffer);
-		OUT( rs.content_length );
+		rs.content_length += rc;
 	}
 	if ( !rs.bodyStream->good() )
 	{
@@ -184,7 +167,6 @@ void	processRegularRequestBody( Request& rs, char* buffer )
 	}
 	else if ( rs.content_length > rs.requestBodyLength )
 	{
-		std::cout << "content-length: " << rs.content_length << " requestBodyLength: " << rs.requestBodyLength << std::endl;
 		rs.stat = 413;
 		throw std::exception();
 	}
