@@ -138,35 +138,41 @@ typedef struct codeStat
 typedef struct clientRequest
 {
     clientRequest() {}
-    clientRequest(int rd)
+    clientRequest( int rd )
     {
         fetchHeaderDone         = false;
         processingHeaderDone    = false;
+        transferEncoding        = false;
+        contentLength           = false;
         isChunkHeader           = true;
         content_length          = 0;
         bodyStream              = new std::ofstream;
         fileName                = "./upload/";
         rc                      = rd;
+        chunkSizeSum            = 0;
+        limitClientBodySize     = 0;
     }
 
     std::map<std::string, std::string> headers, queries;
     std::ofstream*  bodyStream;
     std::string     fullRequest;
     std::string     remainingBody;
-    std::string     transferEncoding;
     std::string     fileName;
 
     size_t  content_length;
     size_t  requestBodyLength;
-    long    currentChunkSize;
+    size_t  chunkSizeSum;
+    size_t  currentChunkSize;
+    size_t  limitClientBodySize;
     int     stat;
     int     chunkHeaderStart;
     int     rc;
 
-    bool fetchHeaderDone;
-    bool processingHeaderDone;
-    bool isChunkHeader;
-
+    bool    fetchHeaderDone;
+    bool    processingHeaderDone;
+    bool    isChunkHeader;
+    bool    transferEncoding;
+    bool    contentLength;
 } Request;
 
 class   connection

@@ -1,5 +1,8 @@
 #include "../include/mainHeader.hpp"
+#include <climits>
+#include <exception>
 #include <iostream>
+#include <stdexcept>
 #include <unistd.h>
 
 void    connection::processingBody( Request& rs, char* buffer, int& rc, const informations& infoStruct )
@@ -9,13 +12,21 @@ void    connection::processingBody( Request& rs, char* buffer, int& rc, const in
     if ( rs.headers["method"] == "post" )
     {
 		if ( location_support_upload( rs, infoStruct ) == -1 )
-			throw std::runtime_error( "You don't have the right to upload at this location" );
-        if ( !rs.bodyStream->is_open() )
-            generateRandomFileName( rs );
-        if ( rs.transferEncoding == "chunked" )
-            processChunkedRequestBody( rs, buffer, rc );
-        if ( rs.transferEncoding == "content-length" )
-			processRegularRequestBody( rs, buffer );
+			throw std::exception();
+		if ( !rs.bodyStream->is_open() )
+			generateRandomFileName( rs );
+		if ( rs.transferEncoding == true )
+			processChunkedRequestBody( rs, buffer, rc );
+		if ( rs.contentLength == true )
+		{
+			if ( rs.contentLength <= rs.limitClientBodySize )
+				processRegularRequestBody( rs, buffer );
+			else
+			{
+				rs.stat = 413;
+				throw std::exception();
+			}
+		}
     }
 }
 
@@ -35,6 +46,7 @@ int location_support_upload( Request& rs,  const informations& infoStruct )
 			{
 				if ( access( upload.c_str(), F_OK | W_OK ) != 0 )
 					return ( rs.stat = 403, -1 );
+				rs.limitClientBodySize = std::atol( infoStruct.limitClientBody.at("limit_client_body").c_str() );
 				return ( rs.stat = 201, 0 );
 			}
 		}
@@ -63,7 +75,7 @@ long    parseChunkHeader( Request& rs, std::string& buffer )
 		rs.currentChunkSize = std::strtol( chunkHead.c_str(), NULL, 16 );
 	else
 		throw std::invalid_argument( "Bad request: invalid chunk size header" );
-	if ( rs.currentChunkSize == LONG_MAX || rs.currentChunkSize == LONG_MIN )
+	if ( rs.currentChunkSize == 9223372036854775807 )
 		throw std::invalid_argument( "Bad request: invalid chunk size header" );
 
 	buffer = buffer.substr( chunkHead.length() + 2 );
@@ -78,42 +90,41 @@ bool    chunkedComplete( Request& rs,  std::string& buffer )
 		if ( rs.isChunkHeader == true )
 		{
 			rs.currentChunkSize = parseChunkHeader( rs, buffer );
-			// rs.chunkSizeSum += rs.currentChunkSize;
-			// if ( rs.chunkSizeSum > rs.maxBodySize )
-			// {
-				// 	rs.stat = 413;
-				// 	throw std::invalid_argument( "client body size > allowed body size" );
-			// }
+			rs.chunkSizeSum += rs.currentChunkSize;
+			if ( rs.chunkSizeSum > rs.limitClientBodySize )
+			{
+				rs.stat = 413;
+				throw std::invalid_argument( "client body size > allowed body size" );
+			}
 			if ( rs.currentChunkSize == 0 )
 				return true;
 			bufflen = buffer.length();
 		}
-		if ( rs.currentChunkSize > static_cast<long>( buffer.length() ) )
+		if ( rs.currentChunkSize > buffer.length() )
 		{
 			rs.bodyStream->write( buffer.c_str(),  buffer.length() );
 			if ( !rs.bodyStream->good() )
 			{
 				rs.stat = 400; // not 400 for sure;
-				throw std::runtime_error( "Error: incomplete data trensfer" );
+				throw std::exception();
 			}
 			rs.bodyStream->flush();
 			rs.currentChunkSize -= buffer.length();
 			rs.isChunkHeader = false;
 			return ( false );
 		}
-		if ( rs.currentChunkSize <= static_cast<long>( buffer.length() ) ) // add equal check it again
+		if ( rs.currentChunkSize <= buffer.length() ) // add equal check it again
 		{
 			rs.bodyStream->write( buffer.c_str(),  rs.currentChunkSize );
 			if ( !rs.bodyStream->good() )
 			{
 				rs.stat = 400; // not 400 for sure;
-				throw std::runtime_error( "Error: incomplete data trensfer" );
+				throw std::exception();
 			}
 			rs.bodyStream->flush();
 			bufflen -= rs.currentChunkSize + 2;
 			buffer = buffer.substr( rs.currentChunkSize + 2 );
 			rs.isChunkHeader = true;
-			// std::cout << "NOK" << std::endl;
 		}
 	}
 	return true;
@@ -135,13 +146,13 @@ void    processChunkedRequestBody( Request& rs, char* buffer, int& rc )
     }
 }
 
-size_t	ft_strlen( const char* str )
-{
-	size_t i ( 0 );
+// size_t	ft_strlen( const char* str )
+// {
+// 	size_t i ( 0 );
 
-	for ( ; str[ i ]; i++ );
-	return ( i );
-}
+// 	for ( ; str[ i ]; i++ );
+// 	return ( i );
+// }
 
 void	processRegularRequestBody( Request& rs, char* buffer )
 {
@@ -152,22 +163,29 @@ void	processRegularRequestBody( Request& rs, char* buffer )
 		rs.bodyStream->write( rs.remainingBody.c_str(),  rs.remainingBody.length() );
 		rs.bodyStream->flush();
 		rs.content_length += rs.remainingBody.length();
+		OUT( rs.content_length );
 		rs.remainingBody.clear();
 	}
 	else if ( rs.rc ){
 		rs.bodyStream->write( buffer,  rs.rc );
 		rs.bodyStream->flush();
-		rs.content_length += rs.rc;
+		rs.content_length += strlen(buffer);
+		OUT( rs.content_length );
 	}
 	if ( !rs.bodyStream->good() )
 	{
 		rs.stat = 400; // not 400 for sure;
-		throw std::runtime_error( "Error: incomplete data trensfer" );
+		throw std::exception();
 	}
-	// std::cout << "rs.content_length: " << rs.content_length << " | " << "rs.requestBodyLength: " << rs.requestBodyLength << std::endl;
 	if ( rs.content_length == rs.requestBodyLength )
 	{
 		rs.stat = 201;
-		throw std::runtime_error( "SARF LI KATSAL HANTA KHDITIH" );
+		throw std::exception();
+	}
+	else if ( rs.content_length > rs.requestBodyLength )
+	{
+		std::cout << "content-length: " << rs.content_length << " requestBodyLength: " << rs.requestBodyLength << std::endl;
+		rs.stat = 413;
+		throw std::exception();
 	}
 }

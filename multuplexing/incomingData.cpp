@@ -5,7 +5,7 @@
 void    connection::fetchRequestHeader( Request& rs, char* buffer )
 {
     rs.fullRequest.append( buffer, rs.rc );
-	OUT(buffer);
+	
     if ( rs.fullRequest.find("\r\n\r\n") != std::string::npos )
     {
         rs.fetchHeaderDone = true;
@@ -109,13 +109,23 @@ bool	examinHeaders( Request& rs, std::string& first, std::string& second )
 {
 	if ( first == "content-length" )
 	{
-		rs.transferEncoding = "content-length";
+		rs.contentLength = true;
 		rs.requestBodyLength = std::atoi( second.c_str() );
 	}
-
-	if ( first== "transfer-encoding" && second == "chunked" )
-		rs.transferEncoding = "chunked";
-	
+	else if ( first == "transfer-encoding" )
+	{
+		if ( second == "chunked" )
+			rs.transferEncoding = true;
+		else
+			return ( rs.stat = 501, false ) ;
+	}
+	if ( rs.transferEncoding == true && rs.contentLength == true )
+		rs.contentLength = false;
+	if ( rs.transferEncoding == false && rs.contentLength == true )
+	{
+		if ( rs.requestBodyLength == 0 )
+			return ( rs.stat = 400, false );
+	}
 	return true;
 }
 
@@ -155,29 +165,24 @@ int	extractHttpHeaders( Request& rs )
 	}
 	catch( const std::exception& e )
 	{
-		return ( rs.stat = 400, -1 );
+		return ( -1 );
 	}
 	return ( 0 );
 }
 
 int	validateHeadersProcess( Request& rs )
 {
-	if ( rs.headers.find( "transfer-encoding" ) != rs.headers.end() )
-	{
-		if ( rs.headers[ "transfer-encoding" ] != "chunked" )
-			return ( rs.stat = 501, -1 );
-	}
 	if ( rs.headers["method"] == "post" )
 	{
-		if ( rs.headers.find( "transfer-encoding" ) == rs.headers.end() )
+		if ( rs.transferEncoding == false )
 		{
-			if ( rs.headers.find( "content-length" ) == rs.headers.end() )
-				return ( rs.stat = 400, -1 );
+			if ( rs.contentLength == false )
+				return ( rs.stat = 411, -1 );
 		}
 		else
 		{
-			if ( rs.headers.find( "content-length" ) != rs.headers.end() )
-				return ( rs.stat = 400, -1 );
+			if ( rs.contentLength == true )
+				rs.contentLength = false;
 		}
 	}
 	// if ( rs.requestBodyLength > rs.maxBodySize ) // timssah need to give the body size 

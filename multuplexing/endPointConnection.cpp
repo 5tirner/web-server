@@ -95,7 +95,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
             /*-------------- yachaab code start ---------------*/
             try {
                 if ( this->Requests.find(monitor.fd) == this->Requests.end() )
-                    this->Requests[monitor.fd] = clientRequest(rd);
+                    this->Requests[monitor.fd] = clientRequest( rd );
                 if ( this->Requests[monitor.fd].fetchHeaderDone == false )
                     fetchRequestHeader( this->Requests[monitor.fd], buffer );
                 if ( this->Requests[monitor.fd].fetchHeaderDone == true && this->Requests[monitor.fd].processingHeaderDone == false )
@@ -103,9 +103,11 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 if ( this->Requests[monitor.fd].processingHeaderDone == true )
                     processingBody( this->Requests[monitor.fd], buffer, rd, infoMap.at( it->second ) );
                 
-            } catch ( std::exception& e ) {
+            } catch ( ... ) {
                 // do somthis in case of error mostly drop client and check code status
-                std::cerr << e.what() << std::endl;
+                const std::string red("\033[1;31m");
+                const std::string reset("\033[0m");
+                std::cerr << red << codeMsg.statMsg[this->Requests[monitor.fd].stat] << reset << std::endl;
                 dropClient( monitor.fd, it );
             }
             /*-------------- yachaab code end -----------------*/
@@ -149,21 +151,21 @@ void    connection::checkServer(struct pollfd &monitor, std::map<int, struct soc
 connection::connection(std::map<int, informations> &configData)
 {
     this->serversEndPoint(configData);
-    std::cout << "---------------Read This Before Start------------------" << std::endl;
-    std::map<int, informations>::iterator o = this->OverLoad.begin();
-    int i = 1;
-    while (o != this->OverLoad.end())
-    {
-        std::cout << "Socket For Server Number " << i << " is "
-        << o->first << '.' << std::endl;
-        std::cout << o->second.port.at("listen") << std::endl;
-        std::cout << o->second.host.at("host") << std::endl;
-        std::cout << o->second.serverName.at("server_name") << std::endl;
-        o++;
-        i++;
-        std::cout << "\\\\" << std::endl;
-    }
-    std::cout << "----------------------------------------------------------" << std::endl;
+    // std::cout << "---------------Read This Before Start------------------" << std::endl;
+    // std::map<int, informations>::iterator o = this->OverLoad.begin();
+    // int i = 1;
+    // while (o != this->OverLoad.end())
+    // {
+    //     std::cout << "Socket For Server Number " << i << " is "
+    //     << o->first << '.' << std::endl;
+    //     std::cout << o->second.port.at("listen") << std::endl;
+    //     std::cout << o->second.host.at("host") << std::endl;
+    //     std::cout << o->second.serverName.at("server_name") << std::endl;
+    //     o++;
+    //     i++;
+    //     std::cout << "\\\\" << std::endl;
+    // }
+    // std::cout << "----------------------------------------------------------" << std::endl;
     while (1)
     {
         struct pollfd monitor[this->serversSock.size() + this->clientsSock.size()];
