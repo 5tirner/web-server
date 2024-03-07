@@ -99,7 +99,7 @@ int checkLocations(informations &tmp)
                 if (normalCheck(it->second))
                 { std::cerr << "Invalid `Root` Syntax: " + it->second << std::endl; return (1); }
                 struct stat metadata;
-                if (it->second[i] && stat(it->second.c_str(), &metadata))
+                if (stat(it->second.c_str(), &metadata))
                 { std::cerr << "Invalid Root Path " + it->second << std::endl; return (1);}
             }
             else if (key == "index")
@@ -136,7 +136,7 @@ int checkLocations(informations &tmp)
                 if (multiValues(key, it->second))
                 { std::cerr << "Invalid `Upload` Syntax: " + it->second << std::endl; return (1); }
                 struct stat metadata;
-                if (it->second[i] && stat(it->second.c_str(), &metadata))
+                if (stat(it->second.c_str(), &metadata))
                 { std::cerr << "Invalid Upload Path " + it->second << std::endl; return (1);}
             }
             else if (key == "cgi")
@@ -147,10 +147,9 @@ int checkLocations(informations &tmp)
                 { std::cerr << "Invalid `Cgi` Syntax: " + it->second << std::endl; return (1); }
             }
             else if (key != "}" && key != "{")
-            {
-                std::cerr << "Weird KeyWord " + key << std::endl;
-                return (1);
-            }
+            { std::cerr << "Weird KeyWord " + key << std::endl; return (1);}
+            else if (save.root.at("root") == "")
+            { std::cerr << "Invalid Root Syntax, Root Can't Be Empty" << std::endl; return (1);}
         }
         tmp.locationsInfo.push_back(save);
     }
