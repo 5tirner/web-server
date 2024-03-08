@@ -104,17 +104,20 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
             buffer[rd] = '\0';
             /*-------------- yachaab code start ---------------*/
             try {
-                if ( this->Requests.find(monitor.fd) == this->Requests.end() )
-                {
+                std::cout << "hello0\n";
+                if (this->Requests.find(monitor.fd) == this->Requests.end() )
                     this->Requests[monitor.fd] = clientRequest( rd );
-                }
+                std::cout << "hello1\n";
                 if ( this->Requests[monitor.fd].fetchHeaderDone == false )
                     fetchRequestHeader( this->Requests[monitor.fd], buffer );
+                std::cout << "hello2\n";
                 if ( this->Requests[monitor.fd].fetchHeaderDone == true && this->Requests[monitor.fd].processingHeaderDone == false )
                     processingHeader( this->Requests[monitor.fd] );
+                std::cout << "hello3\n";
                 if ( this->Requests[monitor.fd].processingHeaderDone == true )
                     processingBody( this->Requests[monitor.fd], buffer, rd, infoMap.at( it->second ) );
                 // if ( this->Requests[monitor.fd].processingRequestDone == true )
+                std::cout << "alah ykhdm\n";
                 if (this->Requests[monitor.fd].headers["method"] == "get" || this->Requests[monitor.fd].headers["method"] == "delete")
                     this->Requests[monitor.fd].processingRequestDone = true;
                 
@@ -128,7 +131,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
             /*-------------- yachaab code end -----------------*/
         }
     }
-    if (monitor.revents & POLLOUT & this->Requests[monitor.fd].processingRequestDone)
+    if (this->Requests[monitor.fd].processingRequestDone)
     {
         std::cout << "hello\n";
         if (!this->Requests[monitor.fd].storeHeader)
@@ -137,6 +140,14 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 handleRequestGET(monitor.fd, this->Requests[monitor.fd], infoMap.at(it->second));
             else if (this->Requests[monitor.fd].headers["method"] == "delete")
                 handleRequestDELETE(monitor.fd, this->Requests[monitor.fd], infoMap.at(it->second));
+            storeRes = Response[monitor.fd];
+        }
+        sendResponseChunk(monitor.fd, storeRes);
+        if (storeRes.status == response::Complete)
+        {
+            this->Requests.erase(monitor.fd);
+            close(monitor.fd);
+            Response.erase(monitor.fd);
         }
     }
     else if (monitor.revents & POLLHUP)

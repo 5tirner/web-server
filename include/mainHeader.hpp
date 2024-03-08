@@ -203,6 +203,7 @@ typedef struct clientResponse
 class   connection
 {
     private:
+        response                                    storeRes;
         std::map<int, response>                     Response;
         std::map<int, informations>                 OverLoad; //Here You Will Find The Informations As A Values For The Fds Of The Sockets Servers
         std::map<int, struct sockaddr_in>           serversSock; // each server fd in key with a ready struct on it's value
@@ -281,7 +282,8 @@ std::string getNextChunk(response&,size_t);
 std::string getMimeType(std::string&);
 std::string mapUriToFilePath(std::string&, location&);
 bool        fileExists(std::string&);
-bool removeDirectory(const std::string& path);
+bool        removeDirectory(const std::string& path);
+void        sendResponseChunk(int, response&);
 /*-------------- ysabr code end ---------------*/
 
 
