@@ -1,6 +1,6 @@
 #include "../include/mainHeader.hpp"
 
-response::clientResponse() : totalSize(0), bytesSent(0), status(Pending) {}
+response::clientResponse() : totalSize(0), bytesSent(0), status(Pending){}
 
 response::clientResponse(const clientResponse& other)
 {
@@ -96,8 +96,8 @@ void sendResponseChunk(int clientSocket, response& respData)
     // Send the response header if needed
     if (respData.status == response::Pending)
     {
+        std::cout << "pending\n";
         openFile(respData ,respData.filePath); // Ensure to provide file path
-        
         respData.responseHeader += "Content-Length: " + to_string(respData.totalSize) + "\r\n\r\n";
         send(clientSocket, respData.responseHeader.c_str(), respData.responseHeader.size(), 0);
         respData.status = response::InProgress;

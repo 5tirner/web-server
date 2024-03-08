@@ -131,7 +131,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
             /*-------------- yachaab code end -----------------*/
         }
     }
-    if (this->Requests[monitor.fd].processingRequestDone)
+    if (POLLOUT && this->Requests[monitor.fd].processingRequestDone)
     {
         std::cout << "hello\n";
         if (!this->Requests[monitor.fd].storeHeader)
@@ -176,6 +176,7 @@ void    connection::checkServer(struct pollfd &monitor, std::map<int, struct soc
         {
             // std::cout << "New Client Added To Endpoint " << monitor.fd << " With Number " << newClient << '.' << std::endl;
             this->clientsSock[newClient] = monitor.fd;
+            this->Response[newClient] = response();
         }
         std::cout << "Number Of Client Now Is: " << this->clientsSock.size() << std::endl;
     }
