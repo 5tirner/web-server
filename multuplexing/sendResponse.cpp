@@ -1,4 +1,5 @@
 #include "../include/mainHeader.hpp"
+#include <fcntl.h>
 
 response::clientResponse() : totalSize(0), bytesSent(0), status(Pending){}
 
@@ -36,7 +37,10 @@ void openFile(response& res , const std::string& path)
     // closeFile(); // Ensure any previously opened file is closed
     res.filePath = path;
     res.fileStream.open(path.c_str(), std::ifstream::binary);
-    if (!res.fileStream)
+    // open("/home/yachaab/Desktop/web-server/media/video/morpho.mp4", )
+    // std::cout << "PATH IS: " << path.c_str() << std::endl;
+    // return;
+    if (!res.fileStream.is_open())
     {
         std::cout << "wa9ila dkhal l 404\n";
         // sendErrorResponse(clientSocket, 404, "Not Found");
@@ -44,6 +48,8 @@ void openFile(response& res , const std::string& path)
         res.status = res.Complete; // Mark as complete if file open failed
         return;
     }
+    else
+        OUT("Bombi Dorsso Ghawat Morfo");
 
     res.fileStream.seekg(0, std::ios::end);
     res.totalSize = res.fileStream.tellg();
