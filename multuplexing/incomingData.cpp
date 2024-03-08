@@ -4,8 +4,6 @@
 /*-------------- yachaab code start ---------------*/
 void    connection::fetchRequestHeader( Request& rs, char* buffer )
 {
-	// std::cout << "buffer: " << buffer << "  " << rs.rc << std::endl;
-	// throw std::exception();
     rs.fullRequest.append( buffer, rs.rc );
 	
     if ( rs.fullRequest.find("\r\n\r\n") != std::string::npos )

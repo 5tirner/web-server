@@ -1,6 +1,8 @@
 #include "../include/mainHeader.hpp"
 #include <csignal>
 #include <cstdlib>
+#include <exception>
+#include <stdexcept>
 
 connection::connection(void) : readyToSendRes( false ) {}
 
@@ -111,75 +113,47 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                     fetchRequestHeader( this->Requests[monitor.fd], buffer );
                 if ( this->Requests[monitor.fd].fetchHeaderDone == true && this->Requests[monitor.fd].processingHeaderDone == false )
                     processingHeader( this->Requests[monitor.fd] );
-                // if ( this->Requests[monitor.fd].processingHeaderDone == true )
-                //     processingBody( this->Requests[monitor.fd], buffer, rd, infoMap.at( it->second ) );
-                if (this->Requests[monitor.fd].headers["method"] == "get" || this->Requests[monitor.fd].headers["method"] == "delete")
-                {
-                    std::cout << "ready to send res" << std::endl;
-                    this->readyToSendRes = true;
-                }
+                if ( this->Requests[monitor.fd].processingHeaderDone == true )
+                    processingBody( this->Requests[monitor.fd], buffer, rd, infoMap.at( it->second ) );
                 
             } catch ( ... ) {
-                // do somthis in case of error mostly drop client and check code status
-                const std::string red("\033[1;31m");
-                const std::string reset("\033[1;31m");
-                std::cerr << red << codeMsg.statMsg[this->Requests[monitor.fd].stat] << reset << std::endl;
-                dropClient( monitor.fd, it );
+                std::cerr << codeMsg.statMsg[this->Requests[monitor.fd].stat] << std::endl;
+                this->readyToSendRes = true;
             }
             /*-------------- yachaab code end -----------------*/
         }
-        // if ((monitor.fd & POLLOUT) && (this->Requests[monitor.fd].processingRequestDone))
-        // {
-        //     if (!this->Requests[monitor.fd].storeHeader)
-        //     {
-        //         OUT("LWLA");
-        //         //exit(1);
-        //         if (this->Requests[monitor.fd].headers["method"] == "get")
-        //             handleRequestGET(monitor.fd, this->Requests[monitor.fd], infoMap.at(it->second));
-        //         else if (this->Requests[monitor.fd].headers["method"] == "delete")
-        //             handleRequestDELETE(monitor.fd, this->Requests[monitor.fd], infoMap.at(it->second));
-        //         storeRes = Response[monitor.fd];
-        //     }
-        //     sendResponseChunk(monitor.fd, storeRes); 
-        //     if (storeRes.status == response::Complete)
-        //     {
-        //         dropClient( monitor.fd, it );
-        //         Response.erase(monitor.fd);
-        //     }
-        // }
+
     }
     if (POLLOUT && this->readyToSendRes)
     {
-       // std::cout << "hello\n";
-       try
-       {
-        std::cout << this->Requests[monitor.fd].headers.at("method") << std::endl;
-       }
-       catch(...)
-       {
-        std::cout << "No Mwthods" << std::endl;
-       }
-        if (!this->Requests[monitor.fd].storeHeader)
-        {
-            std::cout << "storeHeader False" << std::endl;
-            if (this->Requests[monitor.fd].headers["method"] == "get")
-                handleRequestGET(monitor.fd, this->Requests[monitor.fd], infoMap.at(it->second));
-            else if (this->Requests[monitor.fd].headers["method"] == "delete")
-                handleRequestDELETE(monitor.fd, this->Requests[monitor.fd], infoMap.at(it->second));
-            storeRes = Response[monitor.fd];
-        }
-        sendResponseChunk(monitor.fd, storeRes); 
-        if (storeRes.status == response::Complete)
-        {
+        /* ------------- yachaab alter this code with the try catch block ------------------- */
+        try {
+            if (!this->Requests[monitor.fd].storeHeader)
+            {
+                if (this->Requests[monitor.fd].headers["method"] == "get")
+                    handleRequestGET(monitor.fd, this->Requests[monitor.fd], infoMap.at(it->second));
+                else if (this->Requests[monitor.fd].headers["method"] == "delete")
+                    handleRequestDELETE(monitor.fd, this->Requests[monitor.fd], infoMap.at(it->second));
+                /*-------------- yachaab code start -----------------*/
+                else if ( this->Requests[monitor.fd].headers["method"] == "post" )
+                    throw std::invalid_argument("salina m3a post response");
+                /*-------------- yachaab code ended -----------------*/
+                storeRes = Response[monitor.fd];
+            }
+            sendResponseChunk(monitor.fd, storeRes); 
+            if (storeRes.status == response::Complete)
+                throw std::exception();
+        } catch (...) {
             this->readyToSendRes = false;
             dropClient( monitor.fd, it );
             Response.erase(monitor.fd);
         }
+        
     }
     if (monitor.revents & POLLHUP)
     {
         std::cerr << "Error: Client-Side, Connection Destroyed For " << monitor.fd << " Endpoint." << std::endl;
-        this->clientsSock.erase(it);
+        // this->clientsSock.erase(it); //! yachaab comment this line
     }
     else if (monitor.revents & POLLERR)
     {

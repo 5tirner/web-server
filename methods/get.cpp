@@ -1,4 +1,6 @@
 #include "../include/mainHeader.hpp"
+#include <fcntl.h>
+#include <fstream>
 
 std::string getMimeType(std::string& filePath)
 {
@@ -172,6 +174,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             responseD = "HTTP/1.1 200 OK\r\n";
             responseD += "Content-Type: text/html\r\n";
             responseD += "Content-Length: " + to_string(directoryContent.size()) + "\r\n";
+            
             responseD += "\r\n";
             responseD += directoryContent;
          }
@@ -180,6 +183,16 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
     {
         responseD = "HTTP/1.1 200 OK\r\n";
         responseD += "Content-Type: " + getMimeType(filePath) + "\r\n";
+        /* -------------- yachaab code start ----------------- */
+        // std::fstream file;
+        // file.open( "./media/video/morpho.mp4", std::fstream::binary | std::fstream::ate | std::fstream::in );
+        // size_t size = file.tellg();
+        // file.close();
+        // // std::cout << "size: " << size << std::endl;
+        // responseD += "Content-Length: " + to_string( size ) + "\r\n";
+        // std::cout << "MIME TYPE: " << getMimeType(filePath) << std::endl;
+        // std::cout << "content length: " << xnxx << std::endl;
+        /*-------------- yachaab code ended -----------------*/
     }
     // if (request.flagRespons == 0)
     // {

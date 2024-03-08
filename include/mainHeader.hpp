@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <dirent.h>
 #include<csignal>
+#include <fcntl.h>
 
 #define RES_HEADER	"HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\nConnection: close\r\n\r\n" // added by yachaab
 #define OUT( val ) std::cout << val << std::endl;
@@ -152,8 +153,8 @@ typedef struct clientRequest
         fileName                = "./upload/";
         chunkSizeSum            = 0;
         limitClientBodySize     = 0;
-        std::cout<< "I'm constructor\n";
     }
+    // ~clientRequest() { if ( bodyStream ) delete  bodyStream; }
 
     std::map<std::string, std::string> headers, queries;
     std::ofstream*  bodyStream;
@@ -264,8 +265,8 @@ int	        validateHeadersProcess( Request& );
 void        generateRandomFileName( Request& );
 long        parseChunkHeader( Request&, std::string& );
 bool        chunkedComplete( Request&, std::string& );
-void        processChunkedRequestBody( Request&, char*, int& );
-void        processRegularRequestBody( Request&, char*, int& );
+void        processChunkedRequestBody( Request&, char*, int&, bool& );
+void        processRegularRequestBody( Request&, char*, int&, bool& );
 int         location_support_upload( Request&,  const informations& );
 int         validateUriAndExtractQueries( Request& rs );
 /*-------------- yachaab code end -----------------*/

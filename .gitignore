@@ -1,4 +1,5 @@
-media
+media/video/*
+media/img/*
 Informations
 data
 .env

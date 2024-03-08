@@ -1,19 +1,23 @@
 #include "../include/mainHeader.hpp"
+#include <exception>
+#include <stdexcept>
 
 void    connection::processingBody( Request& rs, char* buffer, int rc, const informations& infoStruct )
 {
-    if ( rs.headers["method"] == "post" )
+	if ( rs.headers.at( "method" ) == "get" || rs.headers.at( "method" ) == "delete" )
+		this->readyToSendRes = true;
+	else if ( rs.headers["method"] == "post" )
     {
 		if ( location_support_upload( rs, infoStruct ) == -1 )
-			throw std::exception();
+			throw std::invalid_argument("location_not_support_upload");
 		if ( !rs.bodyStream->is_open() )
 			generateRandomFileName( rs );
 		if ( rs.transferEncoding == true )
-			processChunkedRequestBody( rs, buffer, rc );
+			processChunkedRequestBody( rs, buffer, rc, this->readyToSendRes );
 		if ( rs.contentLength == true )
 		{
 			if ( rs.contentLength <= rs.limitClientBodySize )
-				processRegularRequestBody( rs, buffer , rc);
+				processRegularRequestBody( rs, buffer , rc, this->readyToSendRes );
 			else
 			{
 				rs.stat = 413;
@@ -32,7 +36,6 @@ int location_support_upload( Request& rs,  const informations& infoStruct )
 	{
 		upload   = infoStruct.locationsInfo.at( i ).upload.at( "upload" );
 		method	 = infoStruct.locationsInfo.at( i ).allowed_methodes.at( "allowed_methodes" );
-
 		if ( upload[0] )
 		{
 			if ( method.find( "POST" ) != std::string::npos )
@@ -46,7 +49,7 @@ int location_support_upload( Request& rs,  const informations& infoStruct )
 			}
 		}
 	}
-	return ( rs.stat = 405, -1 );
+	return ( rs.stat = 403, -1 );
 }
 
 void generateRandomFileName( Request& rs )
@@ -55,10 +58,14 @@ void generateRandomFileName( Request& rs )
 	std::srand( std::time( NULL ) );
 	std::string	filename( "./upload/" );
 
-	for ( int i = 0; i < 25; i++ )
+	try {
+		for ( int i = 0; i < 25; i++ )
 		filename.push_back( CHARACTERS[ rand() % CHARACTERS.length() ] );
-
-    rs.bodyStream->open( filename.c_str(), std::ios::out | std::ios::trunc );
+    	rs.bodyStream->open( filename.c_str(), std::ios::out | std::ios::trunc );
+	} catch (...) {
+		rs.stat = 500;
+		throw std::invalid_argument("generateRandomFileName fail");
+	}
 }
 
 long    parseChunkHeader( Request& rs, std::string& buffer )
@@ -69,9 +76,15 @@ long    parseChunkHeader( Request& rs, std::string& buffer )
 	if ( !chunkHead.empty() )
 		rs.currentChunkSize = std::strtol( chunkHead.c_str(), NULL, 16 );
 	else
+	{
+		rs.stat = 400;
 		throw std::invalid_argument( "Bad request: invalid chunk size header" );
+	}
 	if ( rs.currentChunkSize == 9223372036854775807 )
+	{
+		rs.stat = 400;
 		throw std::invalid_argument( "Bad request: invalid chunk size header" );
+	}
 
 	buffer = buffer.substr( chunkHead.length() + 2 );
 	return ( rs.currentChunkSize );
@@ -125,23 +138,31 @@ bool    chunkedComplete( Request& rs,  std::string& buffer )
 	return true;
 }
 
-void    processChunkedRequestBody( Request& rs, char* buffer, int& rc )
+void    processChunkedRequestBody( Request& rs, char* buffer, int& rc, bool& sendRes)
 {
     if ( !rs.remainingBody.empty() )
     {
         if ( chunkedComplete( rs, rs.remainingBody ) )
-            return;
+        {
+			rs.stat = 201;
+			sendRes = true;
+			throw std::invalid_argument("created");
+		}
         rs.remainingBody.clear();
     }
     else
     {
         std::string receivedData( buffer, rc );
         if ( chunkedComplete( rs, receivedData ) )
-            return;
+        {
+			rs.stat = 201;
+			sendRes = true;
+			throw std::invalid_argument("created");
+		}
     }
 }
 
-void	processRegularRequestBody( Request& rs, char* buffer, int& rc )
+void	processRegularRequestBody( Request& rs, char* buffer, int& rc, bool& sendRes )
 {
 	if ( !rs.remainingBody.empty() )
 	{
@@ -163,11 +184,11 @@ void	processRegularRequestBody( Request& rs, char* buffer, int& rc )
 	if ( rs.content_length == rs.requestBodyLength )
 	{
 		rs.stat = 201;
-		throw std::exception();
+		sendRes = true;
+		return;
 	}
 	else if ( rs.content_length > rs.requestBodyLength )
 	{
-		std::cout << "Hello3" << std::endl;
 		rs.stat = 413;
 		throw std::exception();
 	}

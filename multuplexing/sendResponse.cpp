@@ -96,7 +96,7 @@ void sendResponseChunk(int clientSocket, response& respData)
     // Send the response header if needed
     if (respData.status == response::Pending)
     {
-        std::cout << "pending\n";
+        OUT("Panding");
         openFile(respData ,respData.filePath); // Ensure to provide file path
         respData.responseHeader += "Content-Length: " + to_string(respData.totalSize) + "\r\n\r\n";
         send(clientSocket, respData.responseHeader.c_str(), respData.responseHeader.size(), 0);
@@ -104,6 +104,7 @@ void sendResponseChunk(int clientSocket, response& respData)
     }
     else if (respData.status == response::InProgress)
     {
+        OUT("InProgress");
         // Assuming getNextChunk is a method that reads the next part of the file
         //     send(clientSocket, chunk.c_str(), chunk.size(), 0);
         std::string chunk = getNextChunk(respData, 2048); 
@@ -118,6 +119,7 @@ void sendResponseChunk(int clientSocket, response& respData)
             send(clientSocket, lastChunk.c_str(), lastChunk.size(), 0);
             closeFile(respData);
             respData.status = response::Complete;
+            OUT("Complete");
 
         }
     }
