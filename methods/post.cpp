@@ -142,22 +142,25 @@ void    processChunkedRequestBody( Request& rs, char* buffer, int& rc, bool& sen
 {
     if ( !rs.remainingBody.empty() )
     {
+		OUT( "POSTING THE FIST BODY" );
         if ( chunkedComplete( rs, rs.remainingBody ) )
         {
 			rs.stat = 201;
 			sendRes = true;
-			throw std::invalid_argument("created");
+			throw std::exception();
 		}
         rs.remainingBody.clear();
     }
     else
     {
         std::string receivedData( buffer, rc );
+		OUT( "POSTING THE LAST BODY" );
+		std::cout << "rc: " << rc << std::endl;
         if ( chunkedComplete( rs, receivedData ) )
         {
 			rs.stat = 201;
 			sendRes = true;
-			throw std::invalid_argument("created");
+			throw std::exception();
 		}
     }
 }

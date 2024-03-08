@@ -117,6 +117,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                     processingBody( this->Requests[monitor.fd], buffer, rd, infoMap.at( it->second ) );
                 
             } catch ( ... ) {
+                std::cout << "catched" << std::endl;
                 std::cerr << codeMsg.statMsg[this->Requests[monitor.fd].stat] << std::endl;
                 this->readyToSendRes = true;
             }
