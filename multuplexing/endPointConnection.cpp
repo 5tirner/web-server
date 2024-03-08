@@ -142,7 +142,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 handleRequestDELETE(monitor.fd, this->Requests[monitor.fd], infoMap.at(it->second));
             storeRes = Response[monitor.fd];
         }
-        sendResponseChunk(monitor.fd, storeRes);
+        sendResponseChunk(monitor.fd, storeRes); 
         if (storeRes.status == response::Complete)
         {
             this->Requests.erase(monitor.fd);
