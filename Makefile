@@ -40,7 +40,7 @@ re: fclean $(TARGET)
 git: fclean
 	@git add .
 	@git commit -m "after the merge with 5triner"
-	@git push origin merged
+	@git push origin leader
 	@echo "Pushed to leader"
 
 .PHONY: clean fclean re all git
