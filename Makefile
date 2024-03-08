@@ -40,7 +40,7 @@ re: fclean $(TARGET)
 git: fclean
 	@git add .
 	@git commit -m "add sendResponsechunk to the code"
-	@git push origin leader
-	@echo "Pushed to leader"
+	@git push origin yachaab+leader
+	@echo "Pushed to yachaab+leader"
 
 .PHONY: clean fclean re all git
