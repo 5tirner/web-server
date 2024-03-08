@@ -130,17 +130,14 @@ void    processChunkedRequestBody( Request& rs, char* buffer, int& rc )
     if ( !rs.remainingBody.empty() )
     {
         if ( chunkedComplete( rs, rs.remainingBody ) )
-            throw std::invalid_argument( "CHUNK LI DAZ 3LA WJEH HEADER WAS PROCESSED" );
+            return;
         rs.remainingBody.clear();
     }
     else
     {
         std::string receivedData( buffer, rc );
         if ( chunkedComplete( rs, receivedData ) )
-		{
-			rs.processingRequestDone = true;
-            throw std::invalid_argument( "CHUNK LI KATSAL HANTA KHDITIH" );
-		}
+            return;
     }
 }
 

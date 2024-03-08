@@ -187,6 +187,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
 
         responseData.filePath = filePath;
         responseData.setResponseHeader(responseD);
+        request.storeHeader = true;
         Response[clientSocket] = responseData;
         // request.flagRespons = 1;
     // }
