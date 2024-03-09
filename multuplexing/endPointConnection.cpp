@@ -216,4 +216,3 @@ connection::connection(std::map<int, informations> &configData)
         }
     }
 }
-
