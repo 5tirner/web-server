@@ -25,6 +25,9 @@ $(OBJDIR)/%.o: %.cpp
 	@mkdir -p $(@D)
 	$(CC) -c -o $@ $<
 
+rm :
+	@rm -f upload/*
+
 clean:
 	@rm -f $(OBJ)
 
@@ -40,4 +43,4 @@ git: fclean
 	@git push origin merged
 	@echo "Pushed to merged"
 
-.PHONY: clean fclean re all git
+.PHONY: clean fclean re all git rm

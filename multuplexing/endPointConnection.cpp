@@ -104,10 +104,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                     processingBody( this->Requests[monitor.fd], buffer, rd, infoMap.at( it->second ) );
                 
             } catch ( ... ) {
-                // do somthis in case of error mostly drop client and check code status
-                const std::string red("\033[1;31m");
-                const std::string reset("\033[1;31m");
-                std::cerr << red << codeMsg.statMsg[this->Requests[monitor.fd].stat] << reset << std::endl;
+                std::cerr << codeMsg.statMsg[this->Requests[monitor.fd].stat] << std::endl;
                 dropClient( monitor.fd, it );
             }
             /*-------------- yachaab code end -----------------*/
