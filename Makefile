@@ -39,7 +39,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "after the merge with 5triner"
+	@git commit -m "add exit map"
 	@git push origin merged
 	@echo "Pushed to merged"
 

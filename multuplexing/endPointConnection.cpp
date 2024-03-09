@@ -194,9 +194,9 @@ connection::connection(std::map<int, informations> &configData)
                 it1++;
                 i++;
             }
-            // for (size_t k = 0; k < this->exited.size(); k++)
-            //     this->clientsSock.erase(this->exited[k]);
-            // this->exited.clear();
+            for (size_t k = 0; k < this->exited.size(); k++)
+                this->clientsSock.erase(this->exited[k]);
+            this->exited.clear();
             it = this->serversSock.begin();
             while (it != this->serversSock.end())
             {
@@ -227,7 +227,7 @@ void connection::dropClient( int& fd, std::map<int, int>::iterator &it )
         std::cout << "Data Deleted." << std::endl;
     }
     //this->clientsSock.erase(it);
-    //this->exited.push_back(it);
+    this->exited.push_back(it);
     std::cout << "Number Of Client Left: " << this->clientsSock.size() - 1 << std::endl;
 }
 /*-------------- yachaab edit start ---------------*/
