@@ -270,24 +270,7 @@ connection::connection(std::map<int, informations> &configData)
             std::cout << "????????? 3" << std::endl;
             
             for (size_t k = 0; k < this->responsetEnd.size(); k++)
-            {
-                // try
-                // {
-                    this->Response.erase(this->responsetEnd[k]);   
-                // }
-                // catch(...)
-                // {
-                //     std::cerr << "sdffsfsdfsdfsdfsdf: " << k << std::endl;
-                // }
-                
-                // if (this->Response.find(this->responsetEnd[k]) != this->Response.end())
-                // {
-                //     std::cout << "=====hello: " << Response[this->responsetEnd[k]].filePath << std::endl;
-                //     Response[this->responsetEnd[k]].fileStream.close();
-                //     this->Response.erase(this->responsetEnd[k]);
-                // }
-            }
-            
+                    this->Response.erase(this->responsetEnd[k]);
             this->exited.clear(), this->requestEnd.clear(); this->responsetEnd.clear();
             it = this->serversSock.begin();
             while (it != this->serversSock.end())
