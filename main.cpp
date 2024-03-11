@@ -16,6 +16,7 @@ void showmeConfigthings(std::map<int, informations> &general)
 }
 int main(int ac, char **av, char **env)
 {
+    signal(SIGPIPE, SIG_IGN);
     (void)env;
     try
     {

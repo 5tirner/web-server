@@ -92,13 +92,20 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         if (rd == -1)
         {
             std::cerr << "Error: Failed To Read From " << monitor.fd << " Endpoint." << std::endl;
-            close(monitor.fd);
-            this->clientsSock.erase(it);
+            // if (storeRes.status != response::Pending)
+            //     storeRes.status = response::Pending;
+            // return ;
+            //close(monitor.fd);
+            // this->clientsSock.erase(it);
+            dropClient(monitor.fd, it);
+            storeRes.status = response::Complete;
+           // return ;
         }
         else if (rd == 0)
         {
             /*-------------- yachaab edit start ---------------*/
             dropClient( monitor.fd, it );
+            //storeRes.status = response::Pending;
             /*-------------- yachaab edit end ---------------*/
         }
         else if (rd)
@@ -123,14 +130,32 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
             }
             /*-------------- yachaab code end -----------------*/
         }
+        std::cerr << "POLLIN = " << POLLIN << " Done" << std::endl;
 
     }
-    if (POLLOUT && this->readyToSendRes)
+    else if (monitor.revents & POLLHUP)
+    {
+        std::cerr << "Error: Client-Side, Connection Destroyed For " << monitor.fd << " Endpoint." << std::endl;
+        dropClient(monitor.fd, it);
+       // return ;
+        // this->clientsSock.erase(it); //! yachaab comment this line
+    }
+    else if (monitor.revents & POLLERR)
+    {
+        std::cerr << "Error: Client-Side, Unexpected Error Happen Into " << monitor.fd << " Endpoint." << std::endl;
+        dropClient(monitor.fd, it);
+        //return ;
+        //close(monitor.fd);
+        //this->clientsSock.erase(it); 
+    }
+    if ((monitor.fd & POLLOUT) && (this->readyToSendRes))
     {
         /* ------------- yachaab alter this code with the try catch block ------------------- */
+        // std::cerr << "POLLOUT HERE" << std::endl;
         try {
             if (!this->Requests[monitor.fd].storeHeader)
             {
+                std::cerr << "Headers Stored" << std::endl;
                 if (this->Requests[monitor.fd].headers["method"] == "get")
                     handleRequestGET(monitor.fd, this->Requests[monitor.fd], infoMap.at(it->second));
                 else if (this->Requests[monitor.fd].headers["method"] == "delete")
@@ -145,22 +170,14 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
             if (storeRes.status == response::Complete)
                 throw std::exception();
         } catch (...) {
+            std::cout << "Maybe hna" << std::endl;
             this->readyToSendRes = false;
-            dropClient( monitor.fd, it );
-            Response.erase(monitor.fd);
+            this->Requests[monitor.fd].storeHeader = false;
+            storeRes.status = response::Pending;
+            dropClient(monitor.fd, it);
+            // Response.erase(monitor.fd);
         }
-        
-    }
-    if (monitor.revents & POLLHUP)
-    {
-        std::cerr << "Error: Client-Side, Connection Destroyed For " << monitor.fd << " Endpoint." << std::endl;
-        // this->clientsSock.erase(it); //! yachaab comment this line
-    }
-    else if (monitor.revents & POLLERR)
-    {
-        std::cerr << "Error: Client-Side, Unexpected Error Happen Into " << monitor.fd << " Endpoint." << std::endl;
-        close(monitor.fd);
-        this->clientsSock.erase(it); 
+        // std::cout << "POLLOUT = " << POLLOUT << " Done!" << std::endl;
     }
 }
 
@@ -168,16 +185,18 @@ void    connection::checkServer(struct pollfd &monitor, std::map<int, struct soc
 {
     if ((monitor.revents & POLLIN))
     {
-        // std::cout << "Server-Side, An event Comming Into " << monitor.fd << " Endpoint." << std::endl;
+        std::cout << "Server-Side, An event Comming Into " << monitor.fd << " Endpoint." << std::endl;
         socklen_t   addLen = sizeof(it->second);
         int newClient = accept(monitor.fd, (struct sockaddr *)&it->second, &addLen);
         if (newClient == -1)
             std::cerr << "Error: Filed To Create New EndPoint With Socket " << monitor.fd << std::endl;
         else
         {
-            // std::cout << "New Client Added To Endpoint " << monitor.fd << " With Number " << newClient << '.' << std::endl;
+            std::cout << "New Client Added To Endpoint " << monitor.fd << " With Number " << newClient << '.' << std::endl;
             this->clientsSock[newClient] = monitor.fd;
             this->Response[newClient] = response();
+            if (this->Requests.find(newClient) != this->Requests.end() )
+                this->Requests.erase(newClient);
         }
         std::cout << "Number Of Client Now Is: " << this->clientsSock.size() << std::endl;
     }
@@ -236,9 +255,40 @@ connection::connection(std::map<int, informations> &configData)
                 it1++;
                 i++;
             }
+            std::cout << "????????? 1" << std::endl;
             for (size_t k = 0; k < this->exited.size(); k++)
-                this->clientsSock.erase(this->exited[k]);
-            this->exited.clear();
+                    this->clientsSock.erase(this->exited[k]);
+            std::cout << "????????? 2" << std::endl;
+            for (size_t k = 0; k < this->requestEnd.size(); k++)
+                    this->Requests.erase(this->requestEnd[k]);
+            std::cout << "????????? 4" << std::endl;
+            while (!this->EndFd.empty())
+            {
+                close(this->EndFd.back());
+                this->EndFd.pop_back();
+            }
+            std::cout << "????????? 3" << std::endl;
+            
+            for (size_t k = 0; k < this->responsetEnd.size(); k++)
+            {
+                // try
+                // {
+                    this->Response.erase(this->responsetEnd[k]);   
+                // }
+                // catch(...)
+                // {
+                //     std::cerr << "sdffsfsdfsdfsdfsdf: " << k << std::endl;
+                // }
+                
+                // if (this->Response.find(this->responsetEnd[k]) != this->Response.end())
+                // {
+                //     std::cout << "=====hello: " << Response[this->responsetEnd[k]].filePath << std::endl;
+                //     Response[this->responsetEnd[k]].fileStream.close();
+                //     this->Response.erase(this->responsetEnd[k]);
+                // }
+            }
+            
+            this->exited.clear(), this->requestEnd.clear(); this->responsetEnd.clear();
             it = this->serversSock.begin();
             while (it != this->serversSock.end())
             {
@@ -252,23 +302,25 @@ connection::connection(std::map<int, informations> &configData)
 /*-------------- yachaab edit start ---------------*/
 void connection::dropClient( int& fd, std::map<int, int>::iterator &it )
 {
-    close( fd );
+    if (std::find(this->EndFd.begin(), this->EndFd.end(), fd) != this->EndFd.end())
+        return;
+    this->EndFd.push_back(fd);
     std::cout << "-> Fd Closed." << std::endl;
     std::cout << "Search For Data..." << std::endl;
+
     std::map<int, Request>::iterator toRemove = this->Requests.find(it->first);
-    // while (toRemove != this->Requests.end())
-    // {
-    //     if (toRemove->first == it->first)
-    //         break ;
-    //     it++;
-    // }
+    std::map<int, response>::iterator rm = this->Response.find(it->first);
+
+    if (rm != this->Response.end())
+        this->responsetEnd.push_back(it->first);
     if (toRemove != this->Requests.end())
     {
         std::cout << "Found Some Data For: " << toRemove->first << std::endl;
-        this->Requests.erase(toRemove);
+        this->requestEnd.push_back(toRemove);
         std::cout << "Data Deleted." << std::endl;
     }
-    //this->clientsSock.erase(it);
+    std::cerr << "Client " << it->first << " Related With Server "
+    << it->second << " Exited." << std::endl;
     this->exited.push_back(it);
     std::cout << "Number Of Client Left: " << this->clientsSock.size() - 1 << std::endl;
 }

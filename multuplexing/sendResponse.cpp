@@ -37,16 +37,19 @@ void openFile(response& res , const std::string& path)
     // closeFile(); // Ensure any previously opened file is closed
     res.filePath = path;
     res.fileStream.open(path.c_str(), std::ifstream::binary);
+    std::cout << "The Path is " + path << std::endl;
     // open("/home/yachaab/Desktop/web-server/media/video/morpho.mp4", )
     // std::cout << "PATH IS: " << path.c_str() << std::endl;
     // return;
     if (!res.fileStream.is_open())
     {
-        std::cout << "wa9ila dkhal l 404\n";
+        std::cout << "File Not Opened" << std::endl;
+        // if (res.totalSize == std::string::npos)
+        //     return ;
         // sendErrorResponse(clientSocket, 404, "Not Found");
         // return;
         res.status = res.Complete; // Mark as complete if file open failed
-        return;
+        // return;
     }
     else
         OUT("Bombi Dorsso Ghawat Morfo");
@@ -102,15 +105,23 @@ void sendResponseChunk(int clientSocket, response& respData)
     // Send the response header if needed
     if (respData.status == response::Pending)
     {
-        OUT("Panding");
+        // OUT("Panding");
+        if (respData.fileStream)
+            respData.fileStream.close();
         openFile(respData ,respData.filePath); // Ensure to provide file path
+        std::cout << "====> " << respData.totalSize << std::endl;
         respData.responseHeader += "Content-Length: " + to_string(respData.totalSize) + "\r\n\r\n";
+        std::cerr << "Headers REsponding:" << std::endl << respData.responseHeader;
         send(clientSocket, respData.responseHeader.c_str(), respData.responseHeader.size(), 0);
         respData.status = response::InProgress;
+        // if (respData.totalSize == std::string::npos)
+        // {
+        //     // respData.status = response::Pending;
+        // }
     }
     else if (respData.status == response::InProgress)
     {
-        OUT("InProgress");
+        // OUT("InProgress");
         // Assuming getNextChunk is a method that reads the next part of the file
         //     send(clientSocket, chunk.c_str(), chunk.size(), 0);
         std::string chunk = getNextChunk(respData, 2048); 
@@ -125,7 +136,7 @@ void sendResponseChunk(int clientSocket, response& respData)
             send(clientSocket, lastChunk.c_str(), lastChunk.size(), 0);
             closeFile(respData);
             respData.status = response::Complete;
-            OUT("Complete");
+            // OUT("Complete");
 
         }
     }
