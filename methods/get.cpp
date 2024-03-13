@@ -147,6 +147,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
 {
     std::cerr << "client number " << clientSocket << " Resiving Data." << std::endl;
     //exit(1);
+    std::cout << "----> uri: " << request.headers["uri"] << std::endl;
     location routeConfig = findRouteConfig(request.headers["uri"], serverConfig);
     if (routeConfig.allowed_methodes["allowed_methodes"].find("GET") == std::string::npos)
     {

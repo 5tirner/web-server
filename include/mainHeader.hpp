@@ -153,6 +153,7 @@ typedef struct clientRequest
         fileName                = "./upload/";
         chunkSizeSum            = 0;
         limitClientBodySize     = 0;
+        readyToSendRes          = false;
     }
     // ~clientRequest() { if ( bodyStream ) delete  bodyStream; }
 
@@ -179,6 +180,7 @@ typedef struct clientRequest
 
     bool    processingRequestDone;
     bool    storeHeader;
+    bool    readyToSendRes;
 } Request;
 
 typedef struct clientResponse
@@ -214,7 +216,6 @@ class   connection
         std::vector<std::map<int, Request>::iterator>       requestEnd;
         std::vector<int>      responsetEnd;
         std::vector<int>                                    EndFd;
-        bool                                                readyToSendRes;
     public:
         connection();
         connection(std::map<int, informations> &infos);

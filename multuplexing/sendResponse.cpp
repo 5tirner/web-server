@@ -1,7 +1,11 @@
 #include "../include/mainHeader.hpp"
 #include <fcntl.h>
 
-response::clientResponse() : totalSize(0), bytesSent(0), status(Pending){}
+response::clientResponse() : totalSize(0), bytesSent(0), status(Pending)
+{
+    filePath = "ggggggggg";
+    responseHeader = "hhhhhhhhhhhh";
+}
 
 response::clientResponse(const clientResponse& other)
 {
@@ -49,7 +53,7 @@ void openFile(response& res , const std::string& path)
         // sendErrorResponse(clientSocket, 404, "Not Found");
         // return;
         res.status = res.Complete; // Mark as complete if file open failed
-        // return;
+        return;
     }
     else
         OUT("Bombi Dorsso Ghawat Morfo");
@@ -110,9 +114,17 @@ void sendResponseChunk(int clientSocket, response& respData)
             respData.fileStream.close();
         openFile(respData ,respData.filePath); // Ensure to provide file path
         std::cout << "====> " << respData.totalSize << std::endl;
-        respData.responseHeader += "Content-Length: " + to_string(respData.totalSize) + "\r\n\r\n";
+        if (!respData.responseHeader.empty())
+            respData.responseHeader += "Content-Length: " + to_string(respData.totalSize) + "\r\n\r\n";
         std::cerr << "Headers REsponding:" << std::endl << respData.responseHeader;
-        send(clientSocket, respData.responseHeader.c_str(), respData.responseHeader.size(), 0);
+        int k = send(clientSocket, respData.responseHeader.c_str(), respData.responseHeader.size(), 0);
+        
+        std::cout << "====> k : "<< k << std::endl;
+        if (k < 0)
+        {
+            respData.status = response::Complete;
+            return ;
+        }
         respData.status = response::InProgress;
         // if (respData.totalSize == std::string::npos)
         // {
@@ -127,8 +139,14 @@ void sendResponseChunk(int clientSocket, response& respData)
         std::string chunk = getNextChunk(respData, 2048); 
         // std::cout << chunk << std::endl;
         if (!chunk.empty())
-            send(clientSocket, chunk.c_str(), chunk.size(), 0);
-
+        {
+            int k = send(clientSocket, chunk.c_str(), chunk.size(), 0);
+            if (k < 0)
+            {
+                respData.status = response::Complete;
+                return ;
+            }
+        }
         // Check if file reading is complete
         if (!hasNextChunk(respData))
         {

@@ -4,7 +4,7 @@
 #include <exception>
 #include <stdexcept>
 
-connection::connection(void) : readyToSendRes( false ) {}
+connection::connection(void) {}
 
 connection::connection(const connection &other){*this = other;}
 
@@ -126,7 +126,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
             } catch ( ... ) {
                 std::cout << "catched" << std::endl;
                 std::cerr << codeMsg.statMsg[this->Requests[monitor.fd].stat] << std::endl;
-                this->readyToSendRes = true;
+                this->Requests[monitor.fd].readyToSendRes = false;
             }
             /*-------------- yachaab code end -----------------*/
         }
@@ -148,7 +148,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         //close(monitor.fd);
         //this->clientsSock.erase(it); 
     }
-    if ((monitor.fd & POLLOUT) && (this->readyToSendRes))
+    if ((monitor.fd & POLLOUT) && (this->Requests[monitor.fd].readyToSendRes))
     {
         /* ------------- yachaab alter this code with the try catch block ------------------- */
         // std::cerr << "POLLOUT HERE" << std::endl;
@@ -161,19 +161,20 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 else if (this->Requests[monitor.fd].headers["method"] == "delete")
                     handleRequestDELETE(monitor.fd, this->Requests[monitor.fd], infoMap.at(it->second));
                 /*-------------- yachaab code start -----------------*/
-                else if ( this->Requests[monitor.fd].headers["method"] == "post" )
+                else if (this->Requests[monitor.fd].headers["method"] == "post" )
                     throw std::invalid_argument("salina m3a post response");
                 /*-------------- yachaab code ended -----------------*/
-                storeRes = Response[monitor.fd];
             }
-            sendResponseChunk(monitor.fd, storeRes); 
-            if (storeRes.status == response::Complete)
+            // storeRes = Response[monitor.fd];
+            std::cout << "monitor.fd: " << monitor.fd << std::endl;
+            sendResponseChunk(monitor.fd, Response[monitor.fd]); 
+            if (Response[monitor.fd].status == response::Complete)
                 throw std::exception();
         } catch (...) {
             std::cout << "Maybe hna" << std::endl;
-            this->readyToSendRes = false;
+            this->Requests[monitor.fd].readyToSendRes = false;
             this->Requests[monitor.fd].storeHeader = false;
-            storeRes.status = response::Pending;
+            Response[monitor.fd].status = response::Pending;
             dropClient(monitor.fd, it);
             // Response.erase(monitor.fd);
         }
@@ -255,19 +256,19 @@ connection::connection(std::map<int, informations> &configData)
                 it1++;
                 i++;
             }
-            std::cout << "????????? 1" << std::endl;
+            // std::cout << "????????? 1" << std::endl;
             for (size_t k = 0; k < this->exited.size(); k++)
                     this->clientsSock.erase(this->exited[k]);
-            std::cout << "????????? 2" << std::endl;
+            // std::cout << "????????? 2" << std::endl;
             for (size_t k = 0; k < this->requestEnd.size(); k++)
                     this->Requests.erase(this->requestEnd[k]);
-            std::cout << "????????? 4" << std::endl;
+            // std::cout << "????????? 4" << std::endl;
             while (!this->EndFd.empty())
             {
                 close(this->EndFd.back());
                 this->EndFd.pop_back();
             }
-            std::cout << "????????? 3" << std::endl;
+            // std::cout << "????????? 3" << std::endl;
             
             for (size_t k = 0; k < this->responsetEnd.size(); k++)
                     this->Response.erase(this->responsetEnd[k]);

@@ -5,7 +5,7 @@
 void    connection::processingBody( Request& rs, char* buffer, int rc, const informations& infoStruct )
 {
 	if ( rs.headers.at( "method" ) == "get" || rs.headers.at( "method" ) == "delete" )
-		this->readyToSendRes = true;
+		rs.readyToSendRes = true;
 	else if ( rs.headers["method"] == "post" )
     {
 		if ( location_support_upload( rs, infoStruct ) == -1 )
@@ -13,11 +13,11 @@ void    connection::processingBody( Request& rs, char* buffer, int rc, const inf
 		if ( !rs.bodyStream->is_open() )
 			generateRandomFileName( rs );
 		if ( rs.transferEncoding == true )
-			processChunkedRequestBody( rs, buffer, rc, this->readyToSendRes );
+			processChunkedRequestBody( rs, buffer, rc, rs.readyToSendRes );
 		if ( rs.contentLength == true )
 		{
 			if ( rs.contentLength <= rs.limitClientBodySize )
-				processRegularRequestBody( rs, buffer , rc, this->readyToSendRes );
+				processRegularRequestBody( rs, buffer , rc, rs.readyToSendRes );
 			else
 			{
 				rs.stat = 413;
