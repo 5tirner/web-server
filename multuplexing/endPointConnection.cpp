@@ -160,39 +160,44 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         //close(monitor.fd);
         //this->clientsSock.erase(it); 
     }
-    if (POLLOUT && this->Requests[monitor.fd].readyToSendRes && startClient)
+    try
     {
+        if ((monitor.fd & POLLOUT) && this->Requests.at(monitor.fd).readyToSendRes && startClient)
+        {
             std::cerr << "READY TO RESPONDE: " << this->Requests[monitor.fd].readyToSendRes << std::endl;
-        /* ------------- yachaab alter this code with the try catch block ------------------- */
-        // std::cerr << "POLLOUT HERE" << std::endl;
-        try {
-            if (!this->Requests[monitor.fd].storeHeader)
-            {
-                std::cerr << "Headers Stored" << std::endl;
-                if (this->Requests[monitor.fd].headers["method"] == "get")
-                    handleRequestGET(monitor.fd, this->Requests[monitor.fd], infoMap.at(it->second));
-                else if (this->Requests[monitor.fd].headers["method"] == "delete")
-                    handleRequestDELETE(monitor.fd, this->Requests[monitor.fd], infoMap.at(it->second));
-                /*-------------- yachaab code start -----------------*/
-                else if (this->Requests[monitor.fd].headers["method"] == "post" )
-                    throw std::invalid_argument("salina m3a post response");
-                /*-------------- yachaab code ended -----------------*/
+            /* ------------- yachaab alter this code with the try catch block ------------------- */
+            // std::cerr << "POLLOUT HERE" << std::endl;
+            try {
+                if (!this->Requests[monitor.fd].storeHeader)
+                {
+                    std::cerr << "Headers Stored" << std::endl;
+                    if (this->Requests[monitor.fd].headers["method"] == "get")
+                        handleRequestGET(monitor.fd, this->Requests[monitor.fd], infoMap.at(it->second));
+                    else if (this->Requests[monitor.fd].headers["method"] == "delete")
+                        handleRequestDELETE(monitor.fd, this->Requests[monitor.fd], infoMap.at(it->second));
+                    /*-------------- yachaab code start -----------------*/
+                    else if (this->Requests[monitor.fd].headers["method"] == "post" )
+                        throw std::invalid_argument("salina m3a post response");
+                    /*-------------- yachaab code ended -----------------*/
+                }
+                // storeRes = Response[monitor.fd];
+                std::cout << "monitor.fd: " << monitor.fd << std::endl;
+                sendResponseChunk(monitor.fd, Response[monitor.fd]); 
+                if (Response[monitor.fd].status == response::Complete)
+                    throw std::exception();
+            } catch (...) {
+                std::cout << "Maybe hna" << std::endl;
+                this->Requests[monitor.fd].readyToSendRes = false;
+                this->Requests[monitor.fd].storeHeader = false;
+                Response[monitor.fd].status = response::Pending;
+                dropClient(monitor.fd, it);
+                // Response.erase(monitor.fd);
             }
-            // storeRes = Response[monitor.fd];
-            std::cout << "monitor.fd: " << monitor.fd << std::endl;
-            sendResponseChunk(monitor.fd, Response[monitor.fd]); 
-            if (Response[monitor.fd].status == response::Complete)
-                throw std::exception();
-        } catch (...) {
-            std::cout << "Maybe hna" << std::endl;
-            this->Requests[monitor.fd].readyToSendRes = false;
-            this->Requests[monitor.fd].storeHeader = false;
-            Response[monitor.fd].status = response::Pending;
-            dropClient(monitor.fd, it);
-            // Response.erase(monitor.fd);
+            // std::cout << "POLLOUT = " << POLLOUT << " Done!" << std::endl;
         }
-        // std::cout << "POLLOUT = " << POLLOUT << " Done!" << std::endl;
     }
+    catch(...)
+    {}
 }
 
 void    connection::checkServer(struct pollfd &monitor, std::map<int, struct sockaddr_in>::iterator &it)

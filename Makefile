@@ -39,7 +39,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "Initialize Request struct problem + ..."
+	@git commit -m "fix problem Request"
 	@git push origin yachaab+leader
 	@echo "Pushed to yachaab+leader"
 
