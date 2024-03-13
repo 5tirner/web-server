@@ -7,7 +7,7 @@ void    connection::processingBody( Request& rs, char* buffer, int rc, const inf
 	if ( rs.headers.at( "method" ) == "get" || rs.headers.at( "method" ) == "delete" )
 	{
 		rs.readyToSendRes = true;
-		startClient = true;
+		// startClient = true;
 	}
 	else if ( rs.headers["method"] == "post" )
     {

@@ -7,7 +7,6 @@
 connection::connection(void) {
     Requests.clear();
     Requests[0] = NULL;
-    startClient = false;
 }
 
 connection::connection(const connection &other){*this = other;}
@@ -65,7 +64,6 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
         this->serversSock[fd] = sockInfo;
         this->OverLoad[fd] = it->second;
         std::cout << "Socket Ready To Listening For The Port: " << it->second.port.at("listen") << " With Number: " << fd << std::endl;
-        // std::cout << "Socket Ready To Listening For The Port: " << it->second.port.at("listen") << " With Number: " << fd << std::endl;
         it++;
     }
 }
@@ -92,6 +90,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         // std::cout << "Cleint-Side, An Event Happen Into " << monitor.fd << " Endpoint." << std::endl;
         // std::cout << "This Client Is Rlated With Server Endpoint " << it->second << std::endl;
         char buffer[2048];
+        std::cout << "in" << std::endl;
         int rd = read(monitor.fd, buffer, 2047);
         if (rd == -1)
         {
@@ -102,7 +101,6 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
             //close(monitor.fd);
             // this->clientsSock.erase(it);
             dropClient(monitor.fd, it);
-            storeRes.status = response::Complete;
            // return ;
         }
         else if (rd == 0)
@@ -128,11 +126,11 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 {
                     this->Requests[monitor.fd] = clientRequest( rd );
                 }
-                if ( this->Requests[monitor.fd].fetchHeaderDone == false )
+                if ( this->Requests.at(monitor.fd).fetchHeaderDone == false )
                     fetchRequestHeader( this->Requests[monitor.fd], buffer );
-                if ( this->Requests[monitor.fd].fetchHeaderDone == true && this->Requests[monitor.fd].processingHeaderDone == false )
+                if ( this->Requests.at(monitor.fd).fetchHeaderDone == true && this->Requests[monitor.fd].processingHeaderDone == false )
                     processingHeader( this->Requests[monitor.fd] );
-                if ( this->Requests[monitor.fd].processingHeaderDone == true )
+                if ( this->Requests.at(monitor.fd).processingHeaderDone == true )
                     processingBody( this->Requests[monitor.fd], buffer, rd, infoMap.at( it->second ) );
                 
             } catch ( ... ) {
@@ -162,30 +160,27 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
     }
     try
     {
-        if ((monitor.fd & POLLOUT) && this->Requests.at(monitor.fd).readyToSendRes && startClient)
+        if ((monitor.revents & POLLOUT) && this->Requests.at(monitor.fd).readyToSendRes)
         {
-            std::cerr << "READY TO RESPONDE: " << this->Requests[monitor.fd].readyToSendRes << std::endl;
-            /* ------------- yachaab alter this code with the try catch block ------------------- */
-            // std::cerr << "POLLOUT HERE" << std::endl;
             try {
-                if (!this->Requests[monitor.fd].storeHeader)
+                if (!this->Requests.at(monitor.fd).storeHeader)
                 {
                     std::cerr << "Headers Stored" << std::endl;
-                    if (this->Requests[monitor.fd].headers["method"] == "get")
+                    if (this->Requests.at(monitor.fd).headers["method"] == "get")
                         handleRequestGET(monitor.fd, this->Requests[monitor.fd], infoMap.at(it->second));
-                    else if (this->Requests[monitor.fd].headers["method"] == "delete")
+                    else if (this->Requests.at(monitor.fd).headers["method"] == "delete")
                         handleRequestDELETE(monitor.fd, this->Requests[monitor.fd], infoMap.at(it->second));
                     /*-------------- yachaab code start -----------------*/
-                    else if (this->Requests[monitor.fd].headers["method"] == "post" )
+                    else if (this->Requests.at(monitor.fd).headers["method"] == "post" )
                         throw std::invalid_argument("salina m3a post response");
                     /*-------------- yachaab code ended -----------------*/
                 }
-                // storeRes = Response[monitor.fd];
-                std::cout << "monitor.fd: " << monitor.fd << std::endl;
-                sendResponseChunk(monitor.fd, Response[monitor.fd]); 
-                if (Response[monitor.fd].status == response::Complete)
+
+                sendResponseChunk(monitor.fd, Response[monitor.fd]);
+                if (Response.at(monitor.fd).status == response::Complete)
                     throw std::exception();
-            } catch (...) {
+            } 
+            catch (...) {
                 std::cout << "Maybe hna" << std::endl;
                 this->Requests[monitor.fd].readyToSendRes = false;
                 this->Requests[monitor.fd].storeHeader = false;
@@ -217,8 +212,6 @@ void    connection::checkServer(struct pollfd &monitor, std::map<int, struct soc
             std::cout << "New Client Added To Endpoint " << monitor.fd << " With Number " << newClient << '.' << std::endl;
             this->clientsSock[newClient] = monitor.fd;
             this->Response[newClient] = response();
-            // if (this->Requests.find(newClient) != this->Requests.end() )
-            //     this->Requests.erase(newClient);
         }
         std::cout << "Number Of Client Now Is: " << this->clientsSock.size() << std::endl;
     }
@@ -246,8 +239,10 @@ connection::connection(std::map<int, informations> &configData)
     //     std::cout << "\\\\" << std::endl;
     // }
     // std::cout << "----------------------------------------------------------" << std::endl;
+    size_t uuu = 0;
     while (1)
     {
+        uuu++;
         struct pollfd monitor[this->serversSock.size() + this->clientsSock.size()];
         std::map<int, int>::iterator it1 = this->clientsSock.begin();
         std::map<int, struct sockaddr_in>::iterator it = this->serversSock.begin();
@@ -264,19 +259,21 @@ connection::connection(std::map<int, informations> &configData)
             it++;
             i++;
         }
-        int eventChecker = poll(monitor, this->clientsSock.size() + this->serversSock.size(), 100);
+        int eventChecker = poll(monitor, this->clientsSock.size() + this->serversSock.size(), -1);
         if (eventChecker == -1)
             std::cerr << "Error: Poll Failed To When It's Looking For An Event." << std::endl;
         else if (eventChecker)
         {
             i = 0;
             it1 = this->clientsSock.begin();
+            std::cout << uuu << std::endl; 
             while (it1 != this->clientsSock.end())
             {
                 this->checkClient(monitor[i], it1, OverLoad);
                 it1++;
                 i++;
             }
+            std::cout << uuu << std::endl; 
             // std::cout << "????????? 1" << std::endl;
             for (size_t k = 0; k < this->exited.size(); k++)
                     this->clientsSock.erase(this->exited[k]);

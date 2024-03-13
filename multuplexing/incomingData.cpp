@@ -4,8 +4,6 @@
 /*-------------- yachaab code start ---------------*/
 void    connection::fetchRequestHeader( Request& rs, char* buffer )
 {
-	std::cerr << "First Buffer: " << buffer << std::endl;
-	std::cerr << "Append In: " << rs.rc << std::endl;
     rs.fullRequest.append( buffer, rs.rc );
     if ( rs.fullRequest.find("\r\n\r\n") != std::string::npos 
 	|| rs.fullRequest.find("\n\n") != std::string::npos)
@@ -17,10 +15,6 @@ void    connection::fetchRequestHeader( Request& rs, char* buffer )
 			rs.remainingBody = rs.fullRequest.substr( rs.fullRequest.find( "\n\n" ) + 2);
         rs.fetchHeaderDone = true;
 	}
-	std::cerr << "My The Request End Soon" << std::endl
-	<< "--------------------------------------------" << std::endl;
-	std::cerr << rs.fullRequest;
-	std::cerr << "---------------------------------------------" << std::endl;
 
 }
 
