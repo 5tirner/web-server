@@ -116,11 +116,16 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         {
             
             buffer[rd] = '\0';
+
             /*-------------- yachaab code start ---------------*/
             try {
-                if (this->Requests.find(monitor.fd) == this->Requests.end() )
+                try
                 {
+                    this->Requests.at(monitor.fd);
                     OUT( "ENTER" );
+                }
+                catch(...)
+                {
                     this->Requests[monitor.fd] = clientRequest( rd );
                 }
                 if ( this->Requests[monitor.fd].fetchHeaderDone == false )
@@ -201,11 +206,14 @@ void    connection::checkServer(struct pollfd &monitor, std::map<int, struct soc
             std::cerr << "Error: Filed To Create New EndPoint With Socket " << monitor.fd << std::endl;
         else
         {
+            std::cerr << "Clients Those Already Here :" << std::endl;
+            for (std::map<int, Request>::iterator it = this->Requests.begin(); it != this->Requests.end(); it++)
+                std::cerr << "Clinet Of Fd Number: " << it->first << std::endl;
             std::cout << "New Client Added To Endpoint " << monitor.fd << " With Number " << newClient << '.' << std::endl;
             this->clientsSock[newClient] = monitor.fd;
             this->Response[newClient] = response();
-            if (this->Requests.find(newClient) != this->Requests.end() )
-                this->Requests.erase(newClient);
+            // if (this->Requests.find(newClient) != this->Requests.end() )
+            //     this->Requests.erase(newClient);
         }
         std::cout << "Number Of Client Now Is: " << this->clientsSock.size() << std::endl;
     }

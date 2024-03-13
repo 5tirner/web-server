@@ -4,16 +4,24 @@
 /*-------------- yachaab code start ---------------*/
 void    connection::fetchRequestHeader( Request& rs, char* buffer )
 {
+	std::cerr << "First Buffer: " << buffer << std::endl;
+	std::cerr << "Append In: " << rs.rc << std::endl;
     rs.fullRequest.append( buffer, rs.rc );
-	
-    if ( rs.fullRequest.find("\r\n\r\n") != std::string::npos || rs.fullRequest.find("\n\n") != std::string::npos)
+    if ( rs.fullRequest.find("\r\n\r\n") != std::string::npos 
+	|| rs.fullRequest.find("\n\n") != std::string::npos)
     {
+		std::cerr << "Header Fetch Done Successfully" << std::endl;
 		if (rs.fullRequest.find("\r\n\r\n") != std::string::npos)
         	rs.remainingBody = rs.fullRequest.substr( rs.fullRequest.find( "\r\n\r\n" ) + 4 );
 		else
 			rs.remainingBody = rs.fullRequest.substr( rs.fullRequest.find( "\n\n" ) + 2);
         rs.fetchHeaderDone = true;
 	}
+	std::cerr << "My The Request End Soon" << std::endl
+	<< "--------------------------------------------" << std::endl;
+	std::cerr << rs.fullRequest;
+	std::cerr << "---------------------------------------------" << std::endl;
+
 }
 
 int connection::processingHeader( Request& rs )

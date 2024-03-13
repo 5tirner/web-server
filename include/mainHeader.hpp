@@ -162,15 +162,15 @@ typedef struct clientRequest
     std::string     fullRequest;
     std::string     remainingBody;
     std::string     fileName;
-
-    size_t  content_length;
-    size_t  requestBodyLength;
-    size_t  chunkSizeSum;
-    size_t  currentChunkSize;
-    size_t  limitClientBodySize;
-    int     stat;
-    int     chunkHeaderStart;
-    int     rc;
+    size_t          content_length;
+    int      times;
+    size_t          requestBodyLength;
+    size_t          chunkSizeSum;
+    size_t          currentChunkSize;
+    size_t          limitClientBodySize;
+    int             stat;
+    int             chunkHeaderStart;
+    int             rc;
 
     bool    fetchHeaderDone;
     bool    processingHeaderDone;
@@ -214,7 +214,7 @@ class   connection
         std::map<int, Request>                              Requests; // each client fd with it's data in the value
         std::vector<std::map<int, int>::iterator>           exited;
         std::vector<std::map<int, Request>::iterator>       requestEnd;
-        std::vector<int>      responsetEnd;
+        std::vector<int>                                    responsetEnd;
         std::vector<int>                                    EndFd;
         bool                                                startClient;
     public:
@@ -228,7 +228,7 @@ class   connection
         void    checkServer(struct pollfd &monitor, std::map<int, struct sockaddr_in>::iterator &it);
         void    closeTheExitClients(void);
         /*-------------- yachaab code start ---------------*/
-        void    fetchRequestHeader( Request&, char* );
+        void    fetchRequestHeader( Request&, char *  );
         int     processingHeader( Request& );
         void    processingBody( Request&, char*, int, const informations& );
         void    dropClient( int&, std::map<int, int>::iterator & );
