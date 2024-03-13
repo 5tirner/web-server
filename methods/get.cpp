@@ -146,8 +146,6 @@ std::string to_string(int value)
 void connection::handleRequestGET(int clientSocket, Request& request,const informations& serverConfig)
 {
     std::cerr << "client number " << clientSocket << " Resiving Data." << std::endl;
-    //exit(1);
-    std::cout << "----> uri: " << request.headers["uri"] << std::endl;
     location routeConfig = findRouteConfig(request.headers["uri"], serverConfig);
     if (routeConfig.allowed_methodes["allowed_methodes"].find("GET") == std::string::npos)
     {
@@ -183,7 +181,6 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
     }
     else
     {
-        std::cerr << "go inside Normal file"<< std::endl;;
         responseD = "HTTP/1.1 200 OK\r\n";
         responseD += "Content-Type: " + getMimeType(filePath) + "\r\n";
         // std::cout << "check if this correct" << std::endl;;

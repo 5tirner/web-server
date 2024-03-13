@@ -138,7 +138,7 @@ bool    chunkedComplete( Request& rs,  std::string& buffer )
 			rs.isChunkHeader = true;
 		}
 	}
-	return true;
+	return false;
 }
 
 void    processChunkedRequestBody( Request& rs, char* buffer, int& rc, bool& sendRes)

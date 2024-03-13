@@ -83,31 +83,21 @@ void    initializeMonitor(struct pollfd &monitor, int fd)
 // }
 void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it, const std::map<int, informations>& infoMap) //!yachaab edit here: add localisation vector
 {
-    // void (*ptr)(int) = &this->handler;
-    // signal(SIGINT, this->handler);
     if ((monitor.revents & POLLIN))
     {
-        // std::cout << "Cleint-Side, An Event Happen Into " << monitor.fd << " Endpoint." << std::endl;
-        // std::cout << "This Client Is Rlated With Server Endpoint " << it->second << std::endl;
+        std::cout << "Cleint-Side, An Event Happen Into " << monitor.fd << " Endpoint." << std::endl;
+        std::cout << "This Client Is Rlated With Server Endpoint " << it->second << std::endl;
         char buffer[2048];
-        std::cout << "in" << std::endl;
         int rd = read(monitor.fd, buffer, 2047);
         if (rd == -1)
         {
             std::cerr << "Error: Failed To Read From " << monitor.fd << " Endpoint." << std::endl;
-            // if (storeRes.status != response::Pending)
-            //     storeRes.status = response::Pending;
-            // return ;
-            //close(monitor.fd);
-            // this->clientsSock.erase(it);
             dropClient(monitor.fd, it);
-           // return ;
         }
         else if (rd == 0)
         {
             /*-------------- yachaab edit start ---------------*/
             dropClient( monitor.fd, it );
-            //storeRes.status = response::Pending;
             /*-------------- yachaab edit end ---------------*/
         }
         else if (rd)
@@ -120,7 +110,6 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 try
                 {
                     this->Requests.at(monitor.fd);
-                    OUT( "ENTER" );
                 }
                 catch(...)
                 {
@@ -140,23 +129,16 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
             }
             /*-------------- yachaab code end -----------------*/
         }
-        std::cerr << "POLLIN = " << POLLIN << " Done" << std::endl;
-        std::cerr << "READY TO RESPONDE: " << this->Requests[monitor.fd].readyToSendRes << std::endl;
     }
     else if (monitor.revents & POLLHUP)
     {
         std::cerr << "Error: Client-Side, Connection Destroyed For " << monitor.fd << " Endpoint." << std::endl;
         dropClient(monitor.fd, it);
-       // return ;
-        // this->clientsSock.erase(it); //! yachaab comment this line
     }
     else if (monitor.revents & POLLERR)
     {
         std::cerr << "Error: Client-Side, Unexpected Error Happen Into " << monitor.fd << " Endpoint." << std::endl;
         dropClient(monitor.fd, it);
-        //return ;
-        //close(monitor.fd);
-        //this->clientsSock.erase(it); 
     }
     try
     {
@@ -165,7 +147,6 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
             try {
                 if (!this->Requests.at(monitor.fd).storeHeader)
                 {
-                    std::cerr << "Headers Stored" << std::endl;
                     if (this->Requests.at(monitor.fd).headers["method"] == "get")
                         handleRequestGET(monitor.fd, this->Requests[monitor.fd], infoMap.at(it->second));
                     else if (this->Requests.at(monitor.fd).headers["method"] == "delete")
@@ -181,14 +162,12 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                     throw std::exception();
             } 
             catch (...) {
-                std::cout << "Maybe hna" << std::endl;
-                this->Requests[monitor.fd].readyToSendRes = false;
-                this->Requests[monitor.fd].storeHeader = false;
-                Response[monitor.fd].status = response::Pending;
+                // std::cout << "Maybe hna" << std::endl;
+                // this->Requests[monitor.fd].readyToSendRes = false;
+                // this->Requests[monitor.fd].storeHeader = false;
+                // Response[monitor.fd].status = response::Pending;
                 dropClient(monitor.fd, it);
-                // Response.erase(monitor.fd);
             }
-            // std::cout << "POLLOUT = " << POLLOUT << " Done!" << std::endl;
         }
     }
     catch(...)
@@ -239,10 +218,8 @@ connection::connection(std::map<int, informations> &configData)
     //     std::cout << "\\\\" << std::endl;
     // }
     // std::cout << "----------------------------------------------------------" << std::endl;
-    size_t uuu = 0;
     while (1)
     {
-        uuu++;
         struct pollfd monitor[this->serversSock.size() + this->clientsSock.size()];
         std::map<int, int>::iterator it1 = this->clientsSock.begin();
         std::map<int, struct sockaddr_in>::iterator it = this->serversSock.begin();
@@ -266,28 +243,21 @@ connection::connection(std::map<int, informations> &configData)
         {
             i = 0;
             it1 = this->clientsSock.begin();
-            std::cout << uuu << std::endl; 
             while (it1 != this->clientsSock.end())
             {
                 this->checkClient(monitor[i], it1, OverLoad);
                 it1++;
                 i++;
             }
-            std::cout << uuu << std::endl; 
-            // std::cout << "????????? 1" << std::endl;
             for (size_t k = 0; k < this->exited.size(); k++)
                     this->clientsSock.erase(this->exited[k]);
-            // std::cout << "????????? 2" << std::endl;
             for (size_t k = 0; k < this->requestEnd.size(); k++)
                     this->Requests.erase(this->requestEnd[k]);
-            // std::cout << "????????? 4" << std::endl;
             while (!this->EndFd.empty())
             {
                 close(this->EndFd.back());
                 this->EndFd.pop_back();
-            }
-            // std::cout << "????????? 3" << std::endl;
-            
+            }            
             for (size_t k = 0; k < this->responsetEnd.size(); k++)
                     this->Response.erase(this->responsetEnd[k]);
             this->exited.clear(), this->requestEnd.clear(); this->responsetEnd.clear();

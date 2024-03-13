@@ -3,8 +3,8 @@
 
 response::clientResponse() : totalSize(0), bytesSent(0), status(Pending)
 {
-    filePath = "ggggggggg";
-    responseHeader = "hhhhhhhhhhhh";
+    filePath = "random";
+    responseHeader = "random";
 }
 
 response::clientResponse(const clientResponse& other)
@@ -14,8 +14,6 @@ response::clientResponse(const clientResponse& other)
     bytesSent = other.bytesSent;
     status = other.status;
     responseHeader = other.responseHeader;
-    // if (other.fileStream.is_open())
-    //     openFile(filePath);
 }
 clientResponse& response::operator=(const clientResponse& other)
 {
@@ -26,8 +24,6 @@ clientResponse& response::operator=(const clientResponse& other)
         bytesSent = other.bytesSent;
         status = other.status;
         responseHeader = other.responseHeader;
-        // if (other.fileStream.is_open())
-        //     openFile(filePath);  // Reopen the file stream
     }
     return *this;
 }
@@ -38,26 +34,17 @@ void response::setResponseHeader(const std::string& header)
 
 void openFile(response& res , const std::string& path)
 {
-    // closeFile(); // Ensure any previously opened file is closed
     res.filePath = path;
     res.fileStream.open(path.c_str(), std::ifstream::binary);
-    std::cout << "The Path is " + path << std::endl;
-    // open("/home/yachaab/Desktop/web-server/media/video/morpho.mp4", )
-    // std::cout << "PATH IS: " << path.c_str() << std::endl;
-    // return;
     if (!res.fileStream.is_open())
     {
         std::cout << "File Not Opened" << std::endl;
         // if (res.totalSize == std::string::npos)
         //     return ;
         // sendErrorResponse(clientSocket, 404, "Not Found");
-        // return;
         res.status = res.Complete; // Mark as complete if file open failed
         return;
     }
-    else
-        OUT("Bombi Dorsso Ghawat Morfo");
-
     res.fileStream.seekg(0, std::ios::end);
     res.totalSize = res.fileStream.tellg();
     res.fileStream.seekg(0, std::ios::beg);
@@ -108,30 +95,18 @@ void sendResponseChunk(int clientSocket, response& respData)
     // Send the response header if needed
     if (respData.status == response::Pending)
     {
-        // std::cout << "out11" << std::endl;
-        OUT("Panding");
         if (respData.fileStream)
             respData.fileStream.close();
         openFile(respData ,respData.filePath); // Ensure to provide file path
-        std::cout << "====> " << respData.totalSize << std::endl;
         if (!respData.responseHeader.empty())
             respData.responseHeader += "Content-Length: " + to_string(respData.totalSize) + "\r\n\r\n";
-        std::cerr << "Headers REsponding:" << std::endl << respData.responseHeader;
         int k = send(clientSocket, respData.responseHeader.c_str(), respData.responseHeader.size(), 0);
-            std::cout << "client Socket--->: " << clientSocket  << std::endl;
-        
-        std::cout << "====> k : "<< k << std::endl;
         if (k < 0)
         {
             respData.status = response::Complete;
             return ;
         }
         respData.status = response::InProgress;
-        // if (respData.totalSize == std::string::npos)
-        // {
-        //     // respData.status = response::Pending;
-        // }
-        // std::cout << "out12" << std::endl;
     }
     else if (respData.status == response::InProgress)
     {
@@ -148,14 +123,11 @@ void sendResponseChunk(int clientSocket, response& respData)
         // Check if file reading is complete
         if (!hasNextChunk(respData))
         {
-            // std::cout << "out23" << std::endl;
             std::string lastChunk = "0\r\n\r\n";
             send(clientSocket, lastChunk.c_str(), lastChunk.size(), 0);
             closeFile(respData);
             respData.status = response::Complete;
-            // OUT("Complete");
 
         }
-        // std::cout << "out22" << std::endl;
     }
 }
