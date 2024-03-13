@@ -6,11 +6,14 @@ void    connection::fetchRequestHeader( Request& rs, char* buffer )
 {
     rs.fullRequest.append( buffer, rs.rc );
 	
-    if ( rs.fullRequest.find("\r\n\r\n") != std::string::npos )
+    if ( rs.fullRequest.find("\r\n\r\n") != std::string::npos || rs.fullRequest.find("\n\n") != std::string::npos)
     {
+		if (rs.fullRequest.find("\r\n\r\n") != std::string::npos)
+        	rs.remainingBody = rs.fullRequest.substr( rs.fullRequest.find( "\r\n\r\n" ) + 4 );
+		else
+			rs.remainingBody = rs.fullRequest.substr( rs.fullRequest.find( "\n\n" ) + 2);
         rs.fetchHeaderDone = true;
-        rs.remainingBody = rs.fullRequest.substr( rs.fullRequest.find( "\r\n\r\n" ) + 4 );
-    }
+	}
 }
 
 int connection::processingHeader( Request& rs )

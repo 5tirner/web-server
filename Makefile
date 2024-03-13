@@ -39,7 +39,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "fix problem video still problem nc with video loading"
+	@git commit -m "Initialize Request struct problem + ..."
 	@git push origin yachaab+leader
 	@echo "Pushed to yachaab+leader"
 

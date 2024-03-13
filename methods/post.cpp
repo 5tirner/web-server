@@ -5,7 +5,10 @@
 void    connection::processingBody( Request& rs, char* buffer, int rc, const informations& infoStruct )
 {
 	if ( rs.headers.at( "method" ) == "get" || rs.headers.at( "method" ) == "delete" )
+	{
 		rs.readyToSendRes = true;
+		startClient = true;
+	}
 	else if ( rs.headers["method"] == "post" )
     {
 		if ( location_support_upload( rs, infoStruct ) == -1 )

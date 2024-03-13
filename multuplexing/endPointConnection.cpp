@@ -4,7 +4,11 @@
 #include <exception>
 #include <stdexcept>
 
-connection::connection(void) {}
+connection::connection(void) {
+    Requests.clear();
+    Requests[0] = NULL;
+    startClient = false;
+}
 
 connection::connection(const connection &other){*this = other;}
 
@@ -115,7 +119,10 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
             /*-------------- yachaab code start ---------------*/
             try {
                 if (this->Requests.find(monitor.fd) == this->Requests.end() )
+                {
+                    OUT( "ENTER" );
                     this->Requests[monitor.fd] = clientRequest( rd );
+                }
                 if ( this->Requests[monitor.fd].fetchHeaderDone == false )
                     fetchRequestHeader( this->Requests[monitor.fd], buffer );
                 if ( this->Requests[monitor.fd].fetchHeaderDone == true && this->Requests[monitor.fd].processingHeaderDone == false )
@@ -126,12 +133,12 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
             } catch ( ... ) {
                 std::cout << "catched" << std::endl;
                 std::cerr << codeMsg.statMsg[this->Requests[monitor.fd].stat] << std::endl;
-                this->Requests[monitor.fd].readyToSendRes = false;
+                this->Requests[monitor.fd].readyToSendRes = true;
             }
             /*-------------- yachaab code end -----------------*/
         }
         std::cerr << "POLLIN = " << POLLIN << " Done" << std::endl;
-
+        std::cerr << "READY TO RESPONDE: " << this->Requests[monitor.fd].readyToSendRes << std::endl;
     }
     else if (monitor.revents & POLLHUP)
     {
@@ -148,8 +155,9 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         //close(monitor.fd);
         //this->clientsSock.erase(it); 
     }
-    if ((monitor.fd & POLLOUT) && (this->Requests[monitor.fd].readyToSendRes))
+    if (POLLOUT && this->Requests[monitor.fd].readyToSendRes && startClient)
     {
+            std::cerr << "READY TO RESPONDE: " << this->Requests[monitor.fd].readyToSendRes << std::endl;
         /* ------------- yachaab alter this code with the try catch block ------------------- */
         // std::cerr << "POLLOUT HERE" << std::endl;
         try {

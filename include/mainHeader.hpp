@@ -216,6 +216,7 @@ class   connection
         std::vector<std::map<int, Request>::iterator>       requestEnd;
         std::vector<int>      responsetEnd;
         std::vector<int>                                    EndFd;
+        bool                                                startClient;
     public:
         connection();
         connection(std::map<int, informations> &infos);
