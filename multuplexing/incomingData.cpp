@@ -137,15 +137,28 @@ int validateUriAndExtractQueries( Request& rs )
 
 void lowcase( std::string& str )
 {
-
-	// start triming the str
-	
-
 	for ( size_t i = 0; i < str.length(); i++  )
 	{
 		if ( str[ i ] >= 65 && str[ i ] <= 90 )
 			str[ i ] += 32;
 	}
+}
+
+int whiteSpace( char ch )
+{
+	if ( ch == '\t' || ch == ' ' || ch == '\r' || ch == '\f' || ch == '\n' )
+		return 1;
+	return 0;
+}
+
+void strTrim( std::string& str )
+{
+	size_t i = 0;
+	size_t j = str.length() - 1;
+
+	for ( ; i < str.length() && whiteSpace( str[i] ); i++ );
+	for ( ; j >= 0 && whiteSpace( str[j] ); j-- );
+	str = str.substr( i, (j - i) + 1 );
 }
 
 bool	examinHeaders( Request& rs, std::string& first, std::string& second )
@@ -189,9 +202,8 @@ int	extractHttpHeaders( Request& rs )
 		std::getline( headerStream, line );
 		while ( std::getline( headerStream, line ) && line != "\r" )
 		{
-			size_t carriagepos = line.find("\r");
-        	line.resize(carriagepos);
-
+			if ( line.length() == 0 )
+				break ;
 			header_lines.push_back( line );
 		}
 
@@ -202,13 +214,14 @@ int	extractHttpHeaders( Request& rs )
 			
 			lowcase( first );
 			lowcase( second );
+			strTrim( second );
+			std::cerr << "second: " << second << std::endl;
 
 			if ( !examinHeaders( rs, first, second ) )
 				throw std::invalid_argument( "bad request: Invalid header" );
 		
 			rs.headers[ first ] = second;
 		}
-
 		rs.processingHeaderDone = true;
 	}
 	catch( const std::exception& e )
