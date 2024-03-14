@@ -1,21 +1,21 @@
 #include "../include/mainHeader.hpp"
-#include <exception>
 
 /*-------------- yachaab code start ---------------*/
-void    connection::fetchRequestHeader( Request& rs, char* buffer )
+void    connection::fetchRequestHeader( Request& rs, char* buffer, int rc )
 {
-    rs.fullRequest.append( buffer, rs.rc );
-    if ( rs.fullRequest.find("\r\n\r\n") != std::string::npos 
-	|| rs.fullRequest.find("\n\n") != std::string::npos)
-    {
-		std::cerr << "Header Fetch Done Successfully" << std::endl;
-		if (rs.fullRequest.find("\r\n\r\n") != std::string::npos)
-        	rs.remainingBody = rs.fullRequest.substr( rs.fullRequest.find( "\r\n\r\n" ) + 4 );
-		else
-			rs.remainingBody = rs.fullRequest.substr( rs.fullRequest.find( "\n\n" ) + 2);
-        rs.fetchHeaderDone = true;
+    rs.fullRequest.append( buffer, rc );
+	size_t	lfp = rs.fullRequest.find( "\n\n" );
+	size_t	crp = rs.fullRequest.find( "\r\n\r\n" );
+	if ( lfp != std::string::npos )
+	{
+		rs.remainingBody = rs.fullRequest.substr( lfp + 2);
+     	rs.fetchHeaderDone = true;
 	}
-
+	if ( crp != std::string::npos )
+	{
+		rs.remainingBody = rs.fullRequest.substr( crp + 4 );
+     	rs.fetchHeaderDone = true;
+	}
 }
 
 int connection::processingHeader( Request& rs )
@@ -40,7 +40,8 @@ int extractMethodAndUri( Request& rs )
 	{
 		startLine = rs.fullRequest.substr( 0, rs.fullRequest.find( "\n" ) );
         carriagepos = startLine.find("\r");
-        startLine.resize(carriagepos);
+		if ( carriagepos != std::string::npos )
+        	startLine.resize(carriagepos);
 
 		int spNbr = std::count( startLine.begin(), startLine.end(), ' ' );
 		if ( spNbr != 2 )
@@ -136,6 +137,10 @@ int validateUriAndExtractQueries( Request& rs )
 
 void lowcase( std::string& str )
 {
+
+	// start triming the str
+	
+
 	for ( size_t i = 0; i < str.length(); i++  )
 	{
 		if ( str[ i ] >= 65 && str[ i ] <= 90 )
@@ -193,7 +198,7 @@ int	extractHttpHeaders( Request& rs )
 		for ( it = header_lines.begin(); it != header_lines.end(); ++it )
 		{
 			first	=	it->substr( 0, it->find_first_of( ':' ) );
-			second	=	it->substr( it->find_first_of( ':' ) + 2 ); // ! need adding space and tab handler
+			second	=	it->substr( it->find_first_of( ':' ) + 1 ); // ! need adding space and tab handler
 			
 			lowcase( first );
 			lowcase( second );
@@ -208,7 +213,8 @@ int	extractHttpHeaders( Request& rs )
 	}
 	catch( const std::exception& e )
 	{
-		return ( -1 );
+		
+		return ( rs.stat = 400, -1 );
 	}
 	return ( 0 );
 }

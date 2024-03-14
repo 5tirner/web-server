@@ -137,10 +137,9 @@ typedef struct codeStat
 
 typedef struct clientRequest
 {
-    clientRequest() {}
-    clientRequest( int rd )
+    clientRequest()
     {
-        rc                      = rd;
+        fullRequest             = "";
         fetchHeaderDone         = false;
         processingHeaderDone    = false;
         transferEncoding        = false;
@@ -226,7 +225,7 @@ class   connection
         void    checkServer(struct pollfd &monitor, std::map<int, struct sockaddr_in>::iterator &it);
         void    closeTheExitClients(void);
         /*-------------- yachaab code start ---------------*/
-        void    fetchRequestHeader( Request&, char *  );
+        void    fetchRequestHeader( Request&, char *, int );
         int     processingHeader( Request& );
         void    processingBody( Request&, char*, int, const informations& );
         void    dropClient( int&, std::map<int, int>::iterator & );

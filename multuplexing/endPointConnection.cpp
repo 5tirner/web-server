@@ -4,10 +4,7 @@
 #include <exception>
 #include <stdexcept>
 
-connection::connection(void) {
-    Requests.clear();
-    Requests[0] = NULL;
-}
+connection::connection(void) {}
 
 connection::connection(const connection &other){*this = other;}
 
@@ -85,8 +82,8 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
 {
     if ((monitor.revents & POLLIN))
     {
-        std::cout << "Cleint-Side, An Event Happen Into " << monitor.fd << " Endpoint." << std::endl;
-        std::cout << "This Client Is Rlated With Server Endpoint " << it->second << std::endl;
+        // std::cout << "Cleint-Side, An Event Happen Into " << monitor.fd << " Endpoint." << std::endl;
+        // std::cout << "This Client Is Rlated With Server Endpoint " << it->second << std::endl;
         char buffer[2048];
         int rd = read(monitor.fd, buffer, 2047);
         if (rd == -1)
@@ -113,14 +110,15 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 }
                 catch(...)
                 {
-                    this->Requests[monitor.fd] = clientRequest( rd );
+                    this->Requests[monitor.fd] = clientRequest();
                 }
                 if ( this->Requests.at(monitor.fd).fetchHeaderDone == false )
-                    fetchRequestHeader( this->Requests[monitor.fd], buffer );
+                    fetchRequestHeader( this->Requests[monitor.fd], buffer, rd );
                 if ( this->Requests.at(monitor.fd).fetchHeaderDone == true && this->Requests[monitor.fd].processingHeaderDone == false )
                     processingHeader( this->Requests[monitor.fd] );
                 if ( this->Requests.at(monitor.fd).processingHeaderDone == true )
                     processingBody( this->Requests[monitor.fd], buffer, rd, infoMap.at( it->second ) );
+                bzero( buffer, rd );
                 
             } catch ( ... ) {
                 std::cout << "catched" << std::endl;

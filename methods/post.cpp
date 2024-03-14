@@ -45,7 +45,7 @@ int location_support_upload( Request& rs,  const informations& infoStruct )
 			{
 				if ( access( upload.c_str(), F_OK | W_OK ) != 0 )
 					return ( rs.stat = 403, -1 );
-				rs.limitClientBodySize = std::atol( infoStruct.limitClientBody.at("limit_client_body").c_str() ) * 10000000;
+				rs.limitClientBodySize = std::atol( infoStruct.limitClientBody.at("limit_client_body").c_str() ) * 100000000;
 				if ( rs.limitClientBodySize == 0 )
 					return ( rs.stat = 400, -1 );
 				return ( rs.stat = 201, 0 );
@@ -88,7 +88,6 @@ long    parseChunkHeader( Request& rs, std::string& buffer )
 		rs.stat = 400;
 		throw std::invalid_argument( "Bad request: invalid chunk size header" );
 	}
-
 	buffer = buffer.substr( chunkHead.length() + 2 );
 	return ( rs.currentChunkSize );
 }
@@ -114,28 +113,36 @@ bool    chunkedComplete( Request& rs,  std::string& buffer )
 		if ( rs.currentChunkSize > buffer.length() )
 		{
 			rs.bodyStream->write( buffer.c_str(),  buffer.length() );
-			if ( !rs.bodyStream->good() )
-			{
-				rs.stat = 400; // not 400 for sure;
-				throw std::exception();
-			}
+			// if ( !rs.bodyStream->good() )
+			// {
+			// 	rs.stat = 400; // not 400 for sure;
+			// 	throw std::exception();
+			// }
 			rs.bodyStream->flush();
 			rs.currentChunkSize -= buffer.length();
 			rs.isChunkHeader = false;
 			return ( false );
 		}
-		if ( rs.currentChunkSize <= buffer.length() ) // add equal check it again
+		else if ( rs.currentChunkSize < buffer.length() ) // add equal check it again
 		{
-			rs.bodyStream->write( buffer.c_str(),  rs.currentChunkSize );
-			if ( !rs.bodyStream->good() )
-			{
-				rs.stat = 400; // not 400 for sure;
-				throw std::exception();
-			}
+			rs.bodyStream->write( buffer.c_str(), rs.currentChunkSize );
+			// if ( !rs.bodyStream->good() )
+			// {
+			// 	rs.stat = 400; // not 400 for sure;
+			// 	throw std::exception();
+			// }
 			rs.bodyStream->flush();
 			bufflen -= rs.currentChunkSize + 2;
 			buffer = buffer.substr( rs.currentChunkSize + 2 );
 			rs.isChunkHeader = true;
+		}
+		else if ( rs.currentChunkSize == buffer.length() )
+		{
+			std::cout << "EQUAL" << std::endl;
+			rs.bodyStream->write( buffer.c_str(), rs.currentChunkSize );
+			rs.bodyStream->flush();
+			bufflen -= rs.currentChunkSize;
+			return false;
 		}
 	}
 	return false;
@@ -145,7 +152,7 @@ void    processChunkedRequestBody( Request& rs, char* buffer, int& rc, bool& sen
 {
     if ( !rs.remainingBody.empty() )
     {
-		OUT( "POSTING THE FIST BODY" );
+		// OUT( "POSTING THE FIST BODY" );
         if ( chunkedComplete( rs, rs.remainingBody ) )
         {
 			rs.stat = 201;
@@ -157,8 +164,6 @@ void    processChunkedRequestBody( Request& rs, char* buffer, int& rc, bool& sen
     else
     {
         std::string receivedData( buffer, rc );
-		OUT( "POSTING THE LAST BODY" );
-		std::cout << "rc: " << rc << std::endl;
         if ( chunkedComplete( rs, receivedData ) )
         {
 			rs.stat = 201;
