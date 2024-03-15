@@ -39,7 +39,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "add some instruction at post method of handling rare case line \n"
+	@git commit -m "add extention to the uploaded file"
 	@git push origin omega
 	@echo "Pushed to omega"
 

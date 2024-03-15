@@ -153,8 +153,7 @@ int whiteSpace( char ch )
 
 void strTrim( std::string& str )
 {
-	size_t i = 0;
-	size_t j = str.length() - 1;
+	size_t i = 0, j = str.length() - 1;
 
 	for ( ; i < str.length() && whiteSpace( str[i] ); i++ );
 	for ( ; j >= 0 && whiteSpace( str[j] ); j-- );
@@ -186,6 +185,25 @@ bool	examinHeaders( Request& rs, std::string& first, std::string& second )
 	{
 		if ( second.empty() )
 			return ( rs.stat = 400, false );
+	}
+	if ( first == "content-type" )
+	{
+		if ( second.empty() )
+			return ( rs.stat = 400, false );
+		std::string s1, s2;
+		size_t		slash( second.find( '/' ) );
+		if ( slash == std::string::npos )
+			return ( rs.stat = 400, false ); // not sure;
+		
+		s1 = second.substr( 0 , slash );
+		s2 = second.substr( slash + 1 );
+
+		if ( s1.empty() || s2.empty() )
+			return ( rs.stat = 400, false );
+		if ( s1 == "multipart" )
+			return ( rs.stat = 501, false );
+		else
+			rs.extension = "." + s2;
 	}
 	return true;
 }

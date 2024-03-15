@@ -157,6 +157,7 @@ typedef struct clientRequest
         content_length          = 0;
         chunkSizeSum            = 0;
         limitClientBodySize     = 0;
+        extension               = "";
         bodyStream              = new std::ofstream;
     }
 
@@ -165,6 +166,8 @@ typedef struct clientRequest
     std::string     fullRequest;
     std::string     remainingBody;
     std::string     filename;
+    std::string     extension;
+
     size_t          content_length;
     size_t          requestBodyLength;
     size_t          chunkSizeSum;

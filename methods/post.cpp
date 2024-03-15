@@ -8,8 +8,6 @@ void    connection::processingBody( Request& rs, char* buffer, int rc, const inf
     {
 		if ( rs.locationGotChecked == false && location_support_upload( rs, infoStruct ) == -1 )
 			throw std::exception();
-		// if ( !rs.bodyStream->is_open() )
-		// 	generateRandomFileName( rs );
 		if ( rs.transferEncoding == true )
 			processChunkedRequestBody( rs, buffer, rc, rs.readyToSendRes );
 		if ( rs.contentLength == true )
@@ -116,6 +114,7 @@ void generateRandomFileName( Request& rs, std::string& path )
 			rs.filename += "/";
 		for ( int i = 0; i < 25; i++ )
 			rs.filename.push_back( CHARACTERS[ rand() % CHARACTERS.length() ] );
+		rs.filename += rs.extension;
     	rs.bodyStream->open( rs.filename.c_str(), std::ios::binary | std::ios::trunc );
 		if ( !rs.bodyStream->is_open() )
 		{
