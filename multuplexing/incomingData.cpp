@@ -28,7 +28,7 @@ int connection::processingHeader( Request& rs )
 		throw std::exception();
 	if ( validateHeadersProcess( rs ) == -1 )
 		throw std::exception();
-    return ( 0 );
+	return ( 0 );
 }
 
 int extractMethodAndUri( Request& rs )
@@ -144,14 +144,14 @@ void lowcase( std::string& str )
 	}
 }
 
-int whiteSpace( char ch )
+static int whiteSpace( char ch )
 {
 	if ( ch == '\t' || ch == ' ' || ch == '\r' || ch == '\f' || ch == '\n' )
 		return 1;
 	return 0;
 }
 
-void strTrim( std::string& str )
+static void strTrim( std::string& str )
 {
 	size_t i = 0, j = str.length() - 1;
 
@@ -191,7 +191,7 @@ bool	examinHeaders( Request& rs, std::string& first, std::string& second )
 		if ( second.empty() )
 			return ( rs.stat = 400, false );
 		std::string s1, s2;
-		size_t		slash( second.find( '/' ) );
+		size_t		slash( second.find_first_of( '/' ) );
 		if ( slash == std::string::npos )
 			return ( rs.stat = 400, false ); // not sure;
 		
@@ -265,13 +265,7 @@ int	validateHeadersProcess( Request& rs )
 				rs.contentLength = false;
 		}
 	}
-	// if ( rs.requestBodyLength > rs.maxBodySize ) // timssah need to give the body size 
-	// {
-	// 	rs.stat = 413;
-	// 	return ( -1 );
-	// }
 	return 0;
-
 }
 
 /*-------------- yachaab code end ---------------*/

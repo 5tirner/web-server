@@ -177,18 +177,17 @@ typedef struct clientRequest
     int             chunkHeaderStart;
     int             rc;
 
-    bool    fetchHeaderDone;
-    bool    processingHeaderDone;
-    bool    isChunkHeader;
-    bool    transferEncoding;
-    bool    contentLength;
-
-    bool    processingRequestDone;
-    bool    storeHeader;
-    bool    readyToSendRes;
-    bool    locationGotChecked;
-    bool    iscr;
-    bool    islf;
+    bool            fetchHeaderDone;
+    bool            processingHeaderDone;
+    bool            isChunkHeader;
+    bool            transferEncoding;
+    bool            contentLength;
+    bool            processingRequestDone;
+    bool            storeHeader;
+    bool            readyToSendRes;
+    bool            locationGotChecked;
+    bool            iscr;
+    bool            islf;
 } Request;
 
 typedef struct clientResponse

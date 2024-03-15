@@ -86,10 +86,9 @@ int location_support_upload( Request& rs, const informations& infoStruct )
 						Logger::log() << "[ Error ] : Client body size limit is 0" << std::endl;
 						return ( rs.stat = 400, -1 );
 					}
-					rs.locationGotChecked = true;
-
 					if ( !rs.bodyStream->is_open() )
 						generateRandomFileName( rs, upload );
+					rs.locationGotChecked = true;
 					return ( rs.stat = 201, 0 );
 				}
 			}
