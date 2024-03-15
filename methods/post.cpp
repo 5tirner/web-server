@@ -128,12 +128,30 @@ void generateRandomFileName( Request& rs, std::string& path )
 	}
 }
 
-long    parseChunkHeader( Request& rs, std::string& buffer )
+size_t    parseChunkHeader( Request& rs, std::string& buffer )
 {
 	std::string	chunkHead;
 	long		size;
+	size_t 		crlfPos = 0;
 
-	chunkHead = buffer.substr( 0, buffer.find( "\r\n" ) );
+	if ( rs.iscr == true )
+	{
+		std::cout << "YES WE ENTER HERE" << std::endl;
+		buffer = buffer.substr( 2 );
+		rs.iscr = false;
+	}
+	else if ( rs.islf == true )
+	{
+		std::cout << "YES WE ENTER HERE 1" << std::endl;
+		buffer = buffer.substr( 1 );
+		rs.islf = false;
+	}
+
+	crlfPos = buffer.find( "\r\n" );
+	
+	if ( crlfPos == std::string::npos )
+		return std::string::npos;
+	chunkHead = buffer.substr( 0, crlfPos );
 	if ( !chunkHead.empty() )
 		size = std::strtol( chunkHead.c_str(), NULL, 16 );
 	else
@@ -162,6 +180,8 @@ bool    chunkedComplete( Request& rs,  std::string& buffer )
 		if ( rs.isChunkHeader == true )
 		{
 			rs.currentChunkSize = parseChunkHeader( rs, buffer );
+			if ( rs.currentChunkSize == std::string::npos )
+				return false;
 			rs.chunkSizeSum += rs.currentChunkSize;
 			if ( rs.chunkSizeSum > rs.limitClientBodySize )
 			{
@@ -187,7 +207,7 @@ bool    chunkedComplete( Request& rs,  std::string& buffer )
 			rs.isChunkHeader = false;
 			return ( false );
 		}
-		else if ( rs.currentChunkSize < buffer.length() ) // add equal check it again
+		else if ( rs.currentChunkSize < buffer.length() )
 		{
 			rs.bodyStream->write( buffer.c_str(), rs.currentChunkSize );
 			if ( !rs.bodyStream->good() )
@@ -197,16 +217,27 @@ bool    chunkedComplete( Request& rs,  std::string& buffer )
 				throw std::exception();
 			}
 			rs.bodyStream->flush();
-			bufflen -= rs.currentChunkSize + 2;
-			buffer = buffer.substr( rs.currentChunkSize + 2 );
+			bufflen -= rs.currentChunkSize;
+			if ( bufflen > 1 )
+			{
+				buffer = buffer.substr( rs.currentChunkSize + 2 );
+				bufflen -= 2;
+			}
+			else
+			{
+				buffer = buffer.substr( rs.currentChunkSize + 1 );
+				rs.islf = true;
+				bufflen -= 1;
+			}
 			rs.isChunkHeader = true;
 		}
 		else if ( rs.currentChunkSize == buffer.length() )
 		{
-			std::cout << "EQUAL" << std::endl;
 			rs.bodyStream->write( buffer.c_str(), rs.currentChunkSize );
 			rs.bodyStream->flush();
 			bufflen -= rs.currentChunkSize;
+			rs.iscr = true;
+			rs.isChunkHeader = true;
 			return false;
 		}
 	}

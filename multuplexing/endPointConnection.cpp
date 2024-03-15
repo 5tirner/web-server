@@ -109,7 +109,6 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                     processingHeader( this->Requests[monitor.fd] );
                 if ( this->Requests.at(monitor.fd).processingHeaderDone == true )
                     processingBody( this->Requests.at(monitor.fd), buffer, rd, infoMap.at( it->second ) );
-                bzero( buffer, rd );
                 
             } catch ( ... ) {
                 std::cerr << codeMsg.statMsg[this->Requests[monitor.fd].stat] << std::endl;

@@ -150,8 +150,10 @@ typedef struct clientRequest
         processingRequestDone   = false;
         storeHeader             = false;
         locationGotChecked      = false;
-        isChunkHeader           = true;
         readyToSendRes          = false;
+        iscr                    = false;
+        islf                    = false;
+        isChunkHeader           = true;
         content_length          = 0;
         chunkSizeSum            = 0;
         limitClientBodySize     = 0;
@@ -182,6 +184,8 @@ typedef struct clientRequest
     bool    storeHeader;
     bool    readyToSendRes;
     bool    locationGotChecked;
+    bool    iscr;
+    bool    islf;
 } Request;
 
 typedef struct clientResponse
@@ -278,7 +282,7 @@ bool	    examinHeaders( Request&, std::string&, std::string& );
 void        lowcase( std::string& );
 int	        validateHeadersProcess( Request& );
 void        generateRandomFileName( Request&, std::string& );
-long        parseChunkHeader( Request&, std::string& );
+size_t      parseChunkHeader( Request&, std::string& );
 bool        chunkedComplete( Request&, std::string& );
 void        processChunkedRequestBody( Request&, char*, int&, bool& );
 void        processRegularRequestBody( Request&, char*, int&, bool& );
