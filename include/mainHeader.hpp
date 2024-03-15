@@ -25,12 +25,15 @@
 #include <sys/stat.h>
 #include <algorithm>
 #include <dirent.h>
-#include<csignal>
+#include <csignal>
 #include <fcntl.h>
+// #include <iomanip>
 
 #define RES_HEADER	"HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\nConnection: close\r\n\r\n" // added by yachaab
 #define OUT( val ) std::cout << val << std::endl;
+// #define ERROR(val) Logger::log() << std::put_time(std::localtime(&time_now), "%y-%m-%d %OH:%OM:%OS") << " [ERROR] " << val << std::endl
 
+// static std::time_t time_now = std::time( NULL );
 
 class   configFile
 {
@@ -201,6 +204,17 @@ typedef struct clientResponse
     void setResponseHeader(const std::string& header);
 } response;
 
+class Logger
+{
+public:
+  static std::ofstream& log()
+  {
+    static std::ofstream myfile_logs;
+    if ( !myfile_logs.is_open() )
+        myfile_logs.open( "./logs", std::ios::out | std::ios::trunc );
+    return myfile_logs;
+  }
+};
 
 class   connection
 {

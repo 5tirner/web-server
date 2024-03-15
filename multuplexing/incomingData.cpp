@@ -210,12 +210,11 @@ int	extractHttpHeaders( Request& rs )
 		for ( it = header_lines.begin(); it != header_lines.end(); ++it )
 		{
 			first	=	it->substr( 0, it->find_first_of( ':' ) );
-			second	=	it->substr( it->find_first_of( ':' ) + 1 ); // ! need adding space and tab handler
+			second	=	it->substr( it->find_first_of( ':' ) + 1 );
 			
 			lowcase( first );
 			lowcase( second );
 			strTrim( second );
-			std::cerr << "second: " << second << std::endl;
 
 			if ( !examinHeaders( rs, first, second ) )
 				throw std::invalid_argument( "bad request: Invalid header" );
@@ -226,7 +225,6 @@ int	extractHttpHeaders( Request& rs )
 	}
 	catch( const std::exception& e )
 	{
-		
 		return ( rs.stat = 400, -1 );
 	}
 	return ( 0 );

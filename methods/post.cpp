@@ -1,18 +1,13 @@
 #include "../include/mainHeader.hpp"
-#include <exception>
-#include <stdexcept>
 
 void    connection::processingBody( Request& rs, char* buffer, int rc, const informations& infoStruct )
 {
 	if ( rs.headers.at( "method" ) == "get" || rs.headers.at( "method" ) == "delete" )
-	{
 		rs.readyToSendRes = true;
-		// startClient = true;
-	}
 	else if ( rs.headers["method"] == "post" )
     {
 		if ( location_support_upload( rs, infoStruct ) == -1 )
-			throw std::invalid_argument("location_not_support_upload");
+			throw std::exception();
 		if ( !rs.bodyStream->is_open() )
 			generateRandomFileName( rs );
 		if ( rs.transferEncoding == true )
@@ -24,50 +19,100 @@ void    connection::processingBody( Request& rs, char* buffer, int rc, const inf
 			else
 			{
 				rs.stat = 413;
+				Logger::log() << "[ Error ] Request Entity Too Large" << std::endl;
 				throw std::exception();
 			}
 		}
     }
 }
 
+static std::string& getUrl( std::string& uri )
+{
+	size_t slash = 0;
+
+	for ( size_t i =  1; i < uri.length(); i++ )
+	{
+		if ( uri.at( i ) == '/' )
+			slash = i;
+	}
+	if ( slash > 0 )
+		uri.resize( slash );
+	return uri;
+}
+
 int location_support_upload( Request& rs,  const informations& infoStruct )
 {	
 	std::string upload;
 	std::string method;
+	std::string	location;
+	std::string newUri;
 
-	for ( size_t i = 0; i < infoStruct.locationsInfo.size(); i++ )
+	try
 	{
-		upload   = infoStruct.locationsInfo.at( i ).upload.at( "upload" );
-		method	 = infoStruct.locationsInfo.at( i ).allowed_methodes.at( "allowed_methodes" );
-		if ( upload[0] )
+		newUri = getUrl( rs.headers.at("uri") );
+		for ( size_t i = 0; infoStruct.locationsInfo.size(); i++ )
 		{
-			if ( method.find( "POST" ) != std::string::npos )
-			{
-				if ( access( upload.c_str(), F_OK | W_OK ) != 0 )
-					return ( rs.stat = 403, -1 );
-				rs.limitClientBodySize = std::atol( infoStruct.limitClientBody.at("limit_client_body").c_str() ) * 100000000;
-				if ( rs.limitClientBodySize == 0 )
-					return ( rs.stat = 400, -1 );
-				return ( rs.stat = 201, 0 );
-			}
+			location = infoStruct.locationsInfo.at(i).directory.at( "location" );
+			if ( location.length() > 1 && location.at( location.length() - 1 ) == '/' )
+				location.resize( location.length() - 1 );
+			if ( newUri == location )
+				break ;
 		}
+		std::cout << "new uri: " << newUri << std::endl;
+		std::cout << "location: " << location << std::endl;
 	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << "FUKC" << '\n';
+	}
+	
+	// for ( size_t i = 0; i < infoStruct.locationsInfo.size(); i++ )
+	// {
+	// 	location = infoStruct.locationsInfo.at(i).directory.at( rs.headers.at("uri") );
+	// 	upload   = infoStruct.locationsInfo.at( i ).upload.at( "upload" );
+	// 	method	 = infoStruct.locationsInfo.at( i ).allowed_methodes.at( "allowed_methodes" );
+	// 	if ( upload[0] )
+	// 	{
+	// 		if ( method.find( "POST" ) != std::string::npos )
+	// 		{
+	// 			if ( access( upload.c_str(), F_OK | W_OK ) != 0 )
+	// 			{
+	// 				Logger::log() << "[ Error ] : Client can't upload in this location " << "\'" << upload << "\'" << std::endl;
+	// 				return ( rs.stat = 403, -1 );
+	// 			}
+	// 			rs.limitClientBodySize = std::atol( infoStruct.limitClientBody.at("limit_client_body").c_str() ) * 100000000;
+	// 			if ( rs.limitClientBodySize == 0 )
+	// 			{
+	// 				Logger::log() << "[ Error ] : Client body size limit is 0" << std::endl;
+	// 				return ( rs.stat = 400, -1 );
+	// 			}
+	// 			return ( rs.stat = 201, 0 );
+	// 		}
+	// 	}
+	// }
+	Logger::log() << "[ Error ] : Client can't upload in this location " << "\'" << upload << "\'" << std::endl;
 	return ( rs.stat = 403, -1 );
 }
 
-void generateRandomFileName( Request& rs )
+void generateRandomFileName( Request& rs)
 {
 	const std::string CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 	std::srand( std::time( NULL ) );
-	std::string	filename( "./upload/" );
 
 	try {
+		std::string	filename( "./upload" );
+
 		for ( int i = 0; i < 25; i++ )
 		filename.push_back( CHARACTERS[ rand() % CHARACTERS.length() ] );
-    	rs.bodyStream->open( filename.c_str(), std::ios::out | std::ios::trunc );
+    	rs.bodyStream->open( filename.c_str(), std::ios::binary | std::ios::trunc );
+		if ( !rs.bodyStream->is_open() )
+		{
+			Logger::log() << "[ Error ] : couldn't open file to store request body" << std::endl;
+			throw std::exception();
+		}
 	} catch (...) {
 		rs.stat = 500;
-		throw std::invalid_argument("generateRandomFileName fail");
+		throw std::exception();
 	}
 }
 
@@ -81,12 +126,14 @@ long    parseChunkHeader( Request& rs, std::string& buffer )
 	else
 	{
 		rs.stat = 400;
-		throw std::invalid_argument( "Bad request: invalid chunk size header" );
+		Logger::log() << "[ Error ] Invalid chunk size header" << std::endl;
+		throw std::exception();
 	}
 	if ( rs.currentChunkSize == 9223372036854775807 )
 	{
 		rs.stat = 400;
-		throw std::invalid_argument( "Bad request: invalid chunk size header" );
+		Logger::log() << "[ Error ] Invalid chunk size header" << std::endl;
+		throw std::exception();
 	}
 	buffer = buffer.substr( chunkHead.length() + 2 );
 	return ( rs.currentChunkSize );
@@ -104,7 +151,8 @@ bool    chunkedComplete( Request& rs,  std::string& buffer )
 			if ( rs.chunkSizeSum > rs.limitClientBodySize )
 			{
 				rs.stat = 413;
-				throw std::invalid_argument( "client body size > allowed body size" );
+				Logger::log() << "[ Error ] Client bosy size greater than body size limit" << std::endl;
+				throw std::exception();
 			}
 			if ( rs.currentChunkSize == 0 )
 				return true;
@@ -113,11 +161,12 @@ bool    chunkedComplete( Request& rs,  std::string& buffer )
 		if ( rs.currentChunkSize > buffer.length() )
 		{
 			rs.bodyStream->write( buffer.c_str(),  buffer.length() );
-			// if ( !rs.bodyStream->good() )
-			// {
-			// 	rs.stat = 400; // not 400 for sure;
-			// 	throw std::exception();
-			// }
+			if ( !rs.bodyStream->good() )
+			{
+				rs.stat = 500;
+				Logger::log() << "[ Error ] write body stream failed" << std::endl;
+				throw std::exception();
+			}
 			rs.bodyStream->flush();
 			rs.currentChunkSize -= buffer.length();
 			rs.isChunkHeader = false;
@@ -126,11 +175,12 @@ bool    chunkedComplete( Request& rs,  std::string& buffer )
 		else if ( rs.currentChunkSize < buffer.length() ) // add equal check it again
 		{
 			rs.bodyStream->write( buffer.c_str(), rs.currentChunkSize );
-			// if ( !rs.bodyStream->good() )
-			// {
-			// 	rs.stat = 400; // not 400 for sure;
-			// 	throw std::exception();
-			// }
+			if ( !rs.bodyStream->good() )
+			{
+				rs.stat = 500;
+				Logger::log() << "[ Error ] write body stream failed" << std::endl;
+				throw std::exception();
+			}
 			rs.bodyStream->flush();
 			bufflen -= rs.currentChunkSize + 2;
 			buffer = buffer.substr( rs.currentChunkSize + 2 );
@@ -152,11 +202,11 @@ void    processChunkedRequestBody( Request& rs, char* buffer, int& rc, bool& sen
 {
     if ( !rs.remainingBody.empty() )
     {
-		// OUT( "POSTING THE FIST BODY" );
         if ( chunkedComplete( rs, rs.remainingBody ) )
         {
 			rs.stat = 201;
 			sendRes = true;
+			Logger::log() << "[ sucess ] body file created" << std::endl;
 			throw std::exception();
 		}
         rs.remainingBody.clear();
@@ -168,6 +218,7 @@ void    processChunkedRequestBody( Request& rs, char* buffer, int& rc, bool& sen
         {
 			rs.stat = 201;
 			sendRes = true;
+			Logger::log() << "[ sucess ] body file created" << std::endl;
 			throw std::exception();
 		}
     }
@@ -189,18 +240,21 @@ void	processRegularRequestBody( Request& rs, char* buffer, int& rc, bool& sendRe
 	}
 	if ( !rs.bodyStream->good() )
 	{
-		rs.stat = 400; // not 400 for sure;
+		rs.stat = 500;
+		Logger::log() << "[ Error ] write body stream failed" << std::endl;
 		throw std::exception();
 	}
 	if ( rs.content_length == rs.requestBodyLength )
 	{
 		rs.stat = 201;
 		sendRes = true;
+		Logger::log() << "[ sucess ] body file created" << std::endl;
 		return;
 	}
 	else if ( rs.content_length > rs.requestBodyLength )
 	{
 		rs.stat = 413;
+		Logger::log() << "[ Error ] Request Entity Too Large" << std::endl;
 		throw std::exception();
 	}
 }
