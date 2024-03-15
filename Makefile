@@ -39,7 +39,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "git ignore problem"
+	@git commit -m "git ignore problem solved"
 	@git push origin omega
 	@echo "Pushed to omega"
 
