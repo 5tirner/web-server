@@ -17,7 +17,7 @@ void    showInfo2(informations &tmp)
         it = tmp.locationsInfo[i].autoindex.begin();
         std::cout << "AutoIndex " << it->first + " - |" + it->second+"|" << std::endl;
         it = tmp.locationsInfo[i].Return.begin();
-        std::cout << "Return "<< it->first + " - |" + it->second+"|" << std::endl;
+        std::cout << "Return "<< it->first + " - |" + it->second+"| Redirect It With Status="<<tmp.locationsInfo[i].returnValue << std::endl;
         it = tmp.locationsInfo[i].upload.begin();
         std::cout << "Upload "<< it->first + " - |" + it->second+"|" << std::endl;
         it = tmp.locationsInfo[i].cgi.begin();
@@ -46,6 +46,7 @@ void    initialLocation(location &save)
     save.Return["return"] = "";
     save.upload["upload"] = "";
     save.cgi["cgi"] = "";
+    save.returnValue = -1;
 }
 
 void    etatInitial(informations &tmp)
@@ -126,8 +127,9 @@ int checkLocations(informations &tmp)
             else if (key == "return")
             {
                 save.Return[key] = &buffer[j];
-                // if (redirection(save.returnValue, &buffer[j]))
-                //     return (1);
+                std::map<std::string, std::string>::iterator it = save.Return.begin();
+                if (redirection(&save.returnValue, it->second))
+                { std::cerr << "Invalid `Return` Syntax: " << &buffer[j] << std::endl; return (1);}
             }
             else if (key == "upload")
             {
@@ -174,40 +176,40 @@ int checkInformations(informations &tmp)
             key.push_back(tmp.others[i][j]);
         }
         if (!strchr(&tmp.others[i][j], ';'))
-        { std::cout << "Can't Find `;` Here " + tmp.others[i] << std::endl;  return (1); }
+        { std::cerr << "Can't Find `;` Here " + tmp.others[i] << std::endl;  return (1); }
         if (key == "listen")
         {
             tmp.port[key] = &tmp.others[i][j];
             std::map<std::string, std::string>::iterator it = tmp.port.begin(); 
             if (normalCheck(it->second) || isInteger(it->second, 'P'))
-            { std::cout << "Invalid `Port` Syntax: " + it->second << std::endl; return (1); }
+            { std::cerr << "Invalid `Port` Syntax: " + it->second << std::endl; return (1); }
         }
         else if (key == "host")
         {
             tmp.host[key] = &tmp.others[i][j];
             std::map<std::string, std::string>::iterator it = tmp.host.begin(); 
             if (normalCheck(it->second) || isValidIp4(it->second))
-            { std::cout << "Invalid `Host` Syntax: " + it->second << std::endl; return (1); }
+            { std::cerr << "Invalid `Host` Syntax: " + it->second << std::endl; return (1); }
         }
         else if (key == "server_name")
         {
             tmp.serverName[key] = &tmp.others[i][j];
             std::map<std::string, std::string>::iterator it = tmp.serverName.begin(); 
             if (multiValues(key, it->second))
-            { std::cout << "Invalid `ServerName` Syntax: " + it->second << std::endl; return (1); }
+            { std::cerr << "Invalid `ServerName` Syntax: " + it->second << std::endl; return (1); }
         }
         else if (key == "limit_client_body")
         {
             tmp.limitClientBody[key] = &tmp.others[i][j];
             std::map<std::string, std::string>::iterator it = tmp.limitClientBody.begin(); 
             if (normalCheck(it->second) || isInteger(it->second, 'N'))
-            { std::cout << "Invalid `ClienBody` Syntax: " + it->second << std::endl; return (1); }
+            { std::cerr << "Invalid `ClienBody` Syntax: " + it->second << std::endl; return (1); }
         }
         else if (key == "error_page")
         {
         }
         else
-        { std::cout << "Weird KeyWord " + key << std::endl; return (1); }
+        { std::cerr << "Weird KeyWord " + key << std::endl; return (1); }
     }
     return (0);
 }

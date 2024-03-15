@@ -146,6 +146,7 @@ int         normalCheck(std::string &value);
 int         multiValues(std::string &key, std::string &values);
 int         isInteger(std::string &value, char c);
 int         isValidIp4(std::string &value);
+int         redirection(int *status, std::string &val);
 
 //multuplexing functions
 

@@ -10,18 +10,29 @@ server     #hello
 	limit_client_body         1;;;;;;;;
 	error_page    301  /home/zasabri/Desktop/errors;
 	      error_page      304  /home/zasabri/Desktop/errorsat;
-location   frfr {
+location   jghrtjhgkrdgbkljdflkgjejhg {
 	  #hi 
 	  root /;
 		index	index.html index.php index.py; 
-			allowed_methodes GET;
+			allowed_methodes GET    ;
 		autoindex       on  	    ;  
-return 301 	www.zasabri.ma;
+return 301	www.zasabri.ma     ;
 					upload	on /etc;
 			cgi                  off;  
 	}
-	location / {
-		root /var/www/;
+	location /SHORTBOY=SHORTLOCATION {
+		root /var/;
+		return 302 www.ysabr.com;
+	}
+	location   /AKAZA {
+	  #hi 
+	  root /root;
+		index	index.py; 
+			allowed_methodes GET    POST   ;
+		autoindex       off  	    ;  
+return 303	www.yachaab.ma     ;
+					upload	on /nfs/homes/zasabri/Desktop/;
+			cgi                  on 9000:8000;  
 	}
 }       
 #hiksa
