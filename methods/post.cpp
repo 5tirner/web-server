@@ -8,8 +8,8 @@ void    connection::processingBody( Request& rs, char* buffer, int rc, const inf
     {
 		if ( rs.locationGotChecked == false && location_support_upload( rs, infoStruct ) == -1 )
 			throw std::exception();
-		if ( !rs.bodyStream->is_open() )
-			generateRandomFileName( rs );
+		// if ( !rs.bodyStream->is_open() )
+		// 	generateRandomFileName( rs );
 		if ( rs.transferEncoding == true )
 			processChunkedRequestBody( rs, buffer, rc, rs.readyToSendRes );
 		if ( rs.contentLength == true )
@@ -40,7 +40,7 @@ static std::string& getUrl( std::string& uri )
 	return uri;
 }
 
-int location_support_upload( Request& rs,  const informations& infoStruct )
+int location_support_upload( Request& rs, const informations& infoStruct )
 {	
 	std::string upload;
 	std::string method;
@@ -58,8 +58,6 @@ int location_support_upload( Request& rs,  const informations& infoStruct )
 			if ( newUri == location )
 				break ;
 		}
-		std::cout << "new uri: " << newUri << std::endl;
-		std::cout << "location: " << location << std::endl;
 		if ( newUri == location )
 		{
 			upload   = infoStruct.locationsInfo.at( i ).upload.at( "upload" );
@@ -68,7 +66,18 @@ int location_support_upload( Request& rs,  const informations& infoStruct )
 			{
 				if ( method.find( "POST" ) != std::string::npos )
 				{
-					if ( access( upload.c_str(), F_OK | W_OK ) != 0 )
+					if ( access( upload.c_str(), F_OK | W_OK | X_OK ) == 0 )
+					{
+						DIR* directory = opendir( upload.c_str() );
+						if ( directory != NULL )
+							closedir( directory );
+						else
+						{
+							Logger::log() << "[ Error ] : Client can't upload in this location directory not found" << "\'" << upload << "\'" << std::endl;
+							return ( rs.stat = 403, -1 );
+						}
+					}
+					else
 					{
 						Logger::log() << "[ Error ] : Client can't upload in this location " << "\'" << upload << "\'" << std::endl;
 						return ( rs.stat = 403, -1 );
@@ -80,6 +89,9 @@ int location_support_upload( Request& rs,  const informations& infoStruct )
 						return ( rs.stat = 400, -1 );
 					}
 					rs.locationGotChecked = true;
+
+					if ( !rs.bodyStream->is_open() )
+						generateRandomFileName( rs, upload );
 					return ( rs.stat = 201, 0 );
 				}
 			}
@@ -93,14 +105,15 @@ int location_support_upload( Request& rs,  const informations& infoStruct )
 	return ( rs.stat = 403, -1 );
 }
 
-void generateRandomFileName( Request& rs)
+void generateRandomFileName( Request& rs, std::string& path )
 {
+	std::string filename(path);
 	const std::string CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 	std::srand( std::time( NULL ) );
 
 	try {
-		std::string	filename( "./upload/" );
-
+		if ( filename.length() > 1 && filename.at( filename.length() - 1 ) != '/' )
+			filename += "/";
 		for ( int i = 0; i < 25; i++ )
 			filename.push_back( CHARACTERS[ rand() % CHARACTERS.length() ] );
     	rs.bodyStream->open( filename.c_str(), std::ios::binary | std::ios::trunc );
@@ -118,22 +131,25 @@ void generateRandomFileName( Request& rs)
 long    parseChunkHeader( Request& rs, std::string& buffer )
 {
 	std::string	chunkHead;
+	long		size;
 
 	chunkHead = buffer.substr( 0, buffer.find( "\r\n" ) );
 	if ( !chunkHead.empty() )
-		rs.currentChunkSize = std::strtol( chunkHead.c_str(), NULL, 16 );
+		size = std::strtol( chunkHead.c_str(), NULL, 16 );
 	else
 	{
 		rs.stat = 400;
 		Logger::log() << "[ Error ] Invalid chunk size header" << std::endl;
 		throw std::exception();
 	}
-	if ( rs.currentChunkSize == 9223372036854775807 )
+	if ( size == LONG_MAX || size == LONG_MIN )
 	{
 		rs.stat = 400;
 		Logger::log() << "[ Error ] Invalid chunk size header" << std::endl;
 		throw std::exception();
 	}
+	else
+		rs.currentChunkSize = size;
 	buffer = buffer.substr( chunkHead.length() + 2 );
 	return ( rs.currentChunkSize );
 }

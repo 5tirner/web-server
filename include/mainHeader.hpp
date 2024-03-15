@@ -27,7 +27,8 @@
 #include <dirent.h>
 #include <csignal>
 #include <fcntl.h>
-// #include <iomanip>
+#include <sys/types.h>
+#include <climits>
 
 #define RES_HEADER	"HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\nConnection: close\r\n\r\n" // added by yachaab
 #define OUT( val ) std::cout << val << std::endl;
@@ -280,7 +281,7 @@ int         extractHttpHeaders( Request& );
 bool	    examinHeaders( Request&, std::string&, std::string& );
 void        lowcase( std::string& );
 int	        validateHeadersProcess( Request& );
-void        generateRandomFileName( Request& );
+void        generateRandomFileName( Request&, std::string& );
 long        parseChunkHeader( Request&, std::string& );
 bool        chunkedComplete( Request&, std::string& );
 void        processChunkedRequestBody( Request&, char*, int&, bool& );
