@@ -107,16 +107,16 @@ int location_support_upload( Request& rs, const informations& infoStruct )
 
 void generateRandomFileName( Request& rs, std::string& path )
 {
-	std::string filename(path);
+	rs.filename = path;
 	const std::string CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 	std::srand( std::time( NULL ) );
 
 	try {
-		if ( filename.length() > 1 && filename.at( filename.length() - 1 ) != '/' )
-			filename += "/";
+		if ( rs.filename.length() > 1 && rs.filename.at( rs.filename.length() - 1 ) != '/' )
+			rs.filename += "/";
 		for ( int i = 0; i < 25; i++ )
-			filename.push_back( CHARACTERS[ rand() % CHARACTERS.length() ] );
-    	rs.bodyStream->open( filename.c_str(), std::ios::binary | std::ios::trunc );
+			rs.filename.push_back( CHARACTERS[ rand() % CHARACTERS.length() ] );
+    	rs.bodyStream->open( rs.filename.c_str(), std::ios::binary | std::ios::trunc );
 		if ( !rs.bodyStream->is_open() )
 		{
 			Logger::log() << "[ Error ] : couldn't open file to store request body" << std::endl;

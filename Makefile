@@ -39,7 +39,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "git ignore problem solved 2"
+	@git commit -m "add body filename to client struct"
 	@git push origin omega
 	@echo "Pushed to omega"
 

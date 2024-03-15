@@ -71,13 +71,6 @@ void    initializeMonitor(struct pollfd &monitor, int fd)
     monitor.events = POLLIN | POLLOUT;
 }
 
-// void connection::handler(int sig)
-// {
-//     if (sig == SIGINT)
-//     {
-        
-//     }
-// }
 void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it, const std::map<int, informations>& infoMap) //!yachaab edit here: add localisation vector
 {
     if ((monitor.revents & POLLIN))
@@ -108,7 +101,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 }
                 catch(...)
                 {
-                    this->Requests[monitor.fd] = clientRequest();
+                    this->Requests[monitor.fd] = Request();
                 }
                 if ( this->Requests.at(monitor.fd).fetchHeaderDone == false )
                     fetchRequestHeader( this->Requests.at(monitor.fd), buffer, rd );
@@ -157,10 +150,6 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                     throw std::exception();
             } 
             catch (...) {
-                // std::cout << "Maybe hna" << std::endl;
-                // this->Requests[monitor.fd].readyToSendRes = false;
-                // this->Requests[monitor.fd].storeHeader = false;
-                // Response[monitor.fd].status = response::Pending;
                 dropClient(monitor.fd, it);
             }
         }

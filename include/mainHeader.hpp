@@ -143,31 +143,27 @@ typedef struct clientRequest
 {
     clientRequest()
     {
-        fullRequest             = "";
         fetchHeaderDone         = false;
         processingHeaderDone    = false;
         transferEncoding        = false;
         contentLength           = false;
         processingRequestDone   = false;
         storeHeader             = false;
+        locationGotChecked      = false;
         isChunkHeader           = true;
+        readyToSendRes          = false;
         content_length          = 0;
-        bodyStream              = new std::ofstream;
-        fileName                = "./upload/";
         chunkSizeSum            = 0;
         limitClientBodySize     = 0;
-        readyToSendRes          = false;
-        locationGotChecked      = false;
+        bodyStream              = new std::ofstream;
     }
-    // ~clientRequest() { if ( bodyStream ) delete  bodyStream; }
 
     std::map<std::string, std::string> headers, queries;
     std::ofstream*  bodyStream;
     std::string     fullRequest;
     std::string     remainingBody;
-    std::string     fileName;
+    std::string     filename;
     size_t          content_length;
-    int      times;
     size_t          requestBodyLength;
     size_t          chunkSizeSum;
     size_t          currentChunkSize;
