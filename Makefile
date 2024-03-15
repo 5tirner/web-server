@@ -39,7 +39,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "change the branche name to omega"
+	@git commit -m "git ignore problem"
 	@git push origin omega
 	@echo "Pushed to omega"
 
