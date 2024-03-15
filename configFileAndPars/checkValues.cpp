@@ -187,11 +187,6 @@ int multiValues(std::string &key, std::string &values)
         if (justMakeItRight(values) || cgiAndUploadSyntax(values))
             return (1);
     }
-    else if (key == "return")
-    {
-        if (justMakeItRight(values))
-            return (1);
-    }
     return (0);
 }
 
