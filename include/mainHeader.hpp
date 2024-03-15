@@ -156,6 +156,7 @@ typedef struct clientRequest
         chunkSizeSum            = 0;
         limitClientBodySize     = 0;
         readyToSendRes          = false;
+        locationGotChecked      = false;
     }
     // ~clientRequest() { if ( bodyStream ) delete  bodyStream; }
 
@@ -183,6 +184,7 @@ typedef struct clientRequest
     bool    processingRequestDone;
     bool    storeHeader;
     bool    readyToSendRes;
+    bool    locationGotChecked;
 } Request;
 
 typedef struct clientResponse

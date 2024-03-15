@@ -39,7 +39,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "Multiclient video load OK -> triming headers"
+	@git commit -m "Matching upload location with uri -> OK"
 	@git push origin yachaab+leader
 	@echo "Pushed to yachaab+leader"
 

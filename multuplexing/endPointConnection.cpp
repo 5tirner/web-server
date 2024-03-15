@@ -99,9 +99,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         }
         else if (rd)
         {
-            
             buffer[rd] = '\0';
-
             /*-------------- yachaab code start ---------------*/
             try {
                 try
@@ -113,15 +111,14 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                     this->Requests[monitor.fd] = clientRequest();
                 }
                 if ( this->Requests.at(monitor.fd).fetchHeaderDone == false )
-                    fetchRequestHeader( this->Requests[monitor.fd], buffer, rd );
-                if ( this->Requests.at(monitor.fd).fetchHeaderDone == true && this->Requests[monitor.fd].processingHeaderDone == false )
+                    fetchRequestHeader( this->Requests.at(monitor.fd), buffer, rd );
+                if ( this->Requests.at(monitor.fd).fetchHeaderDone == true && this->Requests.at(monitor.fd).processingHeaderDone == false )
                     processingHeader( this->Requests[monitor.fd] );
                 if ( this->Requests.at(monitor.fd).processingHeaderDone == true )
-                    processingBody( this->Requests[monitor.fd], buffer, rd, infoMap.at( it->second ) );
+                    processingBody( this->Requests.at(monitor.fd), buffer, rd, infoMap.at( it->second ) );
                 bzero( buffer, rd );
                 
             } catch ( ... ) {
-                std::cout << "catched" << std::endl;
                 std::cerr << codeMsg.statMsg[this->Requests[monitor.fd].stat] << std::endl;
                 this->Requests[monitor.fd].readyToSendRes = true;
             }

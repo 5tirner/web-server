@@ -6,7 +6,7 @@ void    connection::processingBody( Request& rs, char* buffer, int rc, const inf
 		rs.readyToSendRes = true;
 	else if ( rs.headers["method"] == "post" )
     {
-		if ( location_support_upload( rs, infoStruct ) == -1 )
+		if ( rs.locationGotChecked == false && location_support_upload( rs, infoStruct ) == -1 )
 			throw std::exception();
 		if ( !rs.bodyStream->is_open() )
 			generateRandomFileName( rs );
@@ -46,11 +46,11 @@ int location_support_upload( Request& rs,  const informations& infoStruct )
 	std::string method;
 	std::string	location;
 	std::string newUri;
-
+	size_t i = 0;
 	try
 	{
 		newUri = getUrl( rs.headers.at("uri") );
-		for ( size_t i = 0; infoStruct.locationsInfo.size(); i++ )
+		for (; i < infoStruct.locationsInfo.size(); i++ )
 		{
 			location = infoStruct.locationsInfo.at(i).directory.at( "location" );
 			if ( location.length() > 1 && location.at( location.length() - 1 ) == '/' )
@@ -60,37 +60,36 @@ int location_support_upload( Request& rs,  const informations& infoStruct )
 		}
 		std::cout << "new uri: " << newUri << std::endl;
 		std::cout << "location: " << location << std::endl;
+		if ( newUri == location )
+		{
+			upload   = infoStruct.locationsInfo.at( i ).upload.at( "upload" );
+			method	 = infoStruct.locationsInfo.at( i ).allowed_methodes.at( "allowed_methodes" );
+			if ( upload[0] )
+			{
+				if ( method.find( "POST" ) != std::string::npos )
+				{
+					if ( access( upload.c_str(), F_OK | W_OK ) != 0 )
+					{
+						Logger::log() << "[ Error ] : Client can't upload in this location " << "\'" << upload << "\'" << std::endl;
+						return ( rs.stat = 403, -1 );
+					}
+					rs.limitClientBodySize = std::atol( infoStruct.limitClientBody.at("limit_client_body").c_str() ) * 100000000; //! need the exact amount
+					if ( rs.limitClientBodySize == 0 )
+					{
+						Logger::log() << "[ Error ] : Client body size limit is 0" << std::endl;
+						return ( rs.stat = 400, -1 );
+					}
+					rs.locationGotChecked = true;
+					return ( rs.stat = 201, 0 );
+				}
+			}
+		}	
 	}
 	catch(const std::exception& e)
 	{
-		std::cerr << e.what() << "FUKC" << '\n';
+		Logger::log() << "[ Error ] : Client can't upload in this location " << "\'" << upload << "\'" << std::endl;
+		return ( rs.stat = 403, -1 );
 	}
-	
-	// for ( size_t i = 0; i < infoStruct.locationsInfo.size(); i++ )
-	// {
-	// 	location = infoStruct.locationsInfo.at(i).directory.at( rs.headers.at("uri") );
-	// 	upload   = infoStruct.locationsInfo.at( i ).upload.at( "upload" );
-	// 	method	 = infoStruct.locationsInfo.at( i ).allowed_methodes.at( "allowed_methodes" );
-	// 	if ( upload[0] )
-	// 	{
-	// 		if ( method.find( "POST" ) != std::string::npos )
-	// 		{
-	// 			if ( access( upload.c_str(), F_OK | W_OK ) != 0 )
-	// 			{
-	// 				Logger::log() << "[ Error ] : Client can't upload in this location " << "\'" << upload << "\'" << std::endl;
-	// 				return ( rs.stat = 403, -1 );
-	// 			}
-	// 			rs.limitClientBodySize = std::atol( infoStruct.limitClientBody.at("limit_client_body").c_str() ) * 100000000;
-	// 			if ( rs.limitClientBodySize == 0 )
-	// 			{
-	// 				Logger::log() << "[ Error ] : Client body size limit is 0" << std::endl;
-	// 				return ( rs.stat = 400, -1 );
-	// 			}
-	// 			return ( rs.stat = 201, 0 );
-	// 		}
-	// 	}
-	// }
-	Logger::log() << "[ Error ] : Client can't upload in this location " << "\'" << upload << "\'" << std::endl;
 	return ( rs.stat = 403, -1 );
 }
 
@@ -100,10 +99,10 @@ void generateRandomFileName( Request& rs)
 	std::srand( std::time( NULL ) );
 
 	try {
-		std::string	filename( "./upload" );
+		std::string	filename( "./upload/" );
 
 		for ( int i = 0; i < 25; i++ )
-		filename.push_back( CHARACTERS[ rand() % CHARACTERS.length() ] );
+			filename.push_back( CHARACTERS[ rand() % CHARACTERS.length() ] );
     	rs.bodyStream->open( filename.c_str(), std::ios::binary | std::ios::trunc );
 		if ( !rs.bodyStream->is_open() )
 		{
