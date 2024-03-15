@@ -39,8 +39,8 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "Matching upload dir with uri and fix some issues with chunk size header conversion"
-	@git push origin yachaab+leader
-	@echo "Pushed to yachaab+leader"
+	@git commit -m "change the branche name to omega"
+	@git push origin omega
+	@echo "Pushed to omega"
 
 .PHONY: clean fclean re all git

@@ -1,8 +1,7 @@
-media/video/*
-media/img/*
+media
 Informations
 data
 .env
-upload/*
+upload
 .vscode
 logs
