@@ -1,45 +1,45 @@
 #include "../include/mainHeader.hpp"
 
 /*-------------- yachaab code start ---------------*/
-void    connection::fetchRequestHeader( Request& rs, char* buffer, int rc )
+void    connection::fetchRequestHeader( Request& rq, char* buffer, int rc )
 {
-    rs.fullRequest.append( buffer, rc );
-	size_t	lfp = rs.fullRequest.find( "\n\n" );
-	size_t	crp = rs.fullRequest.find( "\r\n\r\n" );
+    rq.fullRequest.append( buffer, rc );
+	size_t	lfp = rq.fullRequest.find( "\n\n" );
+	size_t	crp = rq.fullRequest.find( "\r\n\r\n" );
 	if ( lfp != std::string::npos )
 	{
-		rs.remainingBody = rs.fullRequest.substr( lfp + 2);
-     	rs.fetchHeaderDone = true;
+		rq.remainingBody = rq.fullRequest.substr( lfp + 2);
+     	rq.fetchHeaderDone = true;
 	}
 	if ( crp != std::string::npos )
 	{
-		rs.remainingBody = rs.fullRequest.substr( crp + 4 );
-     	rs.fetchHeaderDone = true;
+		rq.remainingBody = rq.fullRequest.substr( crp + 4 );
+     	rq.fetchHeaderDone = true;
 	}
 }
 
-int connection::processingHeader( Request& rs )
+int connection::processingHeader( Request& rq )
 {
-    if ( extractMethodAndUri( rs ) == -1 )
+    if ( extractMethodAndUri( rq ) == -1 )
 		throw std::exception();
-	if ( validateUriAndExtractQueries( rs ) == -1 )
+	if ( validateUriAndExtractQueries( rq ) == -1 )
 		throw std::exception();
-	if ( extractHttpHeaders( rs ) == -1)
+	if ( extractHttpHeaders( rq ) == -1)
 		throw std::exception();
-	if ( validateHeadersProcess( rs ) == -1 )
+	if ( validateHeadersProcess( rq ) == -1 )
 		throw std::exception();
-	// rs.storeHeader = false;
+	// rq.storeHeader = false;
 	return ( 0 );
 }
 
-int extractMethodAndUri( Request& rs )
+int extractMethodAndUri( Request& rq )
 {
 	std::string startLine;
     size_t      carriagepos;
 
 	try
 	{
-		startLine = rs.fullRequest.substr( 0, rs.fullRequest.find( "\n" ) );
+		startLine = rq.fullRequest.substr( 0, rq.fullRequest.find( "\n" ) );
         carriagepos = startLine.find("\r");
 		if ( carriagepos != std::string::npos )
         	startLine.resize(carriagepos);
@@ -48,20 +48,21 @@ int extractMethodAndUri( Request& rs )
 		if ( spNbr != 2 )
 			throw std::exception();
 
-		rs.headers["method"]    =	startLine.substr( 0, startLine.find( ' ' )  );
-		rs.headers["uri"]       =	startLine.substr( rs.headers["method"].length() + 1, startLine.find_last_of( ' ' ) -  rs.headers["method"].length() - 1 );
-		rs.headers["version"]   =	startLine.substr( rs.headers["method"].length() + rs.headers["uri"].length() + 2 );
-		lowcase( rs.headers["method"] );
-		lowcase( rs.headers["uri"] );
-		lowcase( rs.headers["version"] );
+		rq.headers["method"]    =	startLine.substr( 0, startLine.find( ' ' )  );
+		rq.headers["uri"]       =	startLine.substr( rq.headers["method"].length() + 1, startLine.find_last_of( ' ' ) -  rq.headers["method"].length() - 1 );
+		rq.headers["version"]   =	startLine.substr( rq.headers["method"].length() + rq.headers["uri"].length() + 2 );
+		lowcase( rq.headers["method"] );
+		lowcase( rq.headers["uri"] );
+		lowcase( rq.headers["version"] );
 
-		if ( rs.headers["version"] != "http/1.1" )
+		if ( rq.headers["version"] != "http/1.1" )
 			throw std::exception();
-		if ( rs.headers["method"] != "get" && rs.headers["method"] != "post" && rs.headers["method"] != "delete" )
+		if ( rq.headers["method"] != "get" && rq.headers["method"] != "post" && rq.headers["method"] != "delete" )
 			throw std::exception();
 	}catch( ... )
 	{
-		return ( rs.stat = 400, -1 );
+		Logger::log() << "[ Error ] extract Method And Uri failed" << std::endl;
+		return ( rq.stat = 400, -1 );
 	}
 	return ( 0 );
 }
@@ -79,7 +80,7 @@ int	validateUri( const std::string& uri )
 	return ( 0 );
 }
 
-void	decomposeQueryParameters( const std::string& query, Request& rs )
+void	decomposeQueryParameters( const std::string& query, Request& rq )
 {
     std::string param;
     std::stringstream ss( query );
@@ -90,7 +91,7 @@ void	decomposeQueryParameters( const std::string& query, Request& rs )
         size_t equalPos		=	param.find( '=' );
         std::string key		=	param.substr( 0, equalPos );
         std::string value	=	equalPos != std::string::npos ? param.substr( equalPos + 1 ) : "";
-        rs.queries[key] = value;
+        rq.queries[key] = value;
     }
 }
 
@@ -115,23 +116,27 @@ std::string decodeURI(const std::string& uri)
     return result;
 }
 
-int validateUriAndExtractQueries( Request& rs )
+int validateUriAndExtractQueries( Request& rq )
 {
-	if ( validateUri( rs.headers["uri"] ) == -1 )
+	if ( validateUri( rq.headers["uri"] ) == -1 )
 	{
-		if ( rs.headers["uri"].length() > 2048 )
-			return ( rs.stat = 414, -1 );
-		return ( rs.stat = 400, -1 );
+		if ( rq.headers["uri"].length() > 2048 )
+		{
+			return ( rq.stat = 414, -1 );
+			Logger::log() << "[ Error ] validate Uri And Extract Queries: Request-URI Too Long" << std::endl;
+		}
+		Logger::log() << "[ Error ] validate Uri And Extract Queries: validate uri: failed" << std::endl;
+		return ( rq.stat = 400, -1 );
 	}
 
-	rs.headers["uri"] = decodeURI(rs.headers["uri"]);
+	rq.headers["uri"] = decodeURI(rq.headers["uri"]);
 
-	size_t queryPos = rs.headers["uri"].find('?');
+	size_t queryPos = rq.headers["uri"].find('?');
     if ( queryPos != std::string::npos )
 	{
-        std::string query = rs.headers["uri"].substr( queryPos + 1 );
-        rs.headers["uri"] = rs.headers["uri"].substr( 0, queryPos );
-        decomposeQueryParameters( query, rs );
+        std::string query = rq.headers["uri"].substr( queryPos + 1 );
+        rq.headers["uri"] = rq.headers["uri"].substr( 0, queryPos );
+        decomposeQueryParameters( query, rq );
     }
 	return ( 0 );
 }
@@ -161,60 +166,78 @@ static void strTrim( std::string& str )
 	str = str.substr( i, (j - i) + 1 );
 }
 
-bool	examinHeaders( Request& rs, std::string& first, std::string& second )
+bool	examinHeaders( Request& rq, std::string& first, std::string& second )
 {
 	if ( first == "content-length" )
 	{
-		rs.contentLength = true;
-		rs.requestBodyLength = std::atoi( second.c_str() );
+		rq.contentLength = true;
+		rq.requestBodyLength = std::atoi( second.c_str() );
 	}
 	else if ( first == "transfer-encoding" )
 	{
 		if ( second == "chunked" )
-			rs.transferEncoding = true;
+			rq.transferEncoding = true;
 		else
-			return ( rs.stat = 501, false ) ;
+			return ( rq.stat = 501, false ) ;
 	}
-	if ( rs.transferEncoding == true && rs.contentLength == true )
-		rs.contentLength = false;
-	if ( rs.transferEncoding == false && rs.contentLength == true )
+	if ( rq.transferEncoding == true && rq.contentLength == true )
+		rq.contentLength = false;
+	if ( rq.transferEncoding == false && rq.contentLength == true )
 	{
-		if ( rs.requestBodyLength == 0 )
-			return ( rs.stat = 400, false );
+		if ( rq.requestBodyLength == 0 )
+		{
+			Logger::log() << "[ Error ] content length is 0" << std::endl;
+			return ( rq.stat = 400, false );
+		}
 	}
 	if ( first == "host" )
 	{
 		if ( second.empty() )
-			return ( rs.stat = 400, false );
+		{
+			Logger::log() << "[ Error ] Host is required" << std::endl;
+			return ( rq.stat = 400, false );
+		}
 	}
 	if ( first == "content-type" )
 	{
 		if ( second.empty() )
-			return ( rs.stat = 400, false );
+		{
+			Logger::log() << "[ Error ] Content type is required" << std::endl;
+			return ( rq.stat = 400, false );
+		}
 		std::string s1, s2;
 		size_t		slash( second.find_first_of( '/' ) );
 		if ( slash == std::string::npos )
-			return ( rs.stat = 400, false ); // not sure;
+		{
+			Logger::log() << "[ Error ] Content type mal formed" << std::endl;
+			return ( rq.stat = 400, false ); // not sure;
+		}
 		
 		s1 = second.substr( 0 , slash );
 		s2 = second.substr( slash + 1 );
 
 		if ( s1.empty() || s2.empty() )
-			return ( rs.stat = 400, false );
+		{
+			Logger::log() << "[ Error ] Content type mal formed" << std::endl;
+			return ( rq.stat = 400, false );
+		}
 		if ( s1 == "multipart" )
-			return ( rs.stat = 501, false );
+		{
+			Logger::log() << "[ Error ] Content type multipart not implemented" << std::endl;
+			return ( rq.stat = 501, false );
+		}
 		else
-			rs.extension = "." + s2;
+			rq.extension = "." + s2;
 	}
 	return true;
 }
 
-int	extractHttpHeaders( Request& rs )
+int	extractHttpHeaders( Request& rq )
 {
 	std::string									line, first, second;
 	std::vector<std::string>					header_lines;
 	std::vector<std::string>::const_iterator	it;
-	std::stringstream							headerStream ( rs.fullRequest );
+	std::stringstream							headerStream ( rq.fullRequest );
 
 	try
 	{
@@ -235,37 +258,49 @@ int	extractHttpHeaders( Request& rs )
 			lowcase( second );
 			strTrim( second );
 
-			if ( !examinHeaders( rs, first, second ) )
+			if ( !examinHeaders( rq, first, second ) )
 				throw std::invalid_argument( "bad request: Invalid header" );
 		
-			rs.headers[ first ] = second;
+			rq.headers[ first ] = second;
 		}
-		rs.processingHeaderDone = true;
+		rq.processingHeaderDone = true;
 	}
 	catch( const std::exception& e )
 	{
-		return ( rs.stat = 400, -1 );
+		return ( rq.stat = 400, -1 );
 	}
 	return ( 0 );
 }
 
-int	validateHeadersProcess( Request& rs )
+int	validateHeadersProcess( Request& rq )
 {
-	if ( rs.headers.find( "host" ) == rs.headers.end() )
-		return ( rs.stat = 400, -1 );
-	if ( rs.headers["method"] == "post" )
+	if ( rq.headers.find( "host" ) == rq.headers.end() )
 	{
-		if ( rs.transferEncoding == false )
+		Logger::log() << "[ Error ] Host is required" << std::endl;
+		return ( rq.stat = 400, -1 );
+	}
+	if ( rq.headers.find( "content-type" ) == rq.headers.end() )
+	{
+		Logger::log() << "[ Error ] Content-Type is required" << std::endl;
+		return ( rq.stat = 400, -1 );
+	}
+	if ( rq.headers["method"] == "post" )
+	{
+		if ( rq.transferEncoding == false )
 		{
-			if ( rs.contentLength == false )
-				return ( rs.stat = 411, -1 );
+			if ( rq.contentLength == false )
+			{
+				Logger::log() << "[ Error ] Content-Length is required" << std::endl;
+				return ( rq.stat = 411, -1 );
+			}
 		}
 		else
 		{
-			if ( rs.contentLength == true )
-				rs.contentLength = false;
+			if ( rq.contentLength == true )
+				rq.contentLength = false;
 		}
 	}
+
 	return 0;
 }
 

@@ -152,8 +152,8 @@ std::string replacePlaceholder( const std::string& html, const std::string& msgP
 
     if ( msgPlhPos != std::string::npos && codePlhPos != std::string::npos )
     {
-        result.replace( msgPlhPos, msgPlaceholder.length(), msgReplace );
         result.replace( codePlhPos, codePlaceholder.length(), codeReplace );
+        result.replace( msgPlhPos, msgPlaceholder.length(), msgReplace );
     }
     return ( result );
 }
@@ -162,10 +162,11 @@ std::string creatTemplate( const char* filepath, int& statcode, code& msgCode )
 {
     try
     {
+        std::string version( "HTTP/1.1" );
         std::string htmlTemplate( readHtmlFile( filepath ) );
         std::string modifiedHtml( replacePlaceholder( htmlTemplate, "{msg}", "{code}",
                                   msgCode.statMsg.at(statcode) , to_string( statcode ) ) ); //! check to_string stander
-        std::string httpResponse    = "HTTP/1.1" + to_string( statcode ) + msgCode.statMsg.at(statcode) + "\r\n"; //! check to_string stander
+        std::string httpResponse    = version + " " + to_string( statcode ) + " " + msgCode.statMsg.at(statcode) + "\r\n"; //! check to_string stander
         httpResponse                += "Content-Type: text/html\r\n";
         httpResponse                += "Content-Length: " + to_string(modifiedHtml.length()) + "\r\n\r\n";
         httpResponse                += modifiedHtml;

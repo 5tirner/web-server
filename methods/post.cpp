@@ -4,7 +4,7 @@ void    connection::processingBody( Request& rq, char* buffer, int rc, const inf
 {
 	if ( rq.headers.at( "method" ) == "get" || rq.headers.at( "method" ) == "delete" )
 		rq.readyToSendRes = true;
-	else if ( rq.headers["method"] == "post" )
+	else if ( rq.headers.at( "method" ) == "post" )
     {
 		if ( rq.locationGotChecked == false && location_support_upload( rq, infoStruct ) == -1 )
 			throw std::exception();

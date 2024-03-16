@@ -137,8 +137,8 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         {
             try {
                 std::cout << "READY YO SEND RESPONSE: " << std::endl;
-                if (!this->Requests.at(monitor.fd).storeHeader)
-                {
+                // if (!this->Requests.at(monitor.fd).storeHeader)
+                // {
                 //     // if (this->Requests.at(monitor.fd).headers.at("method") == "get")
                 //     //     handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
                 //     // else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
@@ -147,12 +147,20 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 //     /*-------------- yachaab code ended -----------------*/
                 // }
 
-                // if (this->Requests.at(monitor.fd).headers["method"] == "post" )
-                // {
-                    std::cout << "ENTER: " << std::endl;
-                    std::string response = creatTemplate( "./src/page.html", this->Requests.at(monitor.fd).stat, codeMsg );
-                    sendResponse( monitor.fd, response );
-                    Response.at(monitor.fd).status = response::Complete;
+                if ( this->Requests.at(monitor.fd).headers["method"] == "post" )
+                {
+                    try
+                    {
+                        std::string response = creatTemplate( "./src/page.html", this->Requests.at(monitor.fd).stat, codeMsg );
+                        sendResponse( monitor.fd, response );
+                        Response.at(monitor.fd).status = response::Complete;
+                        std::cout << "RESPONSE SENT" << std::endl;
+                    }
+                    catch(const std::exception& e)
+                    {
+                        std::cerr << e.what() << '\n';
+                    }
+                    
                 }
                 // sendResponseChunk(monitor.fd, Response.at(monitor.fd));
                 if (Response.at(monitor.fd).status == response::Complete)

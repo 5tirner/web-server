@@ -111,6 +111,7 @@ typedef struct codeStat
         statMsg[ 404 ] = "Not Found";
         statMsg[ 405 ] = "Method Not Allowed";
         statMsg[ 409 ] = "Conflict";
+        statMsg[ 411 ] = "Length Required";
         statMsg[ 413 ] = "Request Entity Too Large";
         statMsg[ 414 ] = "Request-URI Too Long";
         statMsg[ 500 ] = "Internal Server Error";

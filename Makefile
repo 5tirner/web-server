@@ -39,7 +39,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "yachaab working on error page response"
+	@git commit -m "error page response for post -> OK"
 	@git push origin omega
 	@echo "Pushed to omega"
 
