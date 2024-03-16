@@ -183,17 +183,6 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
     {
         responseD = "HTTP/1.1 200 OK\r\n";
         responseD += "Content-Type: " + getMimeType(filePath) + "\r\n";
-        // std::cout << "check if this correct" << std::endl;;
-        /* -------------- yachaab code start ----------------- */
-        // std::fstream file;
-        // file.open( "./media/video/morpho.mp4", std::fstream::binary | std::fstream::ate | std::fstream::in );
-        // size_t size = file.tellg();
-        // file.close();
-        // // std::cout << "size: " << size << std::endl;
-        // responseD += "Content-Length: " + to_string( size ) + "\r\n";
-        // std::cout << "MIME TYPE: " << getMimeType(filePath) << std::endl;
-        // std::cout << "content length: " << xnxx << std::endl;
-        /*-------------- yachaab code ended -----------------*/
     }
     // if (request.flagRespons == 0)
     // {

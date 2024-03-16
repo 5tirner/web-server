@@ -1,22 +1,22 @@
 #include "../include/mainHeader.hpp"
 
-void    connection::processingBody( Request& rs, char* buffer, int rc, const informations& infoStruct )
+void    connection::processingBody( Request& rq, char* buffer, int rc, const informations& infoStruct )
 {
-	if ( rs.headers.at( "method" ) == "get" || rs.headers.at( "method" ) == "delete" )
-		rs.readyToSendRes = true;
-	else if ( rs.headers["method"] == "post" )
+	if ( rq.headers.at( "method" ) == "get" || rq.headers.at( "method" ) == "delete" )
+		rq.readyToSendRes = true;
+	else if ( rq.headers["method"] == "post" )
     {
-		if ( rs.locationGotChecked == false && location_support_upload( rs, infoStruct ) == -1 )
+		if ( rq.locationGotChecked == false && location_support_upload( rq, infoStruct ) == -1 )
 			throw std::exception();
-		if ( rs.transferEncoding == true )
-			processChunkedRequestBody( rs, buffer, rc, rs.readyToSendRes );
-		if ( rs.contentLength == true )
+		if ( rq.transferEncoding == true )
+			processChunkedRequestBody( rq, buffer, rc, rq.readyToSendRes );
+		if ( rq.contentLength == true )
 		{
-			if ( rs.contentLength <= rs.limitClientBodySize )
-				processRegularRequestBody( rs, buffer , rc, rs.readyToSendRes );
+			if ( rq.contentLength <= rq.limitClientBodySize )
+				processRegularRequestBody( rq, buffer , rc, rq.readyToSendRes );
 			else
 			{
-				rs.stat = 413;
+				rq.stat = 413;
 				Logger::log() << "[ Error ] Request Entity Too Large" << std::endl;
 				throw std::exception();
 			}
@@ -38,7 +38,7 @@ static std::string& getUrl( std::string& uri )
 	return uri;
 }
 
-int location_support_upload( Request& rs, const informations& infoStruct )
+int location_support_upload( Request& rq, const informations& infoStruct )
 {	
 	std::string upload;
 	std::string method;
@@ -47,7 +47,7 @@ int location_support_upload( Request& rs, const informations& infoStruct )
 	size_t i = 0;
 	try
 	{
-		newUri = getUrl( rs.headers.at("uri") );
+		newUri = getUrl( rq.headers.at("uri") );
 		for (; i < infoStruct.locationsInfo.size(); i++ )
 		{
 			location = infoStruct.locationsInfo.at(i).directory.at( "location" );
@@ -72,24 +72,24 @@ int location_support_upload( Request& rs, const informations& infoStruct )
 						else
 						{
 							Logger::log() << "[ Error ] : Client can't upload in this location directory not found" << "\'" << upload << "\'" << std::endl;
-							return ( rs.stat = 403, -1 );
+							return ( rq.stat = 403, -1 );
 						}
 					}
 					else
 					{
 						Logger::log() << "[ Error ] : Client can't upload in this location " << "\'" << upload << "\'" << std::endl;
-						return ( rs.stat = 403, -1 );
+						return ( rq.stat = 403, -1 );
 					}
-					rs.limitClientBodySize = std::atol( infoStruct.limitClientBody.at("limit_client_body").c_str() ) * 100000000; //! need the exact amount
-					if ( rs.limitClientBodySize == 0 )
+					rq.limitClientBodySize = std::atol( infoStruct.limitClientBody.at("limit_client_body").c_str() ) * 100000000; //! need the exact amount
+					if ( rq.limitClientBodySize == 0 )
 					{
 						Logger::log() << "[ Error ] : Client body size limit is 0" << std::endl;
-						return ( rs.stat = 400, -1 );
+						return ( rq.stat = 400, -1 );
 					}
-					if ( !rs.bodyStream->is_open() )
-						generateRandomFileName( rs, upload );
-					rs.locationGotChecked = true;
-					return ( rs.stat = 201, 0 );
+					if ( !rq.bodyStream->is_open() )
+						generateRandomFileName( rq, upload );
+					rq.locationGotChecked = true;
+					return ( rq.stat = 201, 0 );
 				}
 			}
 		}	
@@ -97,52 +97,50 @@ int location_support_upload( Request& rs, const informations& infoStruct )
 	catch(const std::exception& e)
 	{
 		Logger::log() << "[ Error ] : Client can't upload in this location " << "\'" << upload << "\'" << std::endl;
-		return ( rs.stat = 403, -1 );
+		return ( rq.stat = 403, -1 );
 	}
-	return ( rs.stat = 403, -1 );
+	return ( rq.stat = 403, -1 );
 }
 
-void generateRandomFileName( Request& rs, std::string& path )
+void generateRandomFileName( Request& rq, std::string& path )
 {
-	rs.filename = path;
-	const std::string CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+	rq.filename = path;
+	const std::string CHARACTErq = "ABCDEFGHIJKLMNOPQrqTUVWXYZabcdefghijklmnopqrqtuvwxyz";
 	std::srand( std::time( NULL ) );
 
 	try {
-		if ( rs.filename.length() > 1 && rs.filename.at( rs.filename.length() - 1 ) != '/' )
-			rs.filename += "/";
+		if ( rq.filename.length() > 1 && rq.filename.at( rq.filename.length() - 1 ) != '/' )
+			rq.filename += "/";
 		for ( int i = 0; i < 25; i++ )
-			rs.filename.push_back( CHARACTERS[ rand() % CHARACTERS.length() ] );
-		rs.filename += rs.extension;
-    	rs.bodyStream->open( rs.filename.c_str(), std::ios::binary | std::ios::trunc );
-		if ( !rs.bodyStream->is_open() )
+			rq.filename.push_back( CHARACTErq[ rand() % CHARACTErq.length() ] );
+		rq.filename += rq.extension;
+    	rq.bodyStream->open( rq.filename.c_str(), std::ios::binary | std::ios::trunc );
+		if ( !rq.bodyStream->is_open() )
 		{
 			Logger::log() << "[ Error ] : couldn't open file to store request body" << std::endl;
 			throw std::exception();
 		}
 	} catch (...) {
-		rs.stat = 500;
+		rq.stat = 500;
 		throw std::exception();
 	}
 }
 
-size_t    parseChunkHeader( Request& rs, std::string& buffer )
+size_t    parqeChunkHeader( Request& rq, std::string& buffer )
 {
 	std::string	chunkHead;
 	long		size;
 	size_t 		crlfPos = 0;
 
-	if ( rs.iscr == true )
+	if ( rq.iscr == true )
 	{
-		std::cout << "YES WE ENTER HERE" << std::endl;
 		buffer = buffer.substr( 2 );
-		rs.iscr = false;
+		rq.iscr = false;
 	}
-	else if ( rs.islf == true )
+	else if ( rq.islf == true )
 	{
-		std::cout << "YES WE ENTER HERE 1" << std::endl;
 		buffer = buffer.substr( 1 );
-		rs.islf = false;
+		rq.islf = false;
 	}
 
 	crlfPos = buffer.find( "\r\n" );
@@ -154,113 +152,113 @@ size_t    parseChunkHeader( Request& rs, std::string& buffer )
 		size = std::strtol( chunkHead.c_str(), NULL, 16 );
 	else
 	{
-		rs.stat = 400;
+		rq.stat = 400;
 		Logger::log() << "[ Error ] Invalid chunk size header" << std::endl;
 		throw std::exception();
 	}
 	if ( size == LONG_MAX || size == LONG_MIN )
 	{
-		rs.stat = 400;
+		rq.stat = 400;
 		Logger::log() << "[ Error ] Invalid chunk size header" << std::endl;
 		throw std::exception();
 	}
 	else
-		rs.currentChunkSize = size;
+		rq.currentChunkSize = size;
 	buffer = buffer.substr( chunkHead.length() + 2 );
-	return ( rs.currentChunkSize );
+	return ( rq.currentChunkSize );
 }
 
-bool    chunkedComplete( Request& rs,  std::string& buffer )
+bool    chunkedComplete( Request& rq,  std::string& buffer )
 {
 	size_t	bufflen ( buffer.length() );
 	while ( bufflen != 0 )
 	{
-		if ( rs.isChunkHeader == true )
+		if ( rq.isChunkHeader == true )
 		{
-			rs.currentChunkSize = parseChunkHeader( rs, buffer );
-			if ( rs.currentChunkSize == std::string::npos )
+			rq.currentChunkSize = parqeChunkHeader( rq, buffer );
+			if ( rq.currentChunkSize == std::string::npos )
 				return false;
-			rs.chunkSizeSum += rs.currentChunkSize;
-			if ( rs.chunkSizeSum > rs.limitClientBodySize )
+			rq.chunkSizeSum += rq.currentChunkSize;
+			if ( rq.chunkSizeSum > rq.limitClientBodySize )
 			{
-				rs.stat = 413;
+				rq.stat = 413;
 				Logger::log() << "[ Error ] Client bosy size greater than body size limit" << std::endl;
 				throw std::exception();
 			}
-			if ( rs.currentChunkSize == 0 )
+			if ( rq.currentChunkSize == 0 )
 				return true;
 			bufflen = buffer.length();
 		}
-		if ( rs.currentChunkSize > buffer.length() )
+		if ( rq.currentChunkSize > buffer.length() )
 		{
-			rs.bodyStream->write( buffer.c_str(),  buffer.length() );
-			if ( !rs.bodyStream->good() )
+			rq.bodyStream->write( buffer.c_str(),  buffer.length() );
+			if ( !rq.bodyStream->good() )
 			{
-				rs.stat = 500;
+				rq.stat = 500;
 				Logger::log() << "[ Error ] write body stream failed" << std::endl;
 				throw std::exception();
 			}
-			rs.bodyStream->flush();
-			rs.currentChunkSize -= buffer.length();
-			rs.isChunkHeader = false;
+			rq.bodyStream->flush();
+			rq.currentChunkSize -= buffer.length();
+			rq.isChunkHeader = false;
 			return ( false );
 		}
-		else if ( rs.currentChunkSize < buffer.length() )
+		else if ( rq.currentChunkSize < buffer.length() )
 		{
-			rs.bodyStream->write( buffer.c_str(), rs.currentChunkSize );
-			if ( !rs.bodyStream->good() )
+			rq.bodyStream->write( buffer.c_str(), rq.currentChunkSize );
+			if ( !rq.bodyStream->good() )
 			{
-				rs.stat = 500;
+				rq.stat = 500;
 				Logger::log() << "[ Error ] write body stream failed" << std::endl;
 				throw std::exception();
 			}
-			rs.bodyStream->flush();
-			bufflen -= rs.currentChunkSize;
+			rq.bodyStream->flush();
+			bufflen -= rq.currentChunkSize;
 			if ( bufflen > 1 )
 			{
-				buffer = buffer.substr( rs.currentChunkSize + 2 );
+				buffer = buffer.substr( rq.currentChunkSize + 2 );
 				bufflen -= 2;
 			}
 			else
 			{
-				buffer = buffer.substr( rs.currentChunkSize + 1 );
-				rs.islf = true;
+				buffer = buffer.substr( rq.currentChunkSize + 1 );
+				rq.islf = true;
 				bufflen -= 1;
 			}
-			rs.isChunkHeader = true;
+			rq.isChunkHeader = true;
 		}
-		else if ( rs.currentChunkSize == buffer.length() )
+		else if ( rq.currentChunkSize == buffer.length() )
 		{
-			rs.bodyStream->write( buffer.c_str(), rs.currentChunkSize );
-			rs.bodyStream->flush();
-			bufflen -= rs.currentChunkSize;
-			rs.iscr = true;
-			rs.isChunkHeader = true;
+			rq.bodyStream->write( buffer.c_str(), rq.currentChunkSize );
+			rq.bodyStream->flush();
+			bufflen -= rq.currentChunkSize;
+			rq.iscr = true;
+			rq.isChunkHeader = true;
 			return false;
 		}
 	}
 	return false;
 }
 
-void    processChunkedRequestBody( Request& rs, char* buffer, int& rc, bool& sendRes)
+void    processChunkedRequestBody( Request& rq, char* buffer, int& rc, bool& sendRes)
 {
-    if ( !rs.remainingBody.empty() )
+    if ( !rq.remainingBody.empty() )
     {
-        if ( chunkedComplete( rs, rs.remainingBody ) )
+        if ( chunkedComplete( rq, rq.remainingBody ) )
         {
-			rs.stat = 201;
+			rq.stat = 201;
 			sendRes = true;
 			Logger::log() << "[ sucess ] body file created" << std::endl;
 			throw std::exception();
 		}
-        rs.remainingBody.clear();
+        rq.remainingBody.clear();
     }
     else
     {
         std::string receivedData( buffer, rc );
-        if ( chunkedComplete( rs, receivedData ) )
+        if ( chunkedComplete( rq, receivedData ) )
         {
-			rs.stat = 201;
+			rq.stat = 201;
 			sendRes = true;
 			Logger::log() << "[ sucess ] body file created" << std::endl;
 			throw std::exception();
@@ -268,36 +266,36 @@ void    processChunkedRequestBody( Request& rs, char* buffer, int& rc, bool& sen
     }
 }
 
-void	processRegularRequestBody( Request& rs, char* buffer, int& rc, bool& sendRes )
+void	processRegularRequestBody( Request& rq, char* buffer, int& rc, bool& sendRes )
 {
-	if ( !rs.remainingBody.empty() )
+	if ( !rq.remainingBody.empty() )
 	{
-		rs.bodyStream->write( rs.remainingBody.c_str(),  rs.remainingBody.length() );
-		rs.bodyStream->flush();
-		rs.content_length += rs.remainingBody.length();
-		rs.remainingBody.clear();
+		rq.bodyStream->write( rq.remainingBody.c_str(),  rq.remainingBody.length() );
+		rq.bodyStream->flush();
+		rq.content_length += rq.remainingBody.length();
+		rq.remainingBody.clear();
 	}
 	else if ( rc ){
-		rs.bodyStream->write( buffer,  rc );
-		rs.bodyStream->flush();
-		rs.content_length += rc;
+		rq.bodyStream->write( buffer,  rc );
+		rq.bodyStream->flush();
+		rq.content_length += rc;
 	}
-	if ( !rs.bodyStream->good() )
+	if ( !rq.bodyStream->good() )
 	{
-		rs.stat = 500;
+		rq.stat = 500;
 		Logger::log() << "[ Error ] write body stream failed" << std::endl;
 		throw std::exception();
 	}
-	if ( rs.content_length == rs.requestBodyLength )
+	if ( rq.content_length == rq.requestBodyLength )
 	{
-		rs.stat = 201;
+		rq.stat = 201;
 		sendRes = true;
 		Logger::log() << "[ sucess ] body file created" << std::endl;
 		return;
 	}
-	else if ( rs.content_length > rs.requestBodyLength )
+	else if ( rq.content_length > rq.requestBodyLength )
 	{
-		rs.stat = 413;
+		rq.stat = 413;
 		Logger::log() << "[ Error ] Request Entity Too Large" << std::endl;
 		throw std::exception();
 	}

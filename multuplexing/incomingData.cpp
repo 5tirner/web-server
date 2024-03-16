@@ -28,6 +28,7 @@ int connection::processingHeader( Request& rs )
 		throw std::exception();
 	if ( validateHeadersProcess( rs ) == -1 )
 		throw std::exception();
+	// rs.storeHeader = false;
 	return ( 0 );
 }
 
