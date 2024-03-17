@@ -39,7 +39,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "error page response for post -> OK still to be applacate on other methods"
+	@git commit -m "Fix the leader git issue"
 	@git push origin omega
 	@echo "Pushed to omega"
 

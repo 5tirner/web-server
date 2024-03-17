@@ -239,10 +239,8 @@ public:
     // void    closeTheExitClients(void);
     /*-------------- yachaab code start ---------------*/
     code    codeMsg;
-    int     processingHeader( Request& );
-    void    fetchRequestHeader( Request&, char *, int );
     void    dropClient( int&, std::map<int, int>::iterator & );
-    void    processingBody( Request&, char*, int, const informations& );
+    void    processingClientRequest( int, char*, Request& , const informations& );
     /*-------------- yachaab code end -----------------*/
     /*-------------- ysabr code start ---------------*/
     void    handleRequestGET(int, Request&, const informations&);
@@ -265,22 +263,12 @@ void        etatInitial(informations &tmp);
 void        initializeMonitor(struct pollfd &monitor, int fd);
 std::string removeWhiteSpaces(std::string &s);
 /*-------------- yachaab code start ---------------*/
-int         extractHttpHeaders( Request& );
-int         extractMethodAndUri( Request& );
-int	        validateUri( const std::string& );
-int	        validateHeadersProcess( Request& );
-int         validateUriAndExtractQueries( Request& );
-int         validateUriAndExtractQueries( Request& rs );
-int         location_support_upload( Request&,  const informations& );
-void        lowcase( std::string& );
+void        fetchRequestHeader( Request&, char *, int );
+int         processingHeader( Request& );
+void        processingBody( Request&, char*, int, const informations& );
+
 void        sendResponse( int&, const std::string& );
-void        generateRandomFileName( Request&, std::string& );
-void        processChunkedRequestBody( Request&, char*, int&, bool& );
-void        processRegularRequestBody( Request&, char*, int&, bool& );
-void	    decomposeQueryParameters( const std::string& );
-bool        chunkedComplete( Request&, std::string& );
-bool	    examinHeaders( Request&, std::string&, std::string& );
-size_t      parseChunkHeader( Request&, std::string& );
+
 std::string readHtmlFile( const char* );
 std::string creatTemplate( const char*, int& , code&  );
 std::string replacePlaceholder( const std::string& , const std::string&  ,

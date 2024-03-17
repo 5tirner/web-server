@@ -1,29 +1,5 @@
 #include "../include/mainHeader.hpp"
 
-void    connection::processingBody( Request& rq, char* buffer, int rc, const informations& infoStruct )
-{
-	if ( rq.headers.at( "method" ) == "get" || rq.headers.at( "method" ) == "delete" )
-		rq.readyToSendRes = true;
-	else if ( rq.headers.at( "method" ) == "post" )
-    {
-		if ( rq.locationGotChecked == false && location_support_upload( rq, infoStruct ) == -1 )
-			throw std::exception();
-		if ( rq.transferEncoding == true )
-			processChunkedRequestBody( rq, buffer, rc, rq.readyToSendRes );
-		if ( rq.contentLength == true )
-		{
-			if ( rq.contentLength <= rq.limitClientBodySize )
-				processRegularRequestBody( rq, buffer , rc, rq.readyToSendRes );
-			else
-			{
-				rq.stat = 413;
-				Logger::log() << "[ Error ] Request Entity Too Large" << std::endl;
-				throw std::exception();
-			}
-		}
-    }
-}
-
 static std::string& getUrl( std::string& uri )
 {
 	size_t slash = 0;
@@ -38,7 +14,32 @@ static std::string& getUrl( std::string& uri )
 	return uri;
 }
 
-int location_support_upload( Request& rq, const informations& infoStruct )
+static void generateRandomFileName( Request& rq, std::string& path )
+{
+	rq.filename = path;
+	const std::string CHARACTErq = "ABCDEFGHIJKLMNOPQrqTUVWXYZabcdefghijklmnopqrqtuvwxyz";
+	std::srand( std::time( NULL ) );
+
+	try {
+		if ( rq.filename.length() > 1 && rq.filename.at( rq.filename.length() - 1 ) != '/' )
+			rq.filename += "/";
+		for ( int i = 0; i < 25; i++ )
+			rq.filename.push_back( CHARACTErq[ rand() % CHARACTErq.length() ] );
+		rq.filename += rq.extension;
+    	rq.bodyStream->open( rq.filename.c_str(), std::ios::binary | std::ios::trunc );
+		if ( !rq.bodyStream->is_open() )
+		{
+			Logger::log() << "[ Error ] : couldn't open file to store request body" << std::endl;
+			throw std::exception();
+		}
+	} catch (...) {
+		rq.stat = 500;
+		throw std::exception();
+	}
+}
+
+
+static int location_support_upload( Request& rq, const informations& infoStruct )
 {	
 	std::string upload;
 	std::string method;
@@ -102,31 +103,7 @@ int location_support_upload( Request& rq, const informations& infoStruct )
 	return ( rq.stat = 403, -1 );
 }
 
-void generateRandomFileName( Request& rq, std::string& path )
-{
-	rq.filename = path;
-	const std::string CHARACTErq = "ABCDEFGHIJKLMNOPQrqTUVWXYZabcdefghijklmnopqrqtuvwxyz";
-	std::srand( std::time( NULL ) );
-
-	try {
-		if ( rq.filename.length() > 1 && rq.filename.at( rq.filename.length() - 1 ) != '/' )
-			rq.filename += "/";
-		for ( int i = 0; i < 25; i++ )
-			rq.filename.push_back( CHARACTErq[ rand() % CHARACTErq.length() ] );
-		rq.filename += rq.extension;
-    	rq.bodyStream->open( rq.filename.c_str(), std::ios::binary | std::ios::trunc );
-		if ( !rq.bodyStream->is_open() )
-		{
-			Logger::log() << "[ Error ] : couldn't open file to store request body" << std::endl;
-			throw std::exception();
-		}
-	} catch (...) {
-		rq.stat = 500;
-		throw std::exception();
-	}
-}
-
-size_t    parqeChunkHeader( Request& rq, std::string& buffer )
+static size_t	parseChunkHeader( Request& rq, std::string& buffer )
 {
 	std::string	chunkHead;
 	long		size;
@@ -168,14 +145,14 @@ size_t    parqeChunkHeader( Request& rq, std::string& buffer )
 	return ( rq.currentChunkSize );
 }
 
-bool    chunkedComplete( Request& rq,  std::string& buffer )
+static bool    chunkedComplete( Request& rq,  std::string& buffer )
 {
 	size_t	bufflen ( buffer.length() );
 	while ( bufflen != 0 )
 	{
 		if ( rq.isChunkHeader == true )
 		{
-			rq.currentChunkSize = parqeChunkHeader( rq, buffer );
+			rq.currentChunkSize = parseChunkHeader( rq, buffer );
 			if ( rq.currentChunkSize == std::string::npos )
 				return false;
 			rq.chunkSizeSum += rq.currentChunkSize;
@@ -240,7 +217,7 @@ bool    chunkedComplete( Request& rq,  std::string& buffer )
 	return false;
 }
 
-void    processChunkedRequestBody( Request& rq, char* buffer, int& rc, bool& sendRes)
+static void	processChunkedRequestBody( Request& rq, char* buffer, int& rc, bool& sendRes)
 {
     if ( !rq.remainingBody.empty() )
     {
@@ -266,7 +243,7 @@ void    processChunkedRequestBody( Request& rq, char* buffer, int& rc, bool& sen
     }
 }
 
-void	processRegularRequestBody( Request& rq, char* buffer, int& rc, bool& sendRes )
+static void	processRegularRequestBody( Request& rq, char* buffer, int& rc, bool& sendRes )
 {
 	if ( !rq.remainingBody.empty() )
 	{
@@ -299,4 +276,28 @@ void	processRegularRequestBody( Request& rq, char* buffer, int& rc, bool& sendRe
 		Logger::log() << "[ Error ] Request Entity Too Large" << std::endl;
 		throw std::exception();
 	}
+}
+
+void	processingBody( Request& rq, char* buffer, int rc, const informations& infoStruct )
+{
+	if ( rq.headers.at( "method" ) == "get" || rq.headers.at( "method" ) == "delete" )
+		rq.readyToSendRes = true;
+	else if ( rq.headers.at( "method" ) == "post" )
+    {
+		if ( rq.locationGotChecked == false && location_support_upload( rq, infoStruct ) == -1 )
+			throw std::exception();
+		if ( rq.transferEncoding == true )
+			processChunkedRequestBody( rq, buffer, rc, rq.readyToSendRes );
+		if ( rq.contentLength == true )
+		{
+			if ( rq.contentLength <= rq.limitClientBodySize )
+				processRegularRequestBody( rq, buffer , rc, rq.readyToSendRes );
+			else
+			{
+				rq.stat = 413;
+				Logger::log() << "[ Error ] Request Entity Too Large" << std::endl;
+				throw std::exception();
+			}
+		}
+    }
 }

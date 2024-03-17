@@ -74,6 +74,16 @@ void    initializeMonitor(struct pollfd &monitor, int fd)
     monitor.events = POLLIN | POLLOUT;
 }
 
+void connection::processingClientRequest( int rc, char* buffer, Request& rq, const informations& serverInfo )
+{
+    if ( rq.fetchHeaderDone == false )
+        fetchRequestHeader( rq, buffer, rc );
+    if ( rq.fetchHeaderDone == true && rq.processingHeaderDone == false )
+        processingHeader( rq );
+    if ( rq.processingHeaderDone == true )
+        processingBody( rq, buffer, rc, serverInfo );
+}
+
 void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it, const std::map<int, informations>& infoMap) //!yachaab edit here: add localisation vector
 {
     if ((monitor.revents & POLLIN))
@@ -107,13 +117,15 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 {
                     this->Requests[monitor.fd] = Request();
                 }
-                if ( this->Requests.at(monitor.fd).fetchHeaderDone == false )
-                    fetchRequestHeader( this->Requests.at(monitor.fd), buffer, rd );
-                if ( this->Requests.at(monitor.fd).fetchHeaderDone == true && this->Requests.at(monitor.fd).processingHeaderDone == false )
-                    processingHeader( this->Requests.at(monitor.fd) );
-                if ( this->Requests.at(monitor.fd).processingHeaderDone == true )
-                    processingBody( this->Requests.at(monitor.fd), buffer, rd, infoMap.at( it->second ) );
-                
+                processingClientRequest( rd, buffer, this->Requests.at(monitor.fd), infoMap.at( it->second ) );
+                // {
+                //     if ( this->Requests.at(monitor.fd).fetchHeaderDone == false )
+                //         fetchRequestHeader( this->Requests.at(monitor.fd), buffer, rd );
+                //     if ( this->Requests.at(monitor.fd).fetchHeaderDone == true && this->Requests.at(monitor.fd).processingHeaderDone == false )
+                //         processingHeader( this->Requests.at(monitor.fd) );
+                //     if ( this->Requests.at(monitor.fd).processingHeaderDone == true )
+                //         processingBody( this->Requests.at(monitor.fd), buffer, rd, infoMap.at( it->second ) );
+                // }
             } catch ( ... ) {
                 std::cerr << codeMsg.statMsg.at(this->Requests[monitor.fd].stat) << std::endl;
                 this->Requests.at(monitor.fd).readyToSendRes = true;
@@ -152,8 +164,8 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                         std::cout << "RESPONSE SENT" << std::endl;
                     }
                     /*-------------- yachaab code ended -----------------*/
-                    sendResponseChunk(monitor.fd, Response.at(monitor.fd));
                 }
+                sendResponseChunk(monitor.fd, Response.at(monitor.fd));
                 if (Response.at(monitor.fd).status == response::Complete)
                     throw std::exception();
             } 

@@ -1,38 +1,17 @@
 #include "../include/mainHeader.hpp"
 
 /*-------------- yachaab code start ---------------*/
-void    connection::fetchRequestHeader( Request& rq, char* buffer, int rc )
+
+static void lowcase( std::string& str )
 {
-    rq.fullRequest.append( buffer, rc );
-	size_t	lfp = rq.fullRequest.find( "\n\n" );
-	size_t	crp = rq.fullRequest.find( "\r\n\r\n" );
-	if ( lfp != std::string::npos )
+	for ( size_t i = 0; i < str.length(); i++  )
 	{
-		rq.remainingBody = rq.fullRequest.substr( lfp + 2);
-     	rq.fetchHeaderDone = true;
-	}
-	if ( crp != std::string::npos )
-	{
-		rq.remainingBody = rq.fullRequest.substr( crp + 4 );
-     	rq.fetchHeaderDone = true;
+		if ( str[ i ] >= 65 && str[ i ] <= 90 )
+			str[ i ] += 32;
 	}
 }
 
-int connection::processingHeader( Request& rq )
-{
-    if ( extractMethodAndUri( rq ) == -1 )
-		throw std::exception();
-	if ( validateUriAndExtractQueries( rq ) == -1 )
-		throw std::exception();
-	if ( extractHttpHeaders( rq ) == -1)
-		throw std::exception();
-	if ( validateHeadersProcess( rq ) == -1 )
-		throw std::exception();
-	// rq.storeHeader = false;
-	return ( 0 );
-}
-
-int extractMethodAndUri( Request& rq )
+static int		extractMethodAndUri( Request& rq )
 {
 	std::string startLine;
     size_t      carriagepos;
@@ -67,20 +46,7 @@ int extractMethodAndUri( Request& rq )
 	return ( 0 );
 }
 
-int	validateUri( const std::string& uri )
-{
-    if ( uri.empty() )
-		return ( -1 );
-    if ( uri.at( 0 ) != '/' )
-		return ( -1 );
-    if ( uri.find(' ') != std::string::npos )
-		return ( -1 );
-	if ( uri.length() > 2048 )
-		return ( -1 );
-	return ( 0 );
-}
-
-void	decomposeQueryParameters( const std::string& query, Request& rq )
+static void	decomposeQueryParameters( const std::string& query, Request& rq )
 {
     std::string param;
     std::stringstream ss( query );
@@ -95,7 +61,20 @@ void	decomposeQueryParameters( const std::string& query, Request& rq )
     }
 }
 
-std::string decodeURI(const std::string& uri)
+static int	validateUri( const std::string& uri )
+{
+    if ( uri.empty() )
+		return ( -1 );
+    if ( uri.at( 0 ) != '/' )
+		return ( -1 );
+    if ( uri.find(' ') != std::string::npos )
+		return ( -1 );
+	if ( uri.length() > 2048 )
+		return ( -1 );
+	return ( 0 );
+}
+
+static std::string decodeURI(const std::string& uri)
 {
     std::string result;
     for (std::size_t i = 0; i < uri.length(); ++i)
@@ -116,7 +95,7 @@ std::string decodeURI(const std::string& uri)
     return result;
 }
 
-int validateUriAndExtractQueries( Request& rq )
+static int validateUriAndExtractQueries( Request& rq )
 {
 	if ( validateUri( rq.headers["uri"] ) == -1 )
 	{
@@ -141,15 +120,6 @@ int validateUriAndExtractQueries( Request& rq )
 	return ( 0 );
 }
 
-void lowcase( std::string& str )
-{
-	for ( size_t i = 0; i < str.length(); i++  )
-	{
-		if ( str[ i ] >= 65 && str[ i ] <= 90 )
-			str[ i ] += 32;
-	}
-}
-
 static int whiteSpace( char ch )
 {
 	if ( ch == '\t' || ch == ' ' || ch == '\r' || ch == '\f' || ch == '\n' )
@@ -166,7 +136,8 @@ static void strTrim( std::string& str )
 	str = str.substr( i, (j - i) + 1 );
 }
 
-bool	examinHeaders( Request& rq, std::string& first, std::string& second )
+
+static bool	examinHeaders( Request& rq, std::string& first, std::string& second )
 {
 	if ( first == "content-length" )
 	{
@@ -232,7 +203,7 @@ bool	examinHeaders( Request& rq, std::string& first, std::string& second )
 	return true;
 }
 
-int	extractHttpHeaders( Request& rq )
+static int	extractHttpHeaders( Request& rq )
 {
 	std::string									line, first, second;
 	std::vector<std::string>					header_lines;
@@ -272,7 +243,7 @@ int	extractHttpHeaders( Request& rq )
 	return ( 0 );
 }
 
-int	validateHeadersProcess( Request& rq )
+static int	validateHeadersProcess( Request& rq )
 {
 	if ( rq.headers.find( "host" ) == rq.headers.end() )
 	{
@@ -303,5 +274,38 @@ int	validateHeadersProcess( Request& rq )
 
 	return 0;
 }
+
+int	processingHeader( Request& rq )
+{
+    if ( extractMethodAndUri( rq ) == -1 )
+		throw std::exception();
+	if ( validateUriAndExtractQueries( rq ) == -1 )
+		throw std::exception();
+	if ( extractHttpHeaders( rq ) == -1)
+		throw std::exception();
+	if ( validateHeadersProcess( rq ) == -1 )
+		throw std::exception();
+	rq.storeHeader = true;
+	return ( 0 );
+}
+
+
+void	fetchRequestHeader( Request& rq, char* buffer, int rc )
+{
+    rq.fullRequest.append( buffer, rc );
+	size_t	lfp = rq.fullRequest.find( "\n\n" );
+	size_t	crp = rq.fullRequest.find( "\r\n\r\n" );
+	if ( lfp != std::string::npos )
+	{
+		rq.remainingBody = rq.fullRequest.substr( lfp + 2);
+     	rq.fetchHeaderDone = true;
+	}
+	if ( crp != std::string::npos )
+	{
+		rq.remainingBody = rq.fullRequest.substr( crp + 4 );
+     	rq.fetchHeaderDone = true;
+	}
+}
+
 
 /*-------------- yachaab code end ---------------*/
