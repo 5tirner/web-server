@@ -17,7 +17,7 @@ void    showInfo2(informations &tmp)
         it = tmp.locationsInfo[i].autoindex.begin();
         std::cout << "AutoIndex " << it->first + " - |" + it->second+"|" << std::endl;
         it = tmp.locationsInfo[i].Return.begin();
-        std::cout << "Return "<< it->first + " - |" + it->second+"|" << std::endl;
+        std::cout << "Return "<< it->first + " - |" + it->second+"| Redirect It With Status="<<tmp.locationsInfo[i].returnValue << std::endl;
         it = tmp.locationsInfo[i].upload.begin();
         std::cout << "Upload "<< it->first + " - |" + it->second+"|" << std::endl;
         it = tmp.locationsInfo[i].cgi.begin();
@@ -129,8 +129,9 @@ int checkLocations(informations &tmp)
             else if (key == "return")
             {
                 save.Return[key] = &buffer[j];
-                // if (redirection(save.returnValue, &buffer[j]))
-                //     return (1);
+                std::map<std::string, std::string>::iterator it = save.Return.begin();
+                if (redirection(&save.returnValue, it->second))
+                { std::cerr << "Invalid `Return` Syntax: " << &buffer[j] << std::endl; return (1);}
             }
             else if (key == "upload")
             {
