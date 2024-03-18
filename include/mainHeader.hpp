@@ -1,5 +1,5 @@
 #ifndef MAINHEADER_HPP
-# define MAINHEADER_HPP
+#define MAINHEADER_HPP
 #include <iostream>
 #include <exception>
 #include <fstream>
@@ -29,12 +29,6 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <climits>
-
-#define RES_HEADER	"HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\nConnection: close\r\n\r\n" // added by yachaab
-#define OUT( val ) std::cout << val << std::endl;
-// #define ERROR(val) Logger::log() << std::put_time(std::localtime(&time_now), "%y-%m-%d %OH:%OM:%OS") << " [ERROR] " << val << std::endl
-
-// static std::time_t time_now = std::time( NULL );
 
 class   configFile
 {
@@ -66,29 +60,17 @@ class   configFile
 
 typedef struct routes
 {
-    std::map<std::string, std::string>  directory;
-    std::map<std::string, std::string>  root;
-    std::map<std::string, std::string>  index;
-    std::map<std::string, std::string>  autoindex;
-    std::map<std::string, std::string>  allowed_methodes;
-    std::map<std::string, std::string>  upload;
-    std::map<std::string, std::string>  cgi;
-    std::map<std::string, std::string>  Return;
+    std::map<std::string, std::string>  directory, root, index, autoindex,
+                                        allowed_methodes, upload, cgi, Return;
     int                                 returnValue;
 }   location;
 
 typedef struct info
 {
-    //others
-    std::vector<std::string>                 others;
-    std::map<std::string, std::string>       limitClientBody;
-    std::map<std::string, std::string>       port;
-    std::map<std::string, std::string>       host;
-    std::map<std::string, std::string>       serverName;
-    std::map<int, std::vector<std::string> > error_page;
-    //locations
-    std::vector<std::string>            locations;
-    std::vector<location>               locationsInfo;
+    std::vector<location>                       locationsInfo;
+    std::map<int, std::vector<std::string> >    error_page;
+    std::map<std::string, std::string>          limitClientBody, port, host, serverName;
+    std::vector<std::string>                    others, locations;
 }   informations;
 
 class   servers
@@ -98,10 +80,10 @@ class   servers
         std::map<int, informations> serversInfo;
     public:
         servers(void);
+        ~servers(void);
         servers(std::fstream &cFile);
         servers(const servers &other);
         servers&operator=(const servers &other);
-        ~servers(void);
         class   BadConetent : public std::exception
         {
             const char *what() const throw()
@@ -109,17 +91,15 @@ class   servers
                 return ("Bad Config File Content");
             }
         };
-        int                         isolateServers(std::string &s);
+        std::map<int, informations> &getMap(void);
         int                         fillInfos(void);
         int                         serverInfos(int i);
-        std::map<int, informations> &getMap(void);
+        int                         isolateServers(std::string &s);
 };
 
-//for multuplexing
 /*-------------- yachaab code start ---------------*/
 typedef struct codeStat
 {
-    std::map<int, std::string> statMsg;
     codeStat()
     {
         statMsg[ 200 ] = "OK";
@@ -131,11 +111,13 @@ typedef struct codeStat
         statMsg[ 404 ] = "Not Found";
         statMsg[ 405 ] = "Method Not Allowed";
         statMsg[ 409 ] = "Conflict";
+        statMsg[ 411 ] = "Length Required";
         statMsg[ 413 ] = "Request Entity Too Large";
         statMsg[ 414 ] = "Request-URI Too Long";
         statMsg[ 500 ] = "Internal Server Error";
         statMsg[ 501 ] = "Not Implemented";
     }
+    std::map<int, std::string> statMsg;
 } code;
 /*-------------- yachaab code start ---------------*/
 
@@ -177,18 +159,17 @@ typedef struct clientRequest
     int             chunkHeaderStart;
     int             rc;
 
-    bool    fetchHeaderDone;
-    bool    processingHeaderDone;
-    bool    isChunkHeader;
-    bool    transferEncoding;
-    bool    contentLength;
-
-    bool    processingRequestDone;
-    bool    storeHeader;
-    bool    readyToSendRes;
-    bool    locationGotChecked;
-    bool    iscr;
-    bool    islf;
+    bool            fetchHeaderDone;
+    bool            processingHeaderDone;
+    bool            isChunkHeader;
+    bool            transferEncoding;
+    bool            contentLength;
+    bool            processingRequestDone;
+    bool            storeHeader;
+    bool            readyToSendRes;
+    bool            locationGotChecked;
+    bool            iscr;
+    bool            islf;
 } Request;
 
 typedef struct clientResponse
@@ -198,8 +179,7 @@ typedef struct clientResponse
     size_t          totalSize;
     size_t          bytesSent;
     std::string     responseHeader;
-    enum Status
-    {
+    enum Status{
         Pending,
         InProgress,
         Complete
@@ -213,106 +193,101 @@ typedef struct clientResponse
 class Logger
 {
 public:
-  static std::ofstream& log()
-  {
-    static std::ofstream myfile_logs;
-    if ( !myfile_logs.is_open() )
-        myfile_logs.open( "./logs", std::ios::out | std::ios::trunc );
-    return myfile_logs;
-  }
+    static std::ofstream& log()
+    {
+        static std::ofstream myfile_logs;
+        if ( !myfile_logs.is_open() )
+            myfile_logs.open( "./logs", std::ios::out | std::ios::trunc );
+        return myfile_logs;
+    }
+};
+
+class Except : public std::exception
+{
+private:
+    const char* error;
+
+public:
+    Except( const char* msg ) : error ( msg ) {}
+
+    virtual const char* what() const throw()
+    {
+        return ( error );
+    }
 };
 
 class   connection
 {
-    private:
-        std::map<int, response>                             Response;
-        std::map<int, informations>                         OverLoad; //Here You Will Find The Informations As A Values For The Fds Of The Sockets Servers
-        std::map<int, struct sockaddr_in>                   serversSock; // each server fd in key with a ready struct on it's value
-        std::map<int, int>                                  clientsSock; // each client fd with the server fd that he connect with it in it's value
-        std::map<int, Request>                              Requests; // each client fd with it's data in the value
-        std::vector<std::map<int, int>::iterator>           exited;
-        std::vector<std::map<int, Request>::iterator>       requestEnd;
-        std::vector<int>                                    responsetEnd;
-        std::vector<int>                                    EndFd;
-    public:
-        connection();
-        connection(std::map<int, informations> &infos);
-        connection(const connection &other);
-        connection&operator=(const connection &other);
-        ~connection();
-        void    serversEndPoint(std::map<int, informations> &info);
-        void    checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it,  const std::map<int, informations>&  );//!yachaab edit here: add localisation struct
-        void    checkServer(struct pollfd &monitor, std::map<int, struct sockaddr_in>::iterator &it);
-        void    closeTheExitClients(void);
-        /*-------------- yachaab code start ---------------*/
-        void    fetchRequestHeader( Request&, char *, int );
-        int     processingHeader( Request& );
-        void    processingBody( Request&, char*, int, const informations& );
-        void    dropClient( int&, std::map<int, int>::iterator & );
-        code    codeMsg;
-        void    handler(int);
-        /*-------------- yachaab code end -----------------*/
-    
-        /*-------------- ysabr code start ---------------*/
-        void    handleRequestGET(int, Request&, const informations&);
-        void    handleRequestDELETE(int, Request&, const informations&);
-        /*-------------- ysabr code end -----------------*/
+private:
+    std::map<int, int>                                  clientsSock; // each client fd with the server fd that he connect with it in it's value
+    std::map<int, Request>                              Requests; // each client fd with it's data in the value
+    std::map<int, response>                             Response;
+    std::map<int, informations>                         OverLoad; //Here You Will Find The Informations As A Values For The Fds Of The Sockets Servers
+    std::map<int, struct sockaddr_in>                   serversSock; // each server fd in key with a ready struct on it's value
+    std::vector<int>                                    responsetEnd, EndFd;
+    std::vector<std::map<int, int>::iterator>           exited;
+    std::vector<std::map<int, Request>::iterator>       requestEnd;
+public:
+    connection();
+    connection(std::map<int, informations> &infos);
+    connection(const connection &other);
+    connection&operator=(const connection &other);
+    ~connection();
+    void    serversEndPoint(std::map<int, informations> &info);
+    void    checkServer(struct pollfd &monitor, std::map<int, struct sockaddr_in>::iterator &it);
+    void    checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it,  const std::map<int, informations>&  );//!yachaab edit here: add localisation struct
+    // void    closeTheExitClients(void);
+    /*-------------- yachaab code start ---------------*/
+    code    codeMsg;
+    void    dropClient( int&, std::map<int, int>::iterator & );
+    void    processingClientRequest( int, char*, Request& , const informations& );
+    /*-------------- yachaab code end -----------------*/
+    /*-------------- ysabr code start ---------------*/
+    void    handleRequestGET(int, Request&, const informations&);
+    void    handleRequestDELETE(int, Request&, const informations&);
+    /*-------------- ysabr code end -----------------*/
 };
-
-
-
 //pars functions
-int         isServer(std::string &s, size_t i);
-std::string removeWhiteSpaces(std::string &s);
-int         isAgoodServer(std::string &server);
+int         isValidIp4(std::string &value);
 int         getContent(std::string &server);
-int         checkInformations(informations &tmp);
+int         normalCheck(std::string &value);
 int         checkLocations(informations &tmp);
-void        etatInitial(informations &tmp);
+int         isServer(std::string &s, size_t i);
+int         isAgoodServer(std::string &server);
+int         checkInformations(informations &tmp);
+int         isInteger(std::string &value, char c);
+int         multiValues(std::string &key, std::string &values);
 void        showInfo(informations &tmp);
 void        showInfo2(informations &tmp);
-int         normalCheck(std::string &value);
-int         multiValues(std::string &key, std::string &values);
-int         isInteger(std::string &value, char c);
-int         isValidIp4(std::string &value);
+void        etatInitial(informations &tmp);
+void        initializeMonitor(struct pollfd &monitor, int fd);
+std::string removeWhiteSpaces(std::string &s);
 /*-------------- yachaab code start ---------------*/
-int         extractMethodAndUri( Request& );
-int	        validateUri( const std::string& );
-void	    decomposeQueryParameters( const std::string& );
-int         validateUriAndExtractQueries( Request& );
-int         extractHttpHeaders( Request& );
-bool	    examinHeaders( Request&, std::string&, std::string& );
-void        lowcase( std::string& );
-int	        validateHeadersProcess( Request& );
-void        generateRandomFileName( Request&, std::string& );
-size_t      parseChunkHeader( Request&, std::string& );
-bool        chunkedComplete( Request&, std::string& );
-void        processChunkedRequestBody( Request&, char*, int&, bool& );
-void        processRegularRequestBody( Request&, char*, int&, bool& );
-int         location_support_upload( Request&,  const informations& );
-int         validateUriAndExtractQueries( Request& rs );
+void        fetchRequestHeader( Request&, char *, int );
+int         processingHeader( Request& );
+void        processingBody( Request&, char*, int, const informations& );
+
+void        sendResponse( int&, const std::string& );
+
+std::string readHtmlFile( const char* );
+std::string creatTemplate( const char*, int& , code&  );
+std::string replacePlaceholder( const std::string& , const std::string&  ,
+                                const std::string& , const std::string& , const std::string&  );
 /*-------------- yachaab code end -----------------*/
-
 /*-------------- ysabr code start ---------------*/
-location    findRouteConfig(std::string&, const informations&);
-void        openFile(response&,const std::string&);
-void        closeFile(response&);
-bool        hasNextChunk(response&);
-bool        isRegularFile(const std::string&);
-bool        isDirectory(const std::string&);
-std::string generateDirectoryListing(const std::string&);
 std::string to_string(int);
-std::string getNextChunk(response&,size_t);
 std::string getMimeType(std::string&);
+std::string getNextChunk(response&,size_t);
 std::string mapUriToFilePath(std::string&, location&);
+std::string generateDirectoryListing(const std::string&);
+bool        hasNextChunk(response&);
 bool        fileExists(std::string&);
+bool        isDirectory(const std::string&);
+bool        isRegularFile(const std::string&);
 bool        removeDirectory(const std::string& path);
+void        closeFile(response&);
 void        sendResponseChunk(int, response&);
+void        openFile(response&,const std::string&);
+location    findRouteConfig(std::string&, const informations&);
 /*-------------- ysabr code end ---------------*/
-
-
-//multuplexing functions
-
-void    initializeMonitor(struct pollfd &monitor, int fd);
-
 #endif

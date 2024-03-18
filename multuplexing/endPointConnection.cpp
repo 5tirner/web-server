@@ -4,7 +4,10 @@
 #include <exception>
 #include <stdexcept>
 
-connection::connection(void) {}
+connection::connection(void)
+{
+    
+}
 
 connection::connection(const connection &other){*this = other;}
 
@@ -71,6 +74,16 @@ void    initializeMonitor(struct pollfd &monitor, int fd)
     monitor.events = POLLIN | POLLOUT;
 }
 
+void connection::processingClientRequest( int rc, char* buffer, Request& rq, const informations& serverInfo )
+{
+    if ( rq.fetchHeaderDone == false )
+        fetchRequestHeader( rq, buffer, rc );
+    if ( rq.fetchHeaderDone == true && rq.processingHeaderDone == false )
+        processingHeader( rq );
+    if ( rq.processingHeaderDone == true )
+        processingBody( rq, buffer, rc, serverInfo );
+}
+
 void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it, const std::map<int, informations>& infoMap) //!yachaab edit here: add localisation vector
 {
     if ((monitor.revents & POLLIN))
@@ -93,6 +106,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         else if (rd)
         {
             buffer[rd] = '\0';
+            
             /*-------------- yachaab code start ---------------*/
             try {
                 try
@@ -103,16 +117,18 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 {
                     this->Requests[monitor.fd] = Request();
                 }
-                if ( this->Requests.at(monitor.fd).fetchHeaderDone == false )
-                    fetchRequestHeader( this->Requests.at(monitor.fd), buffer, rd );
-                if ( this->Requests.at(monitor.fd).fetchHeaderDone == true && this->Requests.at(monitor.fd).processingHeaderDone == false )
-                    processingHeader( this->Requests[monitor.fd] );
-                if ( this->Requests.at(monitor.fd).processingHeaderDone == true )
-                    processingBody( this->Requests.at(monitor.fd), buffer, rd, infoMap.at( it->second ) );
-                
+                processingClientRequest( rd, buffer, this->Requests.at(monitor.fd), infoMap.at( it->second ) );
+                // {
+                //     if ( this->Requests.at(monitor.fd).fetchHeaderDone == false )
+                //         fetchRequestHeader( this->Requests.at(monitor.fd), buffer, rd );
+                //     if ( this->Requests.at(monitor.fd).fetchHeaderDone == true && this->Requests.at(monitor.fd).processingHeaderDone == false )
+                //         processingHeader( this->Requests.at(monitor.fd) );
+                //     if ( this->Requests.at(monitor.fd).processingHeaderDone == true )
+                //         processingBody( this->Requests.at(monitor.fd), buffer, rd, infoMap.at( it->second ) );
+                // }
             } catch ( ... ) {
-                std::cerr << codeMsg.statMsg[this->Requests[monitor.fd].stat] << std::endl;
-                this->Requests[monitor.fd].readyToSendRes = true;
+                std::cerr << codeMsg.statMsg.at(this->Requests[monitor.fd].stat) << std::endl;
+                this->Requests.at(monitor.fd).readyToSendRes = true;
             }
             /*-------------- yachaab code end -----------------*/
         }
@@ -132,19 +148,24 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         if ((monitor.revents & POLLOUT) && this->Requests.at(monitor.fd).readyToSendRes)
         {
             try {
+                std::cout << "READY YO SEND RESPONSE: " << std::endl;
                 if (!this->Requests.at(monitor.fd).storeHeader)
                 {
-                    if (this->Requests.at(monitor.fd).headers["method"] == "get")
-                        handleRequestGET(monitor.fd, this->Requests[monitor.fd], infoMap.at(it->second));
-                    else if (this->Requests.at(monitor.fd).headers["method"] == "delete")
-                        handleRequestDELETE(monitor.fd, this->Requests[monitor.fd], infoMap.at(it->second));
+                    if (this->Requests.at(monitor.fd).headers.at("method") == "get")
+                        handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
+                    else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
+                        handleRequestDELETE(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
                     /*-------------- yachaab code start -----------------*/
-                    else if (this->Requests.at(monitor.fd).headers["method"] == "post" )
-                        throw std::invalid_argument("salina m3a post response");
+                    if ( this->Requests.at(monitor.fd).headers["method"] == "post" )
+                    {
+                        std::string response = creatTemplate( "./src/page.html", this->Requests.at(monitor.fd).stat, codeMsg );
+                        sendResponse( monitor.fd, response );
+                        Response.at(monitor.fd).status = response::Complete;
+                        std::cout << "RESPONSE SENT" << std::endl;
+                    }
                     /*-------------- yachaab code ended -----------------*/
                 }
-
-                sendResponseChunk(monitor.fd, Response[monitor.fd]);
+                sendResponseChunk(monitor.fd, Response.at(monitor.fd));
                 if (Response.at(monitor.fd).status == response::Complete)
                     throw std::exception();
             } 

@@ -134,3 +134,57 @@ void sendResponseChunk(int clientSocket, response& respData)
         }
     }
 }
+
+std::string readHtmlFile( const char* filepath )
+{
+    std::ifstream file( filepath );
+    if ( !file.is_open() )
+        std::exception();
+    std::string content( ( std::istreambuf_iterator<char>( file )  ), ( std::istreambuf_iterator<char>() ) );
+    file.close();
+    return ( content );
+}
+
+std::string replacePlaceholder( const std::string& html, const std::string& msgPlaceholder ,
+                                const std::string& codePlaceholder, const std::string& msgReplace,
+                                const std::string& codeReplace )
+{
+    std::string result  = html;
+    size_t msgPlhPos    = result.find( msgPlaceholder );
+    size_t codePlhPos   = result.find( codePlaceholder );
+
+    if ( msgPlhPos != std::string::npos && codePlhPos != std::string::npos )
+    {
+        result.replace( codePlhPos, codePlaceholder.length(), codeReplace );
+        result.replace( msgPlhPos, msgPlaceholder.length(), msgReplace );
+    }
+    return ( result );
+}
+
+std::string creatTemplate( const char* filepath, int& statcode, code& msgCode )
+{
+    try
+    {
+        std::string version( "HTTP/1.1" );
+        std::string htmlTemplate( readHtmlFile( filepath ) );
+        std::string modifiedHtml( replacePlaceholder( htmlTemplate, "{msg}", "{code}",
+                                  msgCode.statMsg.at(statcode) , to_string( statcode ) ) ); //! check to_string stander
+        std::string httpResponse    = version + " " + to_string( statcode ) + " " + msgCode.statMsg.at(statcode) + "\r\n"; //! check to_string stander
+        httpResponse                += "Content-Type: text/html\r\n";
+        httpResponse                += "Content-Length: " + to_string(modifiedHtml.length()) + "\r\n\r\n";
+        httpResponse                += modifiedHtml;
+        return ( httpResponse );
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << std::endl;
+    }
+    return ("");
+}
+
+void    sendResponse( int& fd, const std::string& response )
+{
+    int rc = write( fd, response.c_str(), response.length() );
+    if ( rc < 0 )
+        throw std::exception();
+}
