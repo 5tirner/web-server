@@ -39,7 +39,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "return has been finished in GET now"
+	@git commit -m "Branche in testing phase"
 	@git push origin omega
 	@echo "Pushed to omega"
 
