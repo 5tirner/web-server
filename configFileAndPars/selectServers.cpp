@@ -76,7 +76,7 @@ servers::servers(std::fstream &cFile)
     // std::cout << "All Things\n" << all << std::endl;
     // std::cout << "What We Need\n" << needed << std::endl;
     // std::cout << "-------------------------------------------" << std::endl;
-    std::cout << "I will Isolate Servers" << std::endl;
+    // std::cout << "I will Isolate Servers" << std::endl;
     if (this->isolateServers(needed))
     {
         cFile.close();
@@ -88,7 +88,7 @@ servers::servers(std::fstream &cFile)
     //     << this->server[i] << std::endl;
     // }
     //std::cout << "--------------------------------------------" << std::endl;
-    std::cout << "I will Fill Infos" << std::endl;
+    // std::cout << "I will Fill Infos" << std::endl;
     if (this->fillInfos())
     {
         cFile.close();

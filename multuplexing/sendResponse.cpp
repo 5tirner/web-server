@@ -135,7 +135,7 @@ void sendResponseChunk(int clientSocket, response& respData)
     }
 }
 
-std::string readHtmlFile( const char* filepath )
+static std::string readHtmlFile( const char* filepath )
 {
     std::ifstream file( filepath );
     if ( !file.is_open() )
@@ -145,7 +145,7 @@ std::string readHtmlFile( const char* filepath )
     return ( content );
 }
 
-std::string replacePlaceholder( const std::string& html, const std::string& msgPlaceholder ,
+static std::string replacePlaceholder( const std::string& html, const std::string& msgPlaceholder ,
                                 const std::string& codePlaceholder, const std::string& msgReplace,
                                 const std::string& codeReplace )
 {

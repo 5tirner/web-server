@@ -290,7 +290,7 @@ void	processingBody( Request& rq, char* buffer, int rc, const informations& info
 			processChunkedRequestBody( rq, buffer, rc, rq.readyToSendRes );
 		if ( rq.contentLength == true )
 		{
-			if ( rq.contentLength <= rq.limitClientBodySize )
+			if ( rq.contentLength <= rq.limitClientBodySize )		
 				processRegularRequestBody( rq, buffer , rc, rq.readyToSendRes );
 			else
 			{

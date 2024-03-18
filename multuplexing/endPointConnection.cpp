@@ -118,15 +118,9 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                     this->Requests[monitor.fd] = Request();
                 }
                 processingClientRequest( rd, buffer, this->Requests.at(monitor.fd), infoMap.at( it->second ) );
-                // {
-                //     if ( this->Requests.at(monitor.fd).fetchHeaderDone == false )
-                //         fetchRequestHeader( this->Requests.at(monitor.fd), buffer, rd );
-                //     if ( this->Requests.at(monitor.fd).fetchHeaderDone == true && this->Requests.at(monitor.fd).processingHeaderDone == false )
-                //         processingHeader( this->Requests.at(monitor.fd) );
-                //     if ( this->Requests.at(monitor.fd).processingHeaderDone == true )
-                //         processingBody( this->Requests.at(monitor.fd), buffer, rd, infoMap.at( it->second ) );
-                // }
-            } catch ( ... ) {
+            }
+            catch ( ... )
+            {
                 std::cerr << codeMsg.statMsg.at(this->Requests[monitor.fd].stat) << std::endl;
                 this->Requests.at(monitor.fd).readyToSendRes = true;
             }
@@ -148,24 +142,26 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         if ((monitor.revents & POLLOUT) && this->Requests.at(monitor.fd).readyToSendRes)
         {
             try {
-                std::cout << "READY YO SEND RESPONSE: " << std::endl;
-                if (!this->Requests.at(monitor.fd).storeHeader)
+                std::cout << "READY YO SEND RESPONSE: 1" << std::endl;
+                if ( !this->Requests.at(monitor.fd).storeHeader )
                 {
+                    std::cout << "READY YO SEND RESPONSE: 2" << std::endl;
                     if (this->Requests.at(monitor.fd).headers.at("method") == "get")
                         handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
                     else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
                         handleRequestDELETE(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
                     /*-------------- yachaab code start -----------------*/
-                    if ( this->Requests.at(monitor.fd).headers["method"] == "post" )
-                    {
-                        std::string response = creatTemplate( "./src/page.html", this->Requests.at(monitor.fd).stat, codeMsg );
-                        sendResponse( monitor.fd, response );
-                        Response.at(monitor.fd).status = response::Complete;
-                        std::cout << "RESPONSE SENT" << std::endl;
-                    }
                     /*-------------- yachaab code ended -----------------*/
                 }
-                sendResponseChunk(monitor.fd, Response.at(monitor.fd));
+                if ( this->Requests.at(monitor.fd).headers["method"] == "post" )
+                {
+                    std::string response = creatTemplate( "./src/page.html", this->Requests.at(monitor.fd).stat, codeMsg );
+                    sendResponse( monitor.fd, response );
+                    Response.at(monitor.fd).status = response::Complete;
+                    std::cout << "RESPONSE SENT" << std::endl;
+                }
+                else
+                    sendResponseChunk(monitor.fd, Response.at(monitor.fd));
                 if (Response.at(monitor.fd).status == response::Complete)
                     throw std::exception();
             } 

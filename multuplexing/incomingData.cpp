@@ -11,7 +11,7 @@ static void lowcase( std::string& str )
 	}
 }
 
-static int		extractMethodAndUri( Request& rq )
+static bool	extractMethodAndUri( Request& rq )
 {
 	std::string startLine;
     size_t      carriagepos;
@@ -41,9 +41,9 @@ static int		extractMethodAndUri( Request& rq )
 	}catch( ... )
 	{
 		Logger::log() << "[ Error ] extract Method And Uri failed" << std::endl;
-		return ( rq.stat = 400, -1 );
+		return ( rq.stat = 400, false );
 	}
-	return ( 0 );
+	return ( true );
 }
 
 static void	decomposeQueryParameters( const std::string& query, Request& rq )
@@ -61,17 +61,17 @@ static void	decomposeQueryParameters( const std::string& query, Request& rq )
     }
 }
 
-static int	validateUri( const std::string& uri )
+static bool	validateUri( const std::string& uri )
 {
     if ( uri.empty() )
-		return ( -1 );
+		return ( false );
     if ( uri.at( 0 ) != '/' )
-		return ( -1 );
+		return ( false );
     if ( uri.find(' ') != std::string::npos )
-		return ( -1 );
+		return ( false );
 	if ( uri.length() > 2048 )
-		return ( -1 );
-	return ( 0 );
+		return ( false );
+	return ( true );
 }
 
 static std::string decodeURI(const std::string& uri)
@@ -95,17 +95,17 @@ static std::string decodeURI(const std::string& uri)
     return result;
 }
 
-static int validateUriAndExtractQueries( Request& rq )
+static bool validateUriAndExtractQueries( Request& rq )
 {
-	if ( validateUri( rq.headers["uri"] ) == -1 )
+	if ( validateUri( rq.headers["uri"] ) == false )
 	{
 		if ( rq.headers["uri"].length() > 2048 )
 		{
-			return ( rq.stat = 414, -1 );
+			return ( rq.stat = 414, false );
 			Logger::log() << "[ Error ] validate Uri And Extract Queries: Request-URI Too Long" << std::endl;
 		}
 		Logger::log() << "[ Error ] validate Uri And Extract Queries: validate uri: failed" << std::endl;
-		return ( rq.stat = 400, -1 );
+		return ( rq.stat = 400, false );
 	}
 
 	rq.headers["uri"] = decodeURI(rq.headers["uri"]);
@@ -117,7 +117,7 @@ static int validateUriAndExtractQueries( Request& rq )
         rq.headers["uri"] = rq.headers["uri"].substr( 0, queryPos );
         decomposeQueryParameters( query, rq );
     }
-	return ( 0 );
+	return ( true );
 }
 
 static int whiteSpace( char ch )
@@ -239,9 +239,9 @@ static int	extractHttpHeaders( Request& rq )
 	}
 	catch( const std::exception& e )
 	{
-		return ( rq.stat = 400, -1 );
+		return ( rq.stat = 400, false );
 	}
-	return ( 0 );
+	return ( true );
 }
 
 static int	validateHeadersProcess( Request& rq )
@@ -249,21 +249,21 @@ static int	validateHeadersProcess( Request& rq )
 	if ( rq.headers.find( "host" ) == rq.headers.end() )
 	{
 		Logger::log() << "[ Error ] Host is required" << std::endl;
-		return ( rq.stat = 400, -1 );
-	}
-	if ( rq.headers.find( "content-type" ) == rq.headers.end() )
-	{
-		Logger::log() << "[ Error ] Content-Type is required" << std::endl;
-		return ( rq.stat = 400, -1 );
+		return ( rq.stat = 400, false );
 	}
 	if ( rq.headers["method"] == "post" )
 	{
+		if ( rq.headers.find( "content-type" ) == rq.headers.end() )
+		{
+			Logger::log() << "[ Error ] Content-Type is required" << std::endl;
+			return ( rq.stat = 400, false );
+		}
 		if ( rq.transferEncoding == false )
 		{
 			if ( rq.contentLength == false )
 			{
 				Logger::log() << "[ Error ] Content-Length is required" << std::endl;
-				return ( rq.stat = 411, -1 );
+				return ( rq.stat = 411, false );
 			}
 		}
 		else
@@ -273,23 +273,8 @@ static int	validateHeadersProcess( Request& rq )
 		}
 	}
 
-	return 0;
+	return ( true );
 }
-
-int	processingHeader( Request& rq )
-{
-    if ( extractMethodAndUri( rq ) == -1 )
-		throw std::exception();
-	if ( validateUriAndExtractQueries( rq ) == -1 )
-		throw std::exception();
-	if ( extractHttpHeaders( rq ) == -1)
-		throw std::exception();
-	if ( validateHeadersProcess( rq ) == -1 )
-		throw std::exception();
-	rq.storeHeader = true;
-	return ( 0 );
-}
-
 
 void	fetchRequestHeader( Request& rq, char* buffer, int rc )
 {
@@ -309,4 +294,15 @@ void	fetchRequestHeader( Request& rq, char* buffer, int rc )
 }
 
 
+void	processingHeader( Request& rq )
+{
+    if ( !extractMethodAndUri( rq ) )
+		throw std::exception();
+	if ( !validateUriAndExtractQueries( rq ) )
+		throw std::exception();
+	if ( !extractHttpHeaders( rq ) )
+		throw std::exception();
+	if ( !validateHeadersProcess( rq ) )
+		throw std::exception();
+}
 /*-------------- yachaab code end ---------------*/

@@ -229,17 +229,17 @@ private:
     std::vector<std::map<int, Request>::iterator>       requestEnd;
 public:
     connection();
+    ~connection();
     connection(std::map<int, informations> &infos);
     connection(const connection &other);
     connection&operator=(const connection &other);
-    ~connection();
+    code    codeMsg;
     void    serversEndPoint(std::map<int, informations> &info);
     void    checkServer(struct pollfd &monitor, std::map<int, struct sockaddr_in>::iterator &it);
     void    checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it,  const std::map<int, informations>&  );//!yachaab edit here: add localisation struct
+    void    dropClient( int&, std::map<int, int>::iterator & );
     // void    closeTheExitClients(void);
     /*-------------- yachaab code start ---------------*/
-    code    codeMsg;
-    void    dropClient( int&, std::map<int, int>::iterator & );
     void    processingClientRequest( int, char*, Request& , const informations& );
     /*-------------- yachaab code end -----------------*/
     /*-------------- ysabr code start ---------------*/
@@ -263,16 +263,11 @@ void        etatInitial(informations &tmp);
 void        initializeMonitor(struct pollfd &monitor, int fd);
 std::string removeWhiteSpaces(std::string &s);
 /*-------------- yachaab code start ---------------*/
-void        fetchRequestHeader( Request&, char *, int );
-int         processingHeader( Request& );
-void        processingBody( Request&, char*, int, const informations& );
-
+void        processingHeader( Request& );
 void        sendResponse( int&, const std::string& );
-
-std::string readHtmlFile( const char* );
+void        fetchRequestHeader( Request&, char *, int );
+void        processingBody( Request&, char*, int, const informations& );
 std::string creatTemplate( const char*, int& , code&  );
-std::string replacePlaceholder( const std::string& , const std::string&  ,
-                                const std::string& , const std::string& , const std::string&  );
 /*-------------- yachaab code end -----------------*/
 /*-------------- ysabr code start ---------------*/
 std::string to_string(int);
