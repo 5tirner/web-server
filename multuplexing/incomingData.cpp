@@ -14,19 +14,18 @@ static void lowcase( std::string& str )
 static bool	extractMethodAndUri( Request& rq )
 {
 	std::string startLine;
-    size_t      carriagepos;
-
+	size_t		lfp ( rq.fullRequest.find( "\n" ) ) ;
 	try
 	{
-		startLine = rq.fullRequest.substr( 0, rq.fullRequest.find( "\n" ) );
-        carriagepos = startLine.find("\r");
-		if ( carriagepos != std::string::npos )
-        	startLine.resize(carriagepos);
-
+		if ( lfp != std::string::npos )
+			startLine = rq.fullRequest.substr( 0, lfp );
+		else
+			throw std::exception();
+		if ( startLine.at( startLine.length() - 1 ) == '\r' )
+        	startLine.resize( startLine.length() - 1 ); //! make some changes here
 		int spNbr = std::count( startLine.begin(), startLine.end(), ' ' );
 		if ( spNbr != 2 )
 			throw std::exception();
-
 		rq.headers["method"]    =	startLine.substr( 0, startLine.find( ' ' )  );
 		rq.headers["uri"]       =	startLine.substr( rq.headers["method"].length() + 1, startLine.find_last_of( ' ' ) -  rq.headers["method"].length() - 1 );
 		rq.headers["version"]   =	startLine.substr( rq.headers["method"].length() + rq.headers["uri"].length() + 2 );
@@ -41,7 +40,7 @@ static bool	extractMethodAndUri( Request& rq )
 	}catch( ... )
 	{
 		Logger::log() << "[ Error ] extract Method And Uri failed" << std::endl;
-		return ( rq.stat = 400, false );
+		throw std::exception();
 	}
 	return ( true );
 }
@@ -283,7 +282,7 @@ void	fetchRequestHeader( Request& rq, char* buffer, int rc )
 	size_t	crp = rq.fullRequest.find( "\r\n\r\n" );
 	if ( lfp != std::string::npos )
 	{
-		rq.remainingBody = rq.fullRequest.substr( lfp + 2);
+		rq.remainingBody = rq.fullRequest.substr( lfp + 2 );
      	rq.fetchHeaderDone = true;
 	}
 	if ( crp != std::string::npos )

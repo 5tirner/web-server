@@ -94,15 +94,14 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         int rd = read(monitor.fd, buffer, 2047);
         if (rd == -1)
         {
-            std::cerr << "Error: Failed To Read From " << monitor.fd << " Endpoint." << std::endl;
+			Logger::log() << "[ Error ] Failed To Read From " << monitor.fd << " Endpoint." << std::endl;
             dropClient(monitor.fd, it);
         }
         else if (rd == 0)
         {
-            /*-------------- yachaab edit start ---------------*/
-            dropClient( monitor.fd, it );
-            /*-------------- yachaab edit end ---------------*/
-        }
+			Logger::log() << "[ Warn ] Client close connection" << std::endl;
+			dropClient( monitor.fd, it );
+		}
         else if (rd)
         {
             buffer[rd] = '\0';
@@ -143,7 +142,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         {
             try {
                 std::cout << "READY YO SEND RESPONSE: 1" << std::endl;
-                if ( !this->Requests.at(monitor.fd).storeHeader )
+                if (!this->Requests.at(monitor.fd).storeHeader)
                 {
                     std::cout << "READY YO SEND RESPONSE: 2" << std::endl;
                     if (this->Requests.at(monitor.fd).headers.at("method") == "get")

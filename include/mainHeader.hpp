@@ -20,7 +20,7 @@
 #include <sys/poll.h>
 #include <map>
 #include <ctime>
-#include <asm-generic/socket.h>
+// #include <asm-generic/socket.h>
 #include <netinet/in.h>
 #include <sys/stat.h>
 #include <algorithm>
@@ -236,7 +236,7 @@ public:
     code    codeMsg;
     void    serversEndPoint(std::map<int, informations> &info);
     void    checkServer(struct pollfd &monitor, std::map<int, struct sockaddr_in>::iterator &it);
-    void    checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it,  const std::map<int, informations>&  );//!yachaab edit here: add localisation struct
+    void    checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it,  const std::map<int, informations>&  );
     void    dropClient( int&, std::map<int, int>::iterator & );
     // void    closeTheExitClients(void);
     /*-------------- yachaab code start ---------------*/
