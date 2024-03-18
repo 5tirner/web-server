@@ -158,19 +158,23 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
     std::map<std::string, std::string>::iterator it = routeConfig.Return.find("return");
     if ( it != routeConfig.Return.end() && !it->second.empty())
     {
-        std::cout << "========================================> from return\n";
         std::string redirectURL = it->second; // URL to redirect to
-        int redirectStatus = routeConfig.returnValue; // HTTP status code for redirection
-        // Create the response header for redirection
-        std::string responseD = "HTTP/1.1 " + to_string(redirectStatus) + " Redirected\r\n";
+        size_t spacePos = redirectURL.find(' ');
+        if (spacePos != std::string::npos)
+            redirectURL = redirectURL.substr(spacePos + 1);
+        spacePos = redirectURL.find(';'); //must tell zakaria to remove quotes
+        if (spacePos != std::string::npos)
+            redirectURL = redirectURL.substr(0, spacePos);
+        if (redirectURL.find("http://") != 0 && redirectURL.find("https://") != 0)
+            redirectURL = "http://" + redirectURL;
+        std::string responseD = "HTTP/1.1 301 Moved Permanently\r\n";
         responseD += "Location: " + redirectURL + "\r\n";
-        responseD += "Content-Length: 0\r\n"; // No content in the body
-        responseD += "\r\n"; // End of headers
-        // response responseData;
-        // responseData.setResponseHeader(responseD);
-        // request.storeHeader = true;
-        // Response[clientSocket] = responseData;
-        // send(clientSocket, responseD.c_str(), responseD.size(), 0);
+        responseD += "Content-Length: 0\r\n";
+        responseD += "Connection: close\r\n\r\n";
+        response responseData;
+        responseData.setResponseHeader(responseD);
+        request.storeHeader = true;
+        Response[clientSocket] = responseData;
         return;
     }
     else
