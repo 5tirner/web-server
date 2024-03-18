@@ -35,107 +35,46 @@ bool fileExists(std::string& filePath)
     return file.good();
 }
 
-std::string mapUriToFilePath(std::string& uri, location& locConfig)
-{
-    std::string rootPath = locConfig.root.find("root")->second;
-    std::string filePath = rootPath;
 
-    std::string pathSuffix = uri.substr(locConfig.directory.find("location")->second.length());
-    
-    std::cout << "======>: " << "filePath: " << filePath << pathSuffix << std::endl;
-    std::cout << "-=-=-=-=>: " << pathSuffix[pathSuffix.length() - 1] << std::endl;
-    if (pathSuffix.empty() || pathSuffix[pathSuffix.length() - 1] == '/')
-    {
-        std::istringstream iss(locConfig.index.find("index")->second);
-        std::string indexFile;
-        while (std::getline(iss, indexFile, ' '))
-        {
+std::string mapUriToFilePath( std::string& uri,  location& locConfig)
+{
+    try {
+        std::string rootPath = locConfig.root.at("root"); // Use .at() for const map
+        std::string filePath = rootPath; // Start constructing the file path from the root
+        
+        std::string pathSuffix = uri.substr(locConfig.directory.at("location").length()); // Use .at() here too
+        if (pathSuffix.empty() || pathSuffix[pathSuffix.size() - 1] == '/') {
+            std::istringstream iss(locConfig.index.at("index")); // Use .at() here as well
+            std::string indexFile;
+            while (std::getline(iss, indexFile, ' '))
+            {
             std::string fullPath = filePath + (pathSuffix[pathSuffix.length() - 1] == '/' ? pathSuffix : pathSuffix + "/") + indexFile;
-            if (fileExists(fullPath))
-                return fullPath;
+                if (fileExists(fullPath))
+                {
+                    return fullPath; // Found an index file, return its path
+                }
+            }
+            // Optional: Handle case when no index file is found...
         }
-    }
-    else
+        else
     {
         // If the pathSuffix is not empty and does not end with '/', directly append it to filePath.
         if (filePath[filePath.length() -1 ] != '/')
             filePath += "/";
         filePath += pathSuffix;
-
         std::cout << "=================> =======> : " << filePath << std::endl;
         if (fileExists(filePath))
             return filePath;
         // Handle file not found if necessary.
     }
-    // If none of the conditions are met, or the file doesn't exist, you might want to handle it accordingly.
-    return ""; // Or return a not found or default path
+        return ""; // No index file found, return constructed path
+    } catch (const std::out_of_range& e) {
+        // Handle the case where a key does not exist in the map
+        std::cerr << "Key not found in configuration: " << e.what() << '\n';
+        // Handle error, possibly return a default value or error indicator
+    }
+    return ""; // Placeholder return to satisfy all control paths
 }
-
-// std::string mapUriToFilePath(const std::string& uri, const location& locConfig) {
-//     try {
-//         std::string rootPath = locConfig.root.at("root"); // Use .at() for const map
-//         std::string filePath = rootPath; // Start constructing the file path from the root
-        
-//         std::string pathSuffix = uri.substr(locConfig.directory.at("location").length()); // Use .at() here too
-//         if (pathSuffix.empty() || pathSuffix[pathSuffix.size() - 1] == '/') {
-//             std::istringstream iss(locConfig.index.at("index")); // Use .at() here as well
-//             std::string indexFile;
-//             while (std::getline(iss, indexFile, ' ')) {
-//                 std::string fullPath = filePath + pathSuffix + indexFile; // Append index file
-//                 if (fileExists(fullPath)) {
-//                     return fullPath; // Found an index file, return its path
-//                 }
-//             }
-//             // Optional: Handle case when no index file is found...
-//         }
-//         return filePath + pathSuffix; // No index file found, return constructed path
-//     } catch (const std::out_of_range& e) {
-//         // Handle the case where a key does not exist in the map
-//         std::cerr << "Key not found in configuration: " << e.what() << '\n';
-//         // Handle error, possibly return a default value or error indicator
-//     }
-//     return ""; // Placeholder return to satisfy all control paths
-// }
-
-
-// std::string mapUriToFilePath(std::string& uri, location& routeConfig)
-// {
-//     std::string filePath;
-//     std::map<std::string, std::string>::iterator rootIt = routeConfig.root.find("root");
-//     if (rootIt != routeConfig.root.end())
-//     {
-//         filePath = rootIt->second;
-//         filePath += "/";
-//     }
-//     else
-//         filePath = "/var/www/html/"; // Default path
-//     if (uri == "/")
-//     {
-//         std::map<std::string, std::string>::iterator indexIt = routeConfig.index.find("index");
-//         if (indexIt != routeConfig.index.end() && !indexIt->second.empty())
-//         {
-//             std::istringstream iss(indexIt->second);
-//             std::string indexFile;
-//             while (std::getline(iss, indexFile, ' '))
-//             {
-//                 std::string fullFilePath = filePath + "/" + indexFile;
-//                 if (fileExists(fullFilePath))
-//                     return fullFilePath; // Return the first existing file
-//             }
-//             }
-//             return filePath + "/index.html"; // Default index file
-//     }
-//     else
-//     {
-//         std::map<std::string, std::string>::iterator pos  = routeConfig.directory.find("location");
-//         // std::cout << "index: " << pos->second << std::endl;
-//         size_t start = pos->second.length();
-//         filePath += uri.substr(start);
-//         // std::cout << "+uri: " << filePath << std::endl;
-//     }
-//     return filePath;
-// }
-
 
 location findRouteConfig(std::string& uri,const informations& serverConfig)
 {

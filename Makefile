@@ -39,7 +39,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "add some files for testing"
+	@git commit -m "NOw we All know the get is work should just handle erros pages"
 	@git push origin omega
 	@echo "Pushed to omega"
 
