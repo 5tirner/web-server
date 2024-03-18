@@ -39,7 +39,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "get has been updated finaly"
+	@git commit -m "add some files for testing"
 	@git push origin omega
 	@echo "Pushed to omega"
 
