@@ -106,7 +106,10 @@ void sendResponseChunk(int clientSocket, response& respData)
             respData.status = response::Complete;
             return ;
         }
-        respData.status = response::InProgress;
+        if (respData.filePath.empty() || respData.responseHeader.find("Location:") != std::string::npos)
+            respData.status = response::Complete;
+        else
+            respData.status = response::InProgress;
     }
     else if (respData.status == response::InProgress)
     {

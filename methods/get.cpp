@@ -35,43 +35,106 @@ bool fileExists(std::string& filePath)
     return file.good();
 }
 
-std::string mapUriToFilePath(std::string& uri, location& routeConfig)
+std::string mapUriToFilePath(std::string& uri, location& locConfig)
 {
-    std::string filePath;
-    std::map<std::string, std::string>::iterator rootIt = routeConfig.root.find("root");
-    if (rootIt != routeConfig.root.end())
+    std::string rootPath = locConfig.root.find("root")->second;
+    std::string filePath = rootPath;
+
+    std::string pathSuffix = uri.substr(locConfig.directory.find("location")->second.length());
+    
+    std::cout << "======>: " << "filePath: " << filePath << pathSuffix << std::endl;
+    std::cout << "-=-=-=-=>: " << pathSuffix[pathSuffix.length() - 1] << std::endl;
+    if (pathSuffix.empty() || pathSuffix[pathSuffix.length() - 1] == '/')
     {
-        filePath = rootIt->second;
-        filePath += "/";
-    }
-    else
-        filePath = "/var/www/html/"; // Default path
-    if (uri == "/")
-    {
-        std::map<std::string, std::string>::iterator indexIt = routeConfig.index.find("index");
-        if (indexIt != routeConfig.index.end() && !indexIt->second.empty())
+        std::istringstream iss(locConfig.index.find("index")->second);
+        std::string indexFile;
+        while (std::getline(iss, indexFile, ' '))
         {
-            std::istringstream iss(indexIt->second);
-            std::string indexFile;
-            while (std::getline(iss, indexFile, ' '))
-            {
-                std::string fullFilePath = filePath + "/" + indexFile;
-                if (fileExists(fullFilePath))
-                    return fullFilePath; // Return the first existing file
-            }
-            }
-            return filePath + "/index.html"; // Default index file
+            std::string fullPath = filePath + (pathSuffix[pathSuffix.length() - 1] == '/' ? pathSuffix : pathSuffix + "/") + indexFile;
+            if (fileExists(fullPath))
+                return fullPath;
+        }
     }
     else
     {
-        std::map<std::string, std::string>::iterator pos  = routeConfig.directory.find("location");
-        // std::cout << "index: " << pos->second << std::endl;
-        size_t start = pos->second.length();
-        filePath += uri.substr(start);
-        // std::cout << "+uri: " << filePath << std::endl;
+        // If the pathSuffix is not empty and does not end with '/', directly append it to filePath.
+        if (filePath[filePath.length() -1 ] != '/')
+            filePath += "/";
+        filePath += pathSuffix;
+
+        std::cout << "=================> =======> : " << filePath << std::endl;
+        if (fileExists(filePath))
+            return filePath;
+        // Handle file not found if necessary.
     }
-    return filePath;
+    // If none of the conditions are met, or the file doesn't exist, you might want to handle it accordingly.
+    return ""; // Or return a not found or default path
 }
+
+// std::string mapUriToFilePath(const std::string& uri, const location& locConfig) {
+//     try {
+//         std::string rootPath = locConfig.root.at("root"); // Use .at() for const map
+//         std::string filePath = rootPath; // Start constructing the file path from the root
+        
+//         std::string pathSuffix = uri.substr(locConfig.directory.at("location").length()); // Use .at() here too
+//         if (pathSuffix.empty() || pathSuffix[pathSuffix.size() - 1] == '/') {
+//             std::istringstream iss(locConfig.index.at("index")); // Use .at() here as well
+//             std::string indexFile;
+//             while (std::getline(iss, indexFile, ' ')) {
+//                 std::string fullPath = filePath + pathSuffix + indexFile; // Append index file
+//                 if (fileExists(fullPath)) {
+//                     return fullPath; // Found an index file, return its path
+//                 }
+//             }
+//             // Optional: Handle case when no index file is found...
+//         }
+//         return filePath + pathSuffix; // No index file found, return constructed path
+//     } catch (const std::out_of_range& e) {
+//         // Handle the case where a key does not exist in the map
+//         std::cerr << "Key not found in configuration: " << e.what() << '\n';
+//         // Handle error, possibly return a default value or error indicator
+//     }
+//     return ""; // Placeholder return to satisfy all control paths
+// }
+
+
+// std::string mapUriToFilePath(std::string& uri, location& routeConfig)
+// {
+//     std::string filePath;
+//     std::map<std::string, std::string>::iterator rootIt = routeConfig.root.find("root");
+//     if (rootIt != routeConfig.root.end())
+//     {
+//         filePath = rootIt->second;
+//         filePath += "/";
+//     }
+//     else
+//         filePath = "/var/www/html/"; // Default path
+//     if (uri == "/")
+//     {
+//         std::map<std::string, std::string>::iterator indexIt = routeConfig.index.find("index");
+//         if (indexIt != routeConfig.index.end() && !indexIt->second.empty())
+//         {
+//             std::istringstream iss(indexIt->second);
+//             std::string indexFile;
+//             while (std::getline(iss, indexFile, ' '))
+//             {
+//                 std::string fullFilePath = filePath + "/" + indexFile;
+//                 if (fileExists(fullFilePath))
+//                     return fullFilePath; // Return the first existing file
+//             }
+//             }
+//             return filePath + "/index.html"; // Default index file
+//     }
+//     else
+//     {
+//         std::map<std::string, std::string>::iterator pos  = routeConfig.directory.find("location");
+//         // std::cout << "index: " << pos->second << std::endl;
+//         size_t start = pos->second.length();
+//         filePath += uri.substr(start);
+//         // std::cout << "+uri: " << filePath << std::endl;
+//     }
+//     return filePath;
+// }
 
 
 location findRouteConfig(std::string& uri,const informations& serverConfig)
@@ -145,64 +208,88 @@ std::string to_string(int value)
 
 void connection::handleRequestGET(int clientSocket, Request& request,const informations& serverConfig)
 {
-    std::cerr << "client number " << clientSocket << " Resiving Data." << std::endl;
     location routeConfig = findRouteConfig(request.headers["uri"], serverConfig);
     if (routeConfig.allowed_methodes["allowed_methodes"].find("GET") == std::string::npos)
     {
         // sendErrorResponse(clientSocket, 404, "Method Not allowed");
         return;
     }
-    // Determine the file path based on the route configuration
-    std::string filePath2 = mapUriToFilePath(request.headers["uri"], routeConfig);
+        std::cout << "========================================> from return\n";
 
-    std::string filePath = filePath2;
-    std::string responseD;
-    if (isDirectory(filePath))
+    std::map<std::string, std::string>::iterator it = routeConfig.Return.find("return");
+    if ( it != routeConfig.Return.end() && !it->second.empty())
     {
-        std::vector<location>::const_iterator it = serverConfig.locationsInfo.begin();
-        std::string check = request.headers["uri"] + it->index.at("index");
-        std::map<std::string, std::string>::iterator autoindexIt = routeConfig.autoindex.find("autoindex");
-        if (isRegularFile(check))
-        {
-            responseD = "HTTP/1.1 301 OK\r\n";
-            responseD += "Location: " + check + " \r\n";
-        }
-        else if (autoindexIt != routeConfig.autoindex.end() && autoindexIt->second == "on")
-        {
-            std::string directoryContent = generateDirectoryListing(filePath);
-            std::cout << directoryContent << std::endl;
-            responseD = "HTTP/1.1 200 OK\r\n";
-            responseD += "Content-Type: text/html\r\n";
-            responseD += "Content-Length: " + to_string(directoryContent.size()) + "\r\n";
-            
-            responseD += "\r\n";
-            responseD += directoryContent;
-         }
+        std::cout << "========================================> from return\n";
+        std::string redirectURL = it->second; // URL to redirect to
+        int redirectStatus = routeConfig.returnValue; // HTTP status code for redirection
+        // Create the response header for redirection
+        std::string responseD = "HTTP/1.1 " + to_string(redirectStatus) + " Redirected\r\n";
+        responseD += "Location: " + redirectURL + "\r\n";
+        responseD += "Content-Length: 0\r\n"; // No content in the body
+        responseD += "\r\n"; // End of headers
+        // response responseData;
+        // responseData.setResponseHeader(responseD);
+        // request.storeHeader = true;
+        // Response[clientSocket] = responseData;
+        // send(clientSocket, responseD.c_str(), responseD.size(), 0);
+        return;
     }
     else
     {
-        responseD = "HTTP/1.1 200 OK\r\n";
-        responseD += "Content-Type: " + getMimeType(filePath) + "\r\n";
-        // std::cout << "check if this correct" << std::endl;;
-        /* -------------- yachaab code start ----------------- */
-        // std::fstream file;
-        // file.open( "./media/video/morpho.mp4", std::fstream::binary | std::fstream::ate | std::fstream::in );
-        // size_t size = file.tellg();
-        // file.close();
-        // // std::cout << "size: " << size << std::endl;
-        // responseD += "Content-Length: " + to_string( size ) + "\r\n";
-        // std::cout << "MIME TYPE: " << getMimeType(filePath) << std::endl;
-        // std::cout << "content length: " << xnxx << std::endl;
-        /*-------------- yachaab code ended -----------------*/
-    }
-    // if (request.flagRespons == 0)
-    // {
-        response responseData;
+        // Determine the file path based on the route configuration
+        std::string filePath2 = mapUriToFilePath(request.headers["uri"], routeConfig);
+        std::cout << "===========>: " << filePath2 << std::endl;
+        
+        std::string filePath = filePath2;
+        std::cout << "=======>: path: " << filePath << std::endl;
+        std::string responseD;
+        if (isDirectory(filePath))
+        {
+            std::vector<location>::const_iterator it = serverConfig.locationsInfo.begin();
+            std::string check = request.headers["uri"] + it->index.at("index");
+            std::map<std::string, std::string>::iterator autoindexIt = routeConfig.autoindex.find("autoindex");
+            if (isRegularFile(check))
+            {
+                responseD = "HTTP/1.1 301 OK\r\n";
+                responseD += "Location: " + check + " \r\n";
+            }
+            else if (autoindexIt != routeConfig.autoindex.end() && autoindexIt->second == "on")
+            {
+                std::string directoryContent = generateDirectoryListing(filePath);
+                std::cout << directoryContent << std::endl;
+                responseD = "HTTP/1.1 200 OK\r\n";
+                responseD += "Content-Type: text/html\r\n";
+                responseD += "Content-Length: " + to_string(directoryContent.size()) + "\r\n";
+                
+                responseD += "\r\n";
+                responseD += directoryContent;
+            }
+        }
+        else
+        {
+            responseD = "HTTP/1.1 200 OK\r\n";
+            responseD += "Content-Type: " + getMimeType(filePath) + "\r\n";
+            // std::cout << "check if this correct" << std::endl;;
+            /* -------------- yachaab code start ----------------- */
+            // std::fstream file;
+            // file.open( "./media/video/morpho.mp4", std::fstream::binary | std::fstream::ate | std::fstream::in );
+            // size_t size = file.tellg();
+            // file.close();
+            // // std::cout << "size: " << size << std::endl;
+            // responseD += "Content-Length: " + to_string( size ) + "\r\n";
+            // std::cout << "MIME TYPE: " << getMimeType(filePath) << std::endl;
+            // std::cout << "content length: " << xnxx << std::endl;
+            /*-------------- yachaab code ended -----------------*/
+        }
+        // if (request.flagRespons == 0)
+        // {
+            response responseData;
 
-        responseData.filePath = filePath;
-        responseData.setResponseHeader(responseD);
-        request.storeHeader = true;
-        Response[clientSocket] = responseData;
-        // request.flagRespons = 1;
-    // }
+            responseData.filePath = filePath;
+            responseData.setResponseHeader(responseD);
+            request.storeHeader = true;
+            Response[clientSocket] = responseData;
+            // request.flagRespons = 1;
+        // }
+    }
 }

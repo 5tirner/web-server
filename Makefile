@@ -39,7 +39,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "add extention to the uploaded file"
+	@git commit -m "get has been updated"
 	@git push origin omega
 	@echo "Pushed to omega"
 

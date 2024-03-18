@@ -156,7 +156,8 @@ void strTrim( std::string& str )
 	size_t i = 0, j = str.length() - 1;
 
 	for ( ; i < str.length() && whiteSpace( str[i] ); i++ );
-	for ( ; j >= 0 && whiteSpace( str[j] ); j-- );
+	for ( ; j > 0 && whiteSpace( str[j] ); j-- );
+	j--;
 	str = str.substr( i, (j - i) + 1 );
 }
 
