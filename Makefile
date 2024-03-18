@@ -39,7 +39,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "NOw we All know the get is work should just handle erros pages"
+	@git commit -m "work on cgi now"
 	@git push origin omega
 	@echo "Pushed to omega"
 
