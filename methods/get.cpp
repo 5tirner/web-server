@@ -89,7 +89,10 @@ location findRouteConfig(std::string& uri,const informations& serverConfig)
                 return loc; // Found a matching location
         }
     }
-    throw std::runtime_error("Route not found for URI: " + uri);
+    location loc = serverConfig.locationsInfo[0];
+    std::map<std::string, std::string>::const_iterator it = loc.directory.find("location");
+    std::cout << "Location: ===========>: " << it->second << std::endl;
+    return loc;
 }
 
 
@@ -131,13 +134,6 @@ std::string generateDirectoryListing(const std::string& path)
     return html.str();
 }
 
-// bool isDirectory(const std::string& path) {
-//     struct stat statbuf;
-//     if (stat(path.c_str(), &statbuf) != 0)
-//         return false;
-//     return S_ISDIR(statbuf.st_mode);
-// }
-
 std::string to_string(int value)
 {
     std::ostringstream os;
@@ -150,14 +146,14 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
     location routeConfig = findRouteConfig(request.headers["uri"], serverConfig);
     if (routeConfig.allowed_methodes["allowed_methodes"].find("GET") == std::string::npos)
     {
-        // sendErrorResponse(clientSocket, 404, "Method Not allowed");
+        serveErrorPage(clientSocket, 405, serverConfig);
         return;
     }
-        std::cout << "========================================> from return\n";
 
     std::map<std::string, std::string>::iterator it = routeConfig.Return.find("return");
     if ( it != routeConfig.Return.end() && !it->second.empty())
     {
+        std::cout << "-==-----==>\n";
         std::string redirectURL = it->second; // URL to redirect to
         size_t spacePos = redirectURL.find(' ');
         if (spacePos != std::string::npos)
@@ -179,7 +175,6 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
     }
     else
     {
-        // Determine the file path based on the route configuration
         std::string filePath2 = mapUriToFilePath(request.headers["uri"], routeConfig);
         std::cout << "===========>: " << filePath2 << std::endl;
         // if (routeConfig.cgi.at("cgi") == "on")
@@ -187,6 +182,12 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
         //     //work on cgi now you can use anything you want ba3bab3a3bab3abb3abab3aba3b
         // }
         std::string filePath = filePath2;
+        if (!fileExists(filePath))
+        {
+            std::cout << "===========================================><><><>\n";
+                serveErrorPage(clientSocket, 404, serverConfig);
+                return;
+        }
         std::cout << "=======>: path: " << filePath << std::endl;
         std::string responseD;
         if (isDirectory(filePath))

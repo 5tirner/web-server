@@ -1,5 +1,6 @@
 #include "../include/mainHeader.hpp"
 #include <fcntl.h>
+#include <iterator>
 
 response::clientResponse() : totalSize(0), bytesSent(0), status(Pending)
 {
@@ -100,6 +101,7 @@ void sendResponseChunk(int clientSocket, response& respData)
         openFile(respData ,respData.filePath); // Ensure to provide file path
         if (!respData.responseHeader.empty())
             respData.responseHeader += "Content-Length: " + to_string(respData.totalSize) + "\r\n\r\n";
+        std::cout << "res: ========>: " << respData.filePath << std::endl;
         int k = send(clientSocket, respData.responseHeader.c_str(), respData.responseHeader.size(), 0);
         if (k < 0)
         {

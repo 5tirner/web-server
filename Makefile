@@ -15,6 +15,7 @@ SRC     = main.cpp\
 		  ./methods/post.cpp\
 		  ./methods/get.cpp \
 		  ./methods/delete.cpp \
+		  ./methods/ErrorPages.cpp \
 		  ./multuplexing/sendResponse.cpp
 
 OBJ     = $(addprefix $(OBJDIR)/, $(SRC:.cpp=.o))
