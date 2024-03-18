@@ -39,7 +39,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "work on cgi now"
+	@git commit -m "create a new branche for cgi feature"
 	@git push origin omega
 	@echo "Pushed to omega"
 
