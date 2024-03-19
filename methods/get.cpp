@@ -35,24 +35,22 @@ bool fileExists(std::string& filePath)
     return file.good();
 }
 
-
 std::string mapUriToFilePath( std::string& uri,  location& locConfig)
 {
     try {
         std::string rootPath = locConfig.root.at("root"); // Use .at() for const map
         std::string filePath = rootPath; // Start constructing the file path from the root
-        
-        std::string pathSuffix = uri.substr(locConfig.directory.at("location").length()); // Use .at() here too
-        if (pathSuffix.empty() || pathSuffix[pathSuffix.size() - 1] == '/') {
+        std::cout << "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh\n";
+        std::string pathSuffix = uri.substr(locConfig.directory.at("location").length());
+        if (pathSuffix.empty() || pathSuffix[pathSuffix.size() - 1] == '/')
+        {
             std::istringstream iss(locConfig.index.at("index")); // Use .at() here as well
             std::string indexFile;
             while (std::getline(iss, indexFile, ' '))
             {
-            std::string fullPath = filePath + (pathSuffix[pathSuffix.length() - 1] == '/' ? pathSuffix : pathSuffix + "/") + indexFile;
+                std::string fullPath = filePath + (pathSuffix[pathSuffix.length() - 1] == '/' ? pathSuffix : pathSuffix + "/") + indexFile;
                 if (fileExists(fullPath))
-                {
                     return fullPath; // Found an index file, return its path
-                }
             }
             // Optional: Handle case when no index file is found...
         }
