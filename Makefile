@@ -40,7 +40,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "Branche in testing phase"
+	@git commit -m "The problem has been fixed on get you can try now"
 	@git push origin omega
 	@echo "Pushed to omega"
 
