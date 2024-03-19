@@ -4,8 +4,8 @@
 
 response::clientResponse() : totalSize(0), bytesSent(0), status(Pending)
 {
-    filePath = "random";
-    responseHeader = "random";
+    filePath = "";
+    responseHeader = "";
 }
 
 response::clientResponse(const clientResponse& other)
@@ -98,10 +98,10 @@ void sendResponseChunk(int clientSocket, response& respData)
     {
         if (respData.fileStream)
             respData.fileStream.close();
-        openFile(respData ,respData.filePath); // Ensure to provide file path
+        if (!respData.filePath.empty())
+            openFile(respData ,respData.filePath);
         if (!respData.responseHeader.empty())
             respData.responseHeader += "Content-Length: " + to_string(respData.totalSize) + "\r\n\r\n";
-        std::cout << "res: ========>: " << respData.filePath << std::endl;
         int k = send(clientSocket, respData.responseHeader.c_str(), respData.responseHeader.size(), 0);
         if (k < 0)
         {

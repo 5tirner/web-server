@@ -185,11 +185,33 @@ int multiValues(std::string &key, std::string &values)
         if (justMakeItRight(values) || cgiAndUploadSyntax(values))
             return (1);
     }
-    else if (key == "return")
-    {
-        if (justMakeItRight(values))
-            return (1);
-    }
     return (0);
 }
 
+int redirection(int *status, std::string &val)
+{
+    if (justMakeItRight(val))
+        return (1);
+    std::string save;
+    size_t i = 0;
+    for (; i < val.size(); i++)
+    {
+        if (val[i] == ' ' || val[i] == '\t')
+            break;
+        else if (!std::isdigit(val[i]))
+            return (1);
+        save.push_back(val[i]);
+    }
+    if (save.size() < 3 || save.size() > 5)
+        return (1);
+    for (; i < val.size(); i++)
+    {
+        if (val[i] != ' ' && val[i] != '\t')
+            break;
+    }
+    val = &val[i];
+    if (!val.size())
+        return (1);
+    *status = std::atoi(save.c_str());
+    return (0);
+}

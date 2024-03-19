@@ -263,6 +263,7 @@ void        showInfo2(informations &tmp);
 void        etatInitial(informations &tmp);
 void        initializeMonitor(struct pollfd &monitor, int fd);
 std::string removeWhiteSpaces(std::string &s);
+int         redirection(int *status, std::string &val);
 /*-------------- yachaab code start ---------------*/
 void        processingHeader( Request& );
 void        sendResponse( int&, const std::string& );

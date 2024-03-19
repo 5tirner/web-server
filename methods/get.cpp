@@ -40,8 +40,12 @@ std::string mapUriToFilePath( std::string& uri,  location& locConfig)
     try {
         std::string rootPath = locConfig.root.at("root"); // Use .at() for const map
         std::string filePath = rootPath; // Start constructing the file path from the root
-        std::cout << "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh\n";
-        std::string pathSuffix = uri.substr(locConfig.directory.at("location").length());
+        std::string locPath = locConfig.directory.at("location");
+        std::string pathSuffix;
+        if (uri.find(locPath) == 0)
+            pathSuffix = uri.substr(locPath.length());
+        else
+            pathSuffix = uri;
         if (pathSuffix.empty() || pathSuffix[pathSuffix.size() - 1] == '/')
         {
             std::istringstream iss(locConfig.index.at("index")); // Use .at() here as well
@@ -60,13 +64,13 @@ std::string mapUriToFilePath( std::string& uri,  location& locConfig)
         if (filePath[filePath.length() -1 ] != '/')
             filePath += "/";
         filePath += pathSuffix;
-        std::cout << "=================> =======> : " << filePath << std::endl;
         if (fileExists(filePath))
             return filePath;
         // Handle file not found if necessary.
     }
-        return ""; // No index file found, return constructed path
-    } catch (const std::out_of_range& e) {
+    }
+    catch (const std::out_of_range& e)
+    {
         // Handle the case where a key does not exist in the map
         std::cerr << "Key not found in configuration: " << e.what() << '\n';
         // Handle error, possibly return a default value or error indicator
@@ -82,14 +86,12 @@ location findRouteConfig(std::string& uri,const informations& serverConfig)
         std::map<std::string, std::string>::const_iterator it = loc.directory.find("location");
         if (it != loc.directory.end())
         {
-            const std::string& locPath = it->second;
+            std::string locPath = it->second;
             if (uri.compare(0, locPath.length(), locPath) == 0)
-                return loc; // Found a matching location
+                return loc;
         }
     }
     location loc = serverConfig.locationsInfo[0];
-    std::map<std::string, std::string>::const_iterator it = loc.directory.find("location");
-    std::cout << "Location: ===========>: " << it->second << std::endl;
     return loc;
 }
 
@@ -151,14 +153,13 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
     std::map<std::string, std::string>::iterator it = routeConfig.Return.find("return");
     if ( it != routeConfig.Return.end() && !it->second.empty())
     {
-        std::cout << "-==-----==>\n";
         std::string redirectURL = it->second; // URL to redirect to
         size_t spacePos = redirectURL.find(' ');
         if (spacePos != std::string::npos)
             redirectURL = redirectURL.substr(spacePos + 1);
-        spacePos = redirectURL.find(';'); //must tell zakaria to remove quotes
-        if (spacePos != std::string::npos)
-            redirectURL = redirectURL.substr(0, spacePos);
+        // spacePos = redirectURL.find(';'); //must tell zakaria to remove quotes
+        // if (spacePos != std::string::npos)
+        //     redirectURL = redirectURL.substr(0, spacePos);
         if (redirectURL.find("http://") != 0 && redirectURL.find("https://") != 0)
             redirectURL = "http://" + redirectURL;
         std::string responseD = "HTTP/1.1 301 Moved Permanently\r\n";
@@ -234,7 +235,6 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             responseData.setResponseHeader(responseD);
             request.storeHeader = true;
             Response[clientSocket] = responseData;
-            // request.flagRespons = 1;
-        // }
+
     }
 }
