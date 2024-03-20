@@ -34,6 +34,8 @@ void    showInfo(informations &tmp)
     std::cout << "ServerName " << it->first << " - " << "|"+it->second+"|" << std::endl;
     it = tmp.limitClientBody.begin();
     std::cout << "LimitClient " << it->first << " - " << "|"+it->second+"|" << std::endl;
+    it = tmp.defaultRoot.begin();
+    std::cout << "DefaultRoot " << it->first << " - " << "|"+it->second+"|" << std::endl;
 }
 
 void    initialLocation(location &save)
@@ -66,6 +68,7 @@ int checkLocations(informations &tmp)
         std::string       buffer;
         location          save;
         initialLocation(save);
+        save.root["root"] = tmp.defaultRoot.at("default_root");
         while (std::getline(input, buffer))
         {
             std::string key; size_t j = 0;
@@ -192,6 +195,16 @@ int checkInformations(informations &tmp)
             if (normalCheck(it->second) || isValidIp4(it->second))
             { std::cout << "Invalid `Host` Syntax: " + it->second << std::endl; return (1); }
         }
+        else if (key == "default_root")
+        {
+            tmp.defaultRoot[key] = &tmp.others[i][j];
+            std::map<std::string, std::string>::iterator it = tmp.defaultRoot.begin();
+            if (normalCheck(it->second) || !it->second[0])
+            { std::cerr << "Invalid `DefualtRoot` Syntax: " + it->second << std::endl; return (1); }
+            struct stat metadata;
+            if (it->second[i] && stat(it->second.c_str(), &metadata))
+            { std::cerr << "Invalid DefaultRoot Path " + it->second << std::endl; return (1);}
+        }
         else if (key == "server_name")
         {
             tmp.serverName[key] = &tmp.others[i][j];
@@ -212,6 +225,8 @@ int checkInformations(informations &tmp)
         else
         { std::cout << "Weird KeyWord " + key << std::endl; return (1); }
     }
+    if (tmp.defaultRoot.empty())
+    { std::cerr << "Error: Can't Find The DefaultRoot" << std::endl; return (1);}
     return (0);
 }
 

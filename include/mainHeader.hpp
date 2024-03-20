@@ -69,7 +69,7 @@ typedef struct info
 {
     std::vector<location>                       locationsInfo;
     std::map<int, std::vector<std::string> >    error_page;
-    std::map<std::string, std::string>          limitClientBody, port, host, serverName;
+    std::map<std::string, std::string>          limitClientBody, port, host, serverName, defaultRoot;
     std::vector<std::string>                    others, locations;
 }   informations;
 
