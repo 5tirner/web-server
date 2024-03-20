@@ -43,7 +43,7 @@ void connection::handleRequestDELETE(int clientSocket, Request& request,const in
     std::string filePath = mapUriToFilePath(request.headers["uri"], routeConfig);
     if (routeConfig.allowed_methodes["allowed_methodes"].find("DELETE") == std::string::npos)
     {
-        // sendErrorResponse(clientSocket, 405, "Method Not Allowed");
+        serveErrorPage(clientSocket, 405, serverConfig);
         return;
     }
 
@@ -53,13 +53,13 @@ void connection::handleRequestDELETE(int clientSocket, Request& request,const in
     // Check if the file/directory exists
     if (access(filePath.c_str(), F_OK) == -1)
     {
-        // sendErrorResponse(clientSocket, 404, "Not Found");
+        serveErrorPage(clientSocket, 404, serverConfig);
         return;
     }
     // Check for necessary permissions
     if (access(filePath.c_str(), W_OK) == -1)
     {
-        // sendErrorResponse(clientSocket, 403, "Forbidden");
+        serveErrorPage(clientSocket, 403, serverConfig);
         return;
     }
     // Check if it's a directory and handle accordingly
@@ -67,7 +67,7 @@ void connection::handleRequestDELETE(int clientSocket, Request& request,const in
     {
         if (!removeDirectory(filePath))
         {
-            // sendErrorResponse(clientSocket, 500, "Internal Server Error");
+            serveErrorPage(clientSocket, 500, serverConfig);
             return;
         }
     }
@@ -75,7 +75,7 @@ void connection::handleRequestDELETE(int clientSocket, Request& request,const in
     { 
         if (std::remove(filePath.c_str()) != 0)
         {
-            // sendErrorResponse(clientSocket, 500, "Internal Server Error");
+            serveErrorPage(clientSocket, 500, serverConfig);
             return;
         }
     }

@@ -35,24 +35,26 @@ bool fileExists(std::string& filePath)
     return file.good();
 }
 
-
 std::string mapUriToFilePath( std::string& uri,  location& locConfig)
 {
     try {
         std::string rootPath = locConfig.root.at("root"); // Use .at() for const map
         std::string filePath = rootPath; // Start constructing the file path from the root
-        
-        std::string pathSuffix = uri.substr(locConfig.directory.at("location").length()); // Use .at() here too
-        if (pathSuffix.empty() || pathSuffix[pathSuffix.size() - 1] == '/') {
+        std::string locPath = locConfig.directory.at("location");
+        std::string pathSuffix;
+        if (uri.find(locPath) == 0)
+            pathSuffix = uri.substr(locPath.length());
+        else
+            pathSuffix = uri;
+        if (pathSuffix.empty() || pathSuffix[pathSuffix.size() - 1] == '/')
+        {
             std::istringstream iss(locConfig.index.at("index")); // Use .at() here as well
             std::string indexFile;
             while (std::getline(iss, indexFile, ' '))
             {
-            std::string fullPath = filePath + (pathSuffix[pathSuffix.length() - 1] == '/' ? pathSuffix : pathSuffix + "/") + indexFile;
+                std::string fullPath = filePath + (pathSuffix[pathSuffix.length() - 1] == '/' ? pathSuffix : pathSuffix + "/") + indexFile;
                 if (fileExists(fullPath))
-                {
                     return fullPath; // Found an index file, return its path
-                }
             }
             // Optional: Handle case when no index file is found...
         }
@@ -62,12 +64,13 @@ std::string mapUriToFilePath( std::string& uri,  location& locConfig)
         if (filePath[filePath.length() -1 ] != '/')
             filePath += "/";
         filePath += pathSuffix;
-        std::cout << "=================> =======> : " << filePath << std::endl;
         if (fileExists(filePath))
             return filePath;
         // Handle file not found if necessary.
     }
-    } catch (const std::out_of_range& e) {
+    }
+    catch (const std::out_of_range& e)
+    {
         // Handle the case where a key does not exist in the map
         std::cerr << "Key not found in configuration: " << e.what() << '\n';
         // Handle error, possibly return a default value or error indicator
@@ -83,12 +86,13 @@ location findRouteConfig(std::string& uri,const informations& serverConfig)
         std::map<std::string, std::string>::const_iterator it = loc.directory.find("location");
         if (it != loc.directory.end())
         {
-            const std::string& locPath = it->second;
+            std::string locPath = it->second;
             if (uri.compare(0, locPath.length(), locPath) == 0)
-                return loc; // Found a matching location
+                return loc;
         }
     }
-    throw std::runtime_error("Route not found for URI: " + uri);
+    location loc = serverConfig.locationsInfo[0];
+    return loc;
 }
 
 
@@ -130,13 +134,6 @@ std::string generateDirectoryListing(const std::string& path)
     return html.str();
 }
 
-// bool isDirectory(const std::string& path) {
-//     struct stat statbuf;
-//     if (stat(path.c_str(), &statbuf) != 0)
-//         return false;
-//     return S_ISDIR(statbuf.st_mode);
-// }
-
 std::string to_string(int value)
 {
     std::ostringstream os;
@@ -149,10 +146,9 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
     location routeConfig = findRouteConfig(request.headers["uri"], serverConfig);
     if (routeConfig.allowed_methodes["allowed_methodes"].find("GET") == std::string::npos)
     {
-        // sendErrorResponse(clientSocket, 404, "Method Not allowed");
+        serveErrorPage(clientSocket, 405, serverConfig);
         return;
     }
-        std::cout << "========================================> from return\n";
 
     std::map<std::string, std::string>::iterator it = routeConfig.Return.find("return");
     if ( it != routeConfig.Return.end() && !it->second.empty())
@@ -161,9 +157,9 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
         size_t spacePos = redirectURL.find(' ');
         if (spacePos != std::string::npos)
             redirectURL = redirectURL.substr(spacePos + 1);
-        spacePos = redirectURL.find(';'); //must tell zakaria to remove quotes
-        if (spacePos != std::string::npos)
-            redirectURL = redirectURL.substr(0, spacePos);
+        // spacePos = redirectURL.find(';'); //must tell zakaria to remove quotes
+        // if (spacePos != std::string::npos)
+        //     redirectURL = redirectURL.substr(0, spacePos);
         if (redirectURL.find("http://") != 0 && redirectURL.find("https://") != 0)
             redirectURL = "http://" + redirectURL;
         std::string responseD = "HTTP/1.1 301 Moved Permanently\r\n";
@@ -178,7 +174,6 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
     }
     else
     {
-        // Determine the file path based on the route configuration
         std::string filePath2 = mapUriToFilePath(request.headers["uri"], routeConfig);
         std::cout << "===========>: " << filePath2 << std::endl;
         // if (routeConfig.cgi.at("cgi") == "on")
@@ -186,6 +181,12 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
         //     //work on cgi now you can use anything you want ba3bab3a3bab3abb3abab3aba3b
         // }
         std::string filePath = filePath2;
+        if (!fileExists(filePath))
+        {
+            std::cout << "===========================================><><><>\n";
+                serveErrorPage(clientSocket, 404, serverConfig);
+                return;
+        }
         std::cout << "=======>: path: " << filePath << std::endl;
         std::string responseD;
         if (isDirectory(filePath))
@@ -234,7 +235,6 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             responseData.setResponseHeader(responseD);
             request.storeHeader = true;
             Response[clientSocket] = responseData;
-            // request.flagRespons = 1;
-        // }
+
     }
 }

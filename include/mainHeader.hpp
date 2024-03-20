@@ -245,6 +245,7 @@ public:
     /*-------------- ysabr code start ---------------*/
     void    handleRequestGET(int, Request&, const informations&);
     void    handleRequestDELETE(int, Request&, const informations&);
+void        serveErrorPage(int, int, const informations&);
     /*-------------- ysabr code end -----------------*/
 };
 //pars functions
