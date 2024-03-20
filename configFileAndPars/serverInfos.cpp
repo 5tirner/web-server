@@ -46,6 +46,7 @@ void    initialLocation(location &save)
     save.Return["return"] = "";
     save.upload["upload"] = "";
     save.cgi["cgi"] = "";
+    save.returnValue = -1;
 }
 
 void    etatInitial(informations &tmp)
@@ -82,12 +83,9 @@ int checkLocations(informations &tmp)
             if (key == "location")
             {
                 save.directory[key] = &buffer[j];
-                std::map<std::string, std::string>::iterator it = save.directory.begin(); 
+                std::map<std::string, std::string>::iterator it = save.directory.begin();
                 if (normalCheck(it->second) || it->second == "{" || (it->second[0] == '.' && (it->second[1] && it->second[1] == '.')))
                 { std::cerr << "Invalid `Location` Syntax: " + it->second << std::endl; return (1); }
-                // struct stat metadata;
-                // if (it->second[0] && stat(it->second.c_str(), &metadata))
-                // { std::cerr << "Invalid Location Path " + it->second << std::endl; return (1);}
             }
             else if (key != "location" && key != "{"
                 && key != "}" && !strchr(&buffer[j], ';'))

@@ -285,5 +285,6 @@ void        closeFile(response&);
 void        sendResponseChunk(int, response&);
 void        openFile(response&,const std::string&);
 location    findRouteConfig(std::string&, const informations&);
+std::string decodeURI(const std::string&);
 /*-------------- ysabr code end ---------------*/
 #endif

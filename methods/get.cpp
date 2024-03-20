@@ -67,7 +67,6 @@ std::string mapUriToFilePath( std::string& uri,  location& locConfig)
             return filePath;
         // Handle file not found if necessary.
     }
-        return ""; // No index file found, return constructed path
     } catch (const std::out_of_range& e) {
         // Handle the case where a key does not exist in the map
         std::cerr << "Key not found in configuration: " << e.what() << '\n';
