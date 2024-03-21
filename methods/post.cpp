@@ -92,8 +92,9 @@ static int location_support_upload( Request& rq, const informations& infoStruct 
 						return ( rq.stat = 400, -1 );
 					}
 					rq.limitClientBodySize = holder;
-					if ( rq.content_length > rq.limitClientBodySize )
+					if ( rq.headerContentLength > rq.limitClientBodySize )
 					{
+						std::cout << "ILLOGIC: " << rq.headerContentLength << "LIMIT: " << rq.limitClientBodySize << std::endl;
 						Logger::log() << "[ Error ] : Client limit body size smaller that body content length" << std::endl;
 						return ( rq.stat = 413, -1 );
 					}
@@ -237,6 +238,7 @@ static void	processChunkedRequestBody( Request& rq, char* buffer, int& rc )
 			rq.stat = 201;
 			rq.readyToSendRes = true;
 			Logger::log() << "[ sucess ] body file created" << std::endl;
+			rq.bodyStream->close();
 			throw std::exception();
 		}
         rq.remainingBody.clear();
@@ -249,6 +251,7 @@ static void	processChunkedRequestBody( Request& rq, char* buffer, int& rc )
 			rq.stat = 201;
 			rq.readyToSendRes = true;
 			Logger::log() << "[ sucess ] body file created" << std::endl;
+			rq.bodyStream->close();
 			throw std::exception();
 		}
     }
@@ -272,15 +275,25 @@ static void	processRegularRequestBody( Request& rq, char* buffer, int& rc )
 	{
 		rq.stat = 500;
 		Logger::log() << "[ Error ] write body stream failed" << std::endl;
+		rq.bodyStream->close();
 		throw std::exception();
 	}
-	if ( rq.content_length == rq.limitClientBodySize )
+	if ( rq.content_length == rq.headerContentLength )
 	{
 		rq.stat = 201;
 		rq.readyToSendRes = true;
-		rq.bodyStored = true;
 		Logger::log() << "[ sucess ] body file created" << std::endl;
-		return;
+		rq.bodyStream->close();
+		throw std::exception();
+	}
+	if ( rq.content_length > rq.headerContentLength )
+	{
+		rq.stat = 400;
+		rq.readyToSendRes = true;
+		Logger::log() << "[ Error ] rq.content_length > rq.headerContentLength " << std::endl;
+		rq.bodyStream->close();
+		std::remove( rq.filename.c_str() );
+		throw std::exception();
 	}
 }
 

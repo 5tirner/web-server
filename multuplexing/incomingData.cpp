@@ -138,26 +138,26 @@ static void strTrim( std::string& str )
 
 static bool	examinHeaders( Request& rq, std::string& first, std::string& second )
 {
+
 	if ( first == "content-length" )
 	{
 		rq.contentLength = true;
-		rq.content_length = std::atoi( second.c_str() );
+		rq.headerContentLength = std::strtol( second.c_str(), NULL, 10 );
 	}
 	else if ( first == "transfer-encoding" )
 	{
-		std::cout << "Transfert-encoding: " << second << std::endl;
 		if ( second == "chunked" )
 			rq.transferEncoding = true;
 		else
-			return ( rq.stat = 501, false ) ;
+			return ( rq.stat = 501, false );
 	}
 	if ( rq.transferEncoding == true && rq.contentLength == true )
 		rq.contentLength = false;
 	if ( rq.transferEncoding == false && rq.contentLength == true )
 	{
-		if ( rq.content_length == 0 )
+		if ( rq.headerContentLength == 0 || rq.headerContentLength >= LONG_MAX )
 		{
-			Logger::log() << "[ Error ] content length is 0" << std::endl;
+			Logger::log() << "[ Error ] content length incorrect" << std::endl;
 			return ( rq.stat = 400, false );
 		}
 	}
@@ -229,11 +229,8 @@ static int	extractHttpHeaders( Request& rq )
 			strTrim( second );
 
 			if ( !examinHeaders( rq, first, second ) )
-			{
-				std::cout << "THROW AT EXIMEN HEADERS" << std::endl;
 				throw std::exception();
-			}
-		
+
 			rq.headers[ first ] = second;
 		}
 		rq.processingHeaderDone = true;

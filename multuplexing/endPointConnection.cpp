@@ -121,7 +121,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
             catch ( ... )
             {
                 std::cerr << codeMsg.statMsg.at(this->Requests[monitor.fd].stat) << std::endl;
-                mega       -> origin/omegamega       -> origin/omega
+                this->Requests.at(monitor.fd).readyToSendRes = true;
             }
             /*-------------- yachaab code end -----------------*/
         }

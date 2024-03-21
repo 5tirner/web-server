@@ -141,6 +141,7 @@ typedef struct clientRequest
         content_length          = 0;
         chunkSizeSum            = 0;
         limitClientBodySize     = 0;
+        headerContentLength     = 0;
         extension               = "";
         bodyStream              = new std::ofstream;
     }
@@ -156,6 +157,7 @@ typedef struct clientRequest
     size_t          chunkSizeSum;
     size_t          currentChunkSize;
     size_t          limitClientBodySize;
+    size_t          headerContentLength;
     int             stat;
     int             chunkHeaderStart;
     int             rc;
