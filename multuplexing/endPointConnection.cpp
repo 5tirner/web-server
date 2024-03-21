@@ -95,7 +95,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         if (rd == -1)
         {
 			Logger::log() << "[ Error ] Failed To Read From " << monitor.fd << " Endpoint." << std::endl;
-            dropClient(monitor.fd, it);
+            dropClient(monitor.fd, it); //! should we drop here?
         }
         else if (rd == 0)
         {
