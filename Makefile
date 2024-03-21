@@ -15,6 +15,7 @@ SRC     = main.cpp\
 		  ./methods/post.cpp\
 		  ./methods/get.cpp \
 		  ./methods/delete.cpp \
+		  ./methods/ErrorPages.cpp \
 		  ./multuplexing/sendResponse.cpp
 
 OBJ     = $(addprefix $(OBJDIR)/, $(SRC:.cpp=.o))
@@ -39,7 +40,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "Branche in testing phase"
+	@git commit -m "@yachaab storing request body for cgi process"
 	@git push origin omega
 	@echo "Pushed to omega"
 
