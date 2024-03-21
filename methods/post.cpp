@@ -282,9 +282,10 @@ static void	processRegularRequestBody( Request& rq, char* buffer, int& rc )
 	{
 		rq.stat = 201;
 		rq.readyToSendRes = true;
+		rq.bodyStored = true;
 		Logger::log() << "[ sucess ] body file created" << std::endl;
 		rq.bodyStream->close();
-		throw std::exception();
+		return;
 	}
 	if ( rq.content_length > rq.headerContentLength )
 	{
@@ -299,28 +300,36 @@ static void	processRegularRequestBody( Request& rq, char* buffer, int& rc )
 
 static void storeBodyForCgi( Request& rq, int rc, char *buffer )
 {
-	if ( !rq.remainingBody.empty() )
-	{
-		rq.bodyStream->write( rq.remainingBody.c_str(),  rq.remainingBody.length() );
-		rq.bodyStream->flush();
-		rq.content_length += rq.remainingBody.length();
-		rq.remainingBody.clear();
+		if ( !rq.remainingBody.empty() )
+		{
+			rq.bodyStream->write( rq.remainingBody.c_str(),  rq.remainingBody.length() );
+			rq.bodyStream->flush();
+			rq.remainingBody.clear();
+		}
+		else if ( rc )
+		{
+			rq.bodyStream->write( buffer,  rc );
+			rq.bodyStream->flush();
+		}
+		if ( rq.transferEncoding == true )
+		{
+			if ( rc >= 7 )
+			{
+				if ( !memcmp( buffer + ( rc - 7 ), "\r\n0\r\n\r\n", 7 ) ) // ! not allowed
+				{
+					rq.bodyStream->close();
+					rq.bodyStored = true;
+					return;
+				}
+			}
+			else
+			{
+				rq.bodyStream->close();
+				rq.bodyStored = true;
+				return;
+			}
 	}
-	else if ( rc )
-	{
-		rq.bodyStream->write( buffer,  rc );
-		rq.bodyStream->flush();
-		rq.content_length += rc;
-	}
-	if ( !rq.bodyStream->good() )
-	{
-		rq.stat = 500;
-		Logger::log() << "[ Error ] write body stream failed" << std::endl;
-		throw std::exception();
-	}
-	if ( rq.transferEncoding == true )
-		std::cout << "DO IT" << std::endl;
-	else if ( rq.contentLength == true )
+	if ( rq.contentLength == true )
 		processRegularRequestBody( rq, buffer , rc );
 }
 
@@ -335,14 +344,12 @@ void	processingBody( Request& rq, char* buffer, int rc, const informations& info
 			throw std::exception();
 		if ( rq.cgi == true )
 		{
-			std::cout << "CGI IS ON" << std::endl;
 			storeBodyForCgi( rq, rc, buffer );
 			if ( rq.bodyStored )
 			{
-				std::cout << "cgi ready to be executed" << std::endl;
+				std::cout << "CGI READY TO BE EXECUTED" << std::endl;
 				throw std::exception();
 			}
-			throw std::exception();
 		}
 		else if ( rq.transferEncoding == true )
 			processChunkedRequestBody( rq, buffer, rc );

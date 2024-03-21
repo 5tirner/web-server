@@ -40,7 +40,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "@yachaab storing request body for cgi process again"
+	@git commit -m "@yachaab storing request body for cgi process -> OK"
 	@git push origin omega
 	@echo "Pushed to omega"
 

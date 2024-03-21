@@ -92,12 +92,12 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         // std::cout << "This Client Is Rlated With Server Endpoint " << it->second << std::endl;
         char buffer[2048];
         int rd = read(monitor.fd, buffer, 2047);
-        if (rd == -1)
-        {
-			Logger::log() << "[ Error ] Failed To Read From " << monitor.fd << " Endpoint." << std::endl;
-            dropClient(monitor.fd, it); //! should we drop here?
-        }
-        else if (rd == 0)
+        // if (rd == -1)
+        // {
+		// 	Logger::log() << "[ Error ] Failed To Read From " << monitor.fd << " Endpoint." << std::endl;
+        //     dropClient(monitor.fd, it); //! should we drop here?
+        // }
+        if (rd == 0)
         {
 			Logger::log() << "[ Warn ] Client close connection" << std::endl;
 			dropClient( monitor.fd, it );
