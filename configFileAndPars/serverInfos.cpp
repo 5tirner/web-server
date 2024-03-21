@@ -201,8 +201,9 @@ int checkInformations(informations &tmp)
             std::map<std::string, std::string>::iterator it = tmp.defaultRoot.begin();
             if (normalCheck(it->second) || !it->second[0])
             { std::cerr << "Invalid `DefualtRoot` Syntax: " + it->second << std::endl; return (1); }
+            std::cout << it->second << " The Deafualt Root" << std::endl;
             struct stat metadata;
-            if (it->second[i] && stat(it->second.c_str(), &metadata))
+            if (stat(it->second.c_str(), &metadata))
             { std::cerr << "Invalid DefaultRoot Path " + it->second << std::endl; return (1);}
         }
         else if (key == "server_name")
