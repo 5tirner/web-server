@@ -37,11 +37,13 @@ bool fileExists(std::string& filePath)
 
 std::string mapUriToFilePath( std::string& uri,  location& locConfig)
 {
-    try {
+    try
+    {
         std::string rootPath = locConfig.root.at("root"); // Use .at() for const map
         std::string filePath = rootPath; // Start constructing the file path from the root
         std::string locPath = locConfig.directory.at("location");
         std::string pathSuffix;
+        std::string fullPath;
         if (uri.find(locPath) == 0)
             pathSuffix = uri.substr(locPath.length());
         else
@@ -52,13 +54,14 @@ std::string mapUriToFilePath( std::string& uri,  location& locConfig)
             std::string indexFile;
             while (std::getline(iss, indexFile, ' '))
             {
-                std::string fullPath = filePath + (pathSuffix[pathSuffix.length() - 1] == '/' ? pathSuffix : pathSuffix + "/") + indexFile;
+                fullPath = filePath + (pathSuffix[pathSuffix.length() - 1] == '/' ? pathSuffix : pathSuffix + "/") + indexFile;
                 if (fileExists(fullPath))
                     return fullPath; // Found an index file, return its path
             }
+            return fullPath;
             // Optional: Handle case when no index file is found...
         }
-        else
+    else
     {
         // If the pathSuffix is not empty and does not end with '/', directly append it to filePath.
         if (filePath[filePath.length() -1 ] != '/')
@@ -66,6 +69,7 @@ std::string mapUriToFilePath( std::string& uri,  location& locConfig)
         filePath += pathSuffix;
         if (fileExists(filePath))
             return filePath;
+        return filePath;
         // Handle file not found if necessary.
     }
     }
@@ -87,8 +91,12 @@ location findRouteConfig(std::string& uri,const informations& serverConfig)
         if (it != loc.directory.end())
         {
             std::string locPath = it->second;
+            std::cout << "===========: " << locPath << std::endl;
             if (uri.compare(0, locPath.length(), locPath) == 0)
+            {
+                std::cout << "===============>>><<<<<<>>>>: " << loc.directory.at("location") << std::endl;
                 return loc;
+            }
         }
     }
     location loc = serverConfig.locationsInfo[0];
@@ -149,19 +157,11 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
         serveErrorPage(clientSocket, 405, serverConfig);
         return;
     }
-
     std::map<std::string, std::string>::iterator it = routeConfig.Return.find("return");
     if ( it != routeConfig.Return.end() && !it->second.empty())
     {
         std::string redirectURL = it->second; // URL to redirect to
-        size_t spacePos = redirectURL.find(' ');
-        if (spacePos != std::string::npos)
-            redirectURL = redirectURL.substr(spacePos + 1);
-        // spacePos = redirectURL.find(';'); //must tell zakaria to remove quotes
-        // if (spacePos != std::string::npos)
-        //     redirectURL = redirectURL.substr(0, spacePos);
-        if (redirectURL.find("http://") != 0 && redirectURL.find("https://") != 0)
-            redirectURL = "http://" + redirectURL;
+        std::cout << "==========================>: RedirectURL: " << redirectURL << std::endl;
         std::string responseD = "HTTP/1.1 301 Moved Permanently\r\n";
         responseD += "Location: " + redirectURL + "\r\n";
         responseD += "Content-Length: 0\r\n";
@@ -174,19 +174,36 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
     }
     else
     {
+        std::map<std::string, std::string>::const_iterator it = routeConfig.directory.find("location");
+        std::cout << "Location test: ++++++++========>: " << it->second << std::endl;
         std::string filePath2 = mapUriToFilePath(request.headers["uri"], routeConfig);
         std::cout << "===========>: " << filePath2 << std::endl;
+        std::string filePath = filePath2;
         // if (routeConfig.cgi.at("cgi") == "on")
         // {
         //     //work on cgi now you can use anything you want ba3bab3a3bab3abb3abab3aba3b
         // }
-        std::string filePath = filePath2;
-        if (!fileExists(filePath))
+
+
+        if (!access(filePath.c_str(), F_OK))
         {
-            std::cout << "===========================================><><><>\n";
-                serveErrorPage(clientSocket, 404, serverConfig);
+            if (access(filePath.c_str(), R_OK))
+            {
+                serveErrorPage(clientSocket, 403, serverConfig);
                 return;
+            }
         }
+        else
+        {
+            serveErrorPage(clientSocket, 404, serverConfig); // Not Found
+            return;
+        }
+        // if (!fileExists(filePath))
+        // {
+        //     std::cout << "===========================================><><><>\n";
+        //         serveErrorPage(clientSocket, 404, serverConfig);
+        //         return;
+        // }
         std::cout << "=======>: path: " << filePath << std::endl;
         std::string responseD;
         if (isDirectory(filePath))
