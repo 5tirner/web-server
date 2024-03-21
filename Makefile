@@ -1,4 +1,4 @@
-TARGET  = a.out
+TARGET  = httpserver
 
 CC      = c++ -Wall -Wextra -Werror  -std=c++98 -fsanitize=address -g3
 
