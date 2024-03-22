@@ -285,7 +285,7 @@ bool        removeDirectory(const std::string& path);
 void        closeFile(response&);
 void        sendResponseChunk(int, response&);
 void        openFile(response&,const std::string&);
-location    findRouteConfig(std::string&, const informations&);
+location findRouteConfig(std::string& uri,const informations& serverConfig);
 std::string decodeURI(const std::string&);
 /*-------------- ysabr code end ---------------*/
 #endif

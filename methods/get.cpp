@@ -1,6 +1,7 @@
 #include "../include/mainHeader.hpp"
 #include <fcntl.h>
 #include <fstream>
+#include <stdexcept>
 
 std::string getMimeType(std::string& filePath)
 {
@@ -29,25 +30,37 @@ std::string getMimeType(std::string& filePath)
     return "text/plain";
 }
 
-bool fileExists(std::string& filePath)
-{
-    std::ifstream file(filePath.c_str());
-    return file.good();
+bool fileExists( std::string& path) {
+    struct stat buffer;
+    return (stat(path.c_str(), &buffer) == 0);
 }
+
+bool hasReadPermission(const std::string& path) {
+    return (access(path.c_str(), R_OK) == 0);
+}
+
 
 std::string mapUriToFilePath( std::string& uri,  location& locConfig)
 {
     try
     {
-        std::string rootPath = locConfig.root.at("root"); // Use .at() for const map
-        std::string filePath = rootPath; // Start constructing the file path from the root
+        std::string filePath = locConfig.root.at("root"); // Use .at() for const map
         std::string locPath = locConfig.directory.at("location");
+        std::cout << "===================> : " << locPath << " " << filePath << std::endl;
         std::string pathSuffix;
         std::string fullPath;
-        if (uri.find(locPath) == 0)
+        // if (uri.find(locPath) == 0)
+        // {
+            std::cout << "----------->DKhal l IF lWALA: " << uri << std::endl;
             pathSuffix = uri.substr(locPath.length());
-        else
-            pathSuffix = uri;
+        // }
+        // else
+        // {
+        //     // if (isDirectory(uri))
+        //     std::cout << "----------->DKhal l IF TANYA: " << uri << std::endl;
+        //     pathSuffix = uri;
+        // }
+            std::cout << "---------->: " << pathSuffix << std::endl;
         if (pathSuffix.empty() || pathSuffix[pathSuffix.size() - 1] == '/')
         {
             std::istringstream iss(locConfig.index.at("index")); // Use .at() here as well
@@ -58,8 +71,8 @@ std::string mapUriToFilePath( std::string& uri,  location& locConfig)
                 if (fileExists(fullPath))
                     return fullPath; // Found an index file, return its path
             }
-            return fullPath;
-            // Optional: Handle case when no index file is found...
+            std::cout << "--->: " << fullPath << std::endl;
+            return filePath;
         }
     else
     {
@@ -67,8 +80,10 @@ std::string mapUriToFilePath( std::string& uri,  location& locConfig)
         if (filePath[filePath.length() -1 ] != '/')
             filePath += "/";
         filePath += pathSuffix;
+        std::cout << "--->======+>: " << filePath << std::endl;
         if (fileExists(filePath))
             return filePath;
+        std::cout << "--->: " << fullPath << std::endl;
         return filePath;
         // Handle file not found if necessary.
     }
@@ -82,25 +97,31 @@ std::string mapUriToFilePath( std::string& uri,  location& locConfig)
     return ""; // Placeholder return to satisfy all control paths
 }
 
+
 location findRouteConfig(std::string& uri,const informations& serverConfig)
 {
-    for (size_t i = 0; i < serverConfig.locationsInfo.size(); ++i)
+    location loc;
+    for (size_t i = serverConfig.locationsInfo.size(); i > 0;)
     {
-        location loc = serverConfig.locationsInfo[i];
+        i--;
+        loc = serverConfig.locationsInfo[i];
         std::map<std::string, std::string>::const_iterator it = loc.directory.find("location");
         if (it != loc.directory.end())
         {
-            std::string locPath = it->second;
-            std::cout << "===========: " << locPath << std::endl;
+            const std::string& locPath = it->second;
+            std::cout << "--->1: " << locPath << std::endl;
+            std::cout << "=====>: " << uri << std::endl;
             if (uri.compare(0, locPath.length(), locPath) == 0)
             {
-                std::cout << "===============>>><<<<<<>>>>: " << loc.directory.at("location") << std::endl;
-                return loc;
+                std::cout << "--->2: " << locPath << std::endl;
+                return loc; // Found a matching location
             }
         }
     }
-    location loc = serverConfig.locationsInfo[0];
-    return loc;
+    throw std::runtime_error("kkk");
+    // loc = serverConfig.locationsInfo[0];
+    // loc.root["root"] = serverConfig.defaultRoot.at("default_root");
+    // return loc;
 }
 
 
@@ -151,7 +172,14 @@ std::string to_string(int value)
 
 void connection::handleRequestGET(int clientSocket, Request& request,const informations& serverConfig)
 {
-    location routeConfig = findRouteConfig(request.headers["uri"], serverConfig);
+    location routeConfig;
+    try {
+         routeConfig = findRouteConfig(request.headers["uri"], serverConfig);
+    
+    } catch (...) {
+        serveErrorPage(clientSocket, 404, serverConfig); // File not found
+    
+    }
     if (routeConfig.allowed_methodes["allowed_methodes"].find("GET") == std::string::npos)
     {
         serveErrorPage(clientSocket, 405, serverConfig);
@@ -176,15 +204,21 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
     {
         std::map<std::string, std::string>::const_iterator it = routeConfig.directory.find("location");
         std::cout << "Location test: ++++++++========>: " << it->second << std::endl;
-        std::string filePath2 = mapUriToFilePath(request.headers["uri"], routeConfig);
-        std::cout << "===========>: " << filePath2 << std::endl;
-        std::string filePath = filePath2;
+        std::string filePath = mapUriToFilePath(request.headers["uri"], routeConfig);
         // if (routeConfig.cgi.at("cgi") == "on")
         // {
         //     //work on cgi now you can use anything you want ba3bab3a3bab3abb3abab3aba3b
         // }
 
-
+            // Check if the file exists and has read permission
+    // if (!fileExists(filePath)) {
+    //     serveErrorPage(clientSocket, 404, serverConfig); // File not found
+    //     return;
+    // }
+    // if (!hasReadPermission(filePath)) {
+    //     serveErrorPage(clientSocket, 403, serverConfig); // Forbidden
+    //     return;
+    // }
         if (!access(filePath.c_str(), F_OK))
         {
             if (access(filePath.c_str(), R_OK))
@@ -232,26 +266,12 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
         {
             responseD = "HTTP/1.1 200 OK\r\n";
             responseD += "Content-Type: " + getMimeType(filePath) + "\r\n";
-            // std::cout << "check if this correct" << std::endl;;
-            /* -------------- yachaab code start ----------------- */
-            // std::fstream file;
-            // file.open( "./media/video/morpho.mp4", std::fstream::binary | std::fstream::ate | std::fstream::in );
-            // size_t size = file.tellg();
-            // file.close();
-            // // std::cout << "size: " << size << std::endl;
-            // responseD += "Content-Length: " + to_string( size ) + "\r\n";
-            // std::cout << "MIME TYPE: " << getMimeType(filePath) << std::endl;
-            // std::cout << "content length: " << xnxx << std::endl;
-            /*-------------- yachaab code ended -----------------*/
         }
-        // if (request.flagRespons == 0)
-        // {
-            response responseData;
-
-            responseData.filePath = filePath;
-            responseData.setResponseHeader(responseD);
-            request.storeHeader = true;
-            Response[clientSocket] = responseData;
+        response responseData;
+        responseData.filePath = filePath;
+        responseData.setResponseHeader(responseD);
+        request.storeHeader = true;
+        Response[clientSocket] = responseData;
 
     }
 }

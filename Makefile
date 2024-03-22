@@ -14,9 +14,9 @@ SRC     = main.cpp\
 		  ./multuplexing/incomingData.cpp \
 		  ./methods/post.cpp\
 		  ./methods/get.cpp \
-		  ./methods/delete.cpp \
 		  ./methods/ErrorPages.cpp \
 		  ./multuplexing/sendResponse.cpp
+#./methods/delete.cpp \
 
 OBJ     = $(addprefix $(OBJDIR)/, $(SRC:.cpp=.o))
 
@@ -40,7 +40,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "The problem has been fixed on get you can try now"
+	@git commit -m "git will be finish tomorrow okay !)"
 	@git push origin omega
 	@echo "Pushed to omega"
 
