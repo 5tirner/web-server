@@ -1,3 +1,3 @@
 <?php
-print "CGI Work Fine With PHP Language"
+print "CGI Work Fine With PHP Language诶"
 ?>

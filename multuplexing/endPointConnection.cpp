@@ -105,7 +105,6 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         else if (rd)
         {
             buffer[rd] = '\0';
-            
             /*-------------- yachaab code start ---------------*/
             try {
                 try
@@ -116,7 +115,8 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 {
                     this->Requests[monitor.fd] = Request();
                 }
-                processingClientRequest( rd, buffer, this->Requests.at(monitor.fd), infoMap.at( it->second ) );
+                processingClientRequest( rd, buffer, this->Requests.at(monitor.fd),
+                infoMap.at( it->second ) );
             }
             catch ( ... )
             {

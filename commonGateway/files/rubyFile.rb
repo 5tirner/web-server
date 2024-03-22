@@ -1,1 +1,1 @@
-puts "CGI Work Fine With RUBY Language";
+print "CGI Work Fine With RUBY language";
