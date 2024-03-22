@@ -132,32 +132,32 @@ static void strTrim( std::string& str )
 
 	for ( ; i < str.length() && whiteSpace( str[i] ); i++ );
 	for ( ; j > 0 && whiteSpace( str[j] ); j-- );
-	j--;
 	str = str.substr( i, (j - i) + 1 );
 }
 
 
 static bool	examinHeaders( Request& rq, std::string& first, std::string& second )
 {
+
 	if ( first == "content-length" )
 	{
 		rq.contentLength = true;
-		rq.requestBodyLength = std::atoi( second.c_str() );
+		rq.headerContentLength = std::strtol( second.c_str(), NULL, 10 );
 	}
 	else if ( first == "transfer-encoding" )
 	{
 		if ( second == "chunked" )
 			rq.transferEncoding = true;
 		else
-			return ( rq.stat = 501, false ) ;
+			return ( rq.stat = 501, false );
 	}
 	if ( rq.transferEncoding == true && rq.contentLength == true )
 		rq.contentLength = false;
 	if ( rq.transferEncoding == false && rq.contentLength == true )
 	{
-		if ( rq.requestBodyLength == 0 )
+		if ( rq.headerContentLength == 0 || rq.headerContentLength >= LONG_MAX )
 		{
-			Logger::log() << "[ Error ] content length is 0" << std::endl;
+			Logger::log() << "[ Error ] content length incorrect" << std::endl;
 			return ( rq.stat = 400, false );
 		}
 	}
@@ -186,7 +186,6 @@ static bool	examinHeaders( Request& rq, std::string& first, std::string& second 
 		
 		s1 = second.substr( 0 , slash );
 		s2 = second.substr( slash + 1 );
-
 		if ( s1.empty() || s2.empty() )
 		{
 			Logger::log() << "[ Error ] Content type mal formed" << std::endl;
@@ -230,15 +229,16 @@ static int	extractHttpHeaders( Request& rq )
 			strTrim( second );
 
 			if ( !examinHeaders( rq, first, second ) )
-				throw std::invalid_argument( "bad request: Invalid header" );
-		
+				throw std::exception();
+
 			rq.headers[ first ] = second;
 		}
 		rq.processingHeaderDone = true;
 	}
 	catch( const std::exception& e )
 	{
-		return ( rq.stat = 400, false );
+		Logger::log() << "extractHttpHeaders" << std::endl;
+		return ( false );
 	}
 	return ( true );
 }

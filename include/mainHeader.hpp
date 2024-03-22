@@ -135,10 +135,13 @@ typedef struct clientRequest
         readyToSendRes          = false;
         iscr                    = false;
         islf                    = false;
+        cgi                     = false;
+        bodyStored              = false;
         isChunkHeader           = true;
         content_length          = 0;
         chunkSizeSum            = 0;
         limitClientBodySize     = 0;
+        headerContentLength     = 0;
         extension               = "";
         bodyStream              = new std::ofstream;
     }
@@ -151,10 +154,10 @@ typedef struct clientRequest
     std::string     extension;
 
     size_t          content_length;
-    size_t          requestBodyLength;
     size_t          chunkSizeSum;
     size_t          currentChunkSize;
     size_t          limitClientBodySize;
+    size_t          headerContentLength;
     int             stat;
     int             chunkHeaderStart;
     int             rc;
@@ -170,6 +173,8 @@ typedef struct clientRequest
     bool            locationGotChecked;
     bool            iscr;
     bool            islf;
+    bool            cgi;
+    bool            bodyStored;
 } Request;
 
 typedef struct clientResponse
@@ -197,7 +202,7 @@ public:
     {
         static std::ofstream myfile_logs;
         if ( !myfile_logs.is_open() )
-            myfile_logs.open( "./logs", std::ios::out | std::ios::trunc );
+            myfile_logs.open( "./logging/logs", std::ios::out | std::ios::trunc );
         return myfile_logs;
     }
 };

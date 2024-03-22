@@ -45,10 +45,10 @@ static int location_support_upload( Request& rq, const informations& infoStruct 
 	std::string method;
 	std::string	location;
 	std::string newUri;
-	size_t i = 0;
 	try
 	{
-		newUri = getUrl( rq.headers.at("uri") );
+		size_t i	= 0;
+		newUri		= getUrl( rq.headers.at("uri") );
 		for (; i < infoStruct.locationsInfo.size(); i++ )
 		{
 			location = infoStruct.locationsInfo.at(i).directory.at( "location" );
@@ -59,6 +59,10 @@ static int location_support_upload( Request& rq, const informations& infoStruct 
 		}
 		if ( newUri == location )
 		{
+			if ( infoStruct.locationsInfo.at( i ).cgi.at("cgi") != "" )
+			{
+				rq.cgi = true;
+			}
 			upload   = infoStruct.locationsInfo.at( i ).upload.at( "upload" );
 			method	 = infoStruct.locationsInfo.at( i ).allowed_methodes.at( "allowed_methodes" );
 			if ( upload[0] )
@@ -81,11 +85,18 @@ static int location_support_upload( Request& rq, const informations& infoStruct 
 						Logger::log() << "[ Error ] : Client can't upload in this location " << "\'" << upload << "\'" << std::endl;
 						return ( rq.stat = 403, -1 );
 					}
-					rq.limitClientBodySize = std::atol( infoStruct.limitClientBody.at("limit_client_body").c_str() ) * 100000000; //! need the exact amount
-					if ( rq.limitClientBodySize == 0 )
+					long holder = std::strtol( infoStruct.limitClientBody.at("limit_client_body").c_str(), NULL, 10 ) * 1000000;
+					if ( holder == 0 || holder == LONG_MAX || holder == LONG_MIN )
 					{
-						Logger::log() << "[ Error ] : Client body size limit is 0" << std::endl;
+						Logger::log() << "[ Error ] : Client limit body size incorrect" << std::endl;
 						return ( rq.stat = 400, -1 );
+					}
+					rq.limitClientBodySize = holder;
+					if ( rq.headerContentLength > rq.limitClientBodySize )
+					{
+						std::cout << "ILLOGIC: " << rq.headerContentLength << "LIMIT: " << rq.limitClientBodySize << std::endl;
+						Logger::log() << "[ Error ] : Client limit body size smaller that body content length" << std::endl;
+						return ( rq.stat = 413, -1 );
 					}
 					if ( !rq.bodyStream->is_open() )
 						generateRandomFileName( rq, upload );
@@ -100,6 +111,7 @@ static int location_support_upload( Request& rq, const informations& infoStruct 
 		Logger::log() << "[ Error ] : Client can't upload in this location " << "\'" << upload << "\'" << std::endl;
 		return ( rq.stat = 403, -1 );
 	}
+	Logger::log() << "[ Error ] : upload location was not provided at config file "<< std::endl;
 	return ( rq.stat = 403, -1 );
 }
 
@@ -159,7 +171,7 @@ static bool    chunkedComplete( Request& rq,  std::string& buffer )
 			if ( rq.chunkSizeSum > rq.limitClientBodySize )
 			{
 				rq.stat = 413;
-				Logger::log() << "[ Error ] Client bosy size greater than body size limit" << std::endl;
+				Logger::log() << "[ Error ] Client body size greater than body size limit" << std::endl;
 				throw std::exception();
 			}
 			if ( rq.currentChunkSize == 0 )
@@ -217,15 +229,16 @@ static bool    chunkedComplete( Request& rq,  std::string& buffer )
 	return false;
 }
 
-static void	processChunkedRequestBody( Request& rq, char* buffer, int& rc, bool& sendRes)
+static void	processChunkedRequestBody( Request& rq, char* buffer, int& rc )
 {
     if ( !rq.remainingBody.empty() )
     {
         if ( chunkedComplete( rq, rq.remainingBody ) )
         {
 			rq.stat = 201;
-			sendRes = true;
+			rq.readyToSendRes = true;
 			Logger::log() << "[ sucess ] body file created" << std::endl;
+			rq.bodyStream->close();
 			throw std::exception();
 		}
         rq.remainingBody.clear();
@@ -236,14 +249,15 @@ static void	processChunkedRequestBody( Request& rq, char* buffer, int& rc, bool&
         if ( chunkedComplete( rq, receivedData ) )
         {
 			rq.stat = 201;
-			sendRes = true;
+			rq.readyToSendRes = true;
 			Logger::log() << "[ sucess ] body file created" << std::endl;
+			rq.bodyStream->close();
 			throw std::exception();
 		}
     }
 }
 
-static void	processRegularRequestBody( Request& rq, char* buffer, int& rc, bool& sendRes )
+static void	processRegularRequestBody( Request& rq, char* buffer, int& rc )
 {
 	if ( !rq.remainingBody.empty() )
 	{
@@ -261,22 +275,64 @@ static void	processRegularRequestBody( Request& rq, char* buffer, int& rc, bool&
 	{
 		rq.stat = 500;
 		Logger::log() << "[ Error ] write body stream failed" << std::endl;
+		rq.bodyStream->close();
 		throw std::exception();
 	}
-	if ( rq.content_length == rq.requestBodyLength )
+	if ( rq.content_length == rq.headerContentLength )
 	{
 		rq.stat = 201;
-		sendRes = true;
+		rq.readyToSendRes = true;
+		rq.bodyStored = true;
 		Logger::log() << "[ sucess ] body file created" << std::endl;
+		rq.bodyStream->close();
 		return;
 	}
-	else if ( rq.content_length > rq.requestBodyLength )
+	if ( rq.content_length > rq.headerContentLength )
 	{
-		rq.stat = 413;
-		Logger::log() << "[ Error ] Request Entity Too Large" << std::endl;
+		rq.stat = 400;
+		rq.readyToSendRes = true;
+		Logger::log() << "[ Error ] rq.content_length > rq.headerContentLength " << std::endl;
+		rq.bodyStream->close();
+		std::remove( rq.filename.c_str() );
 		throw std::exception();
 	}
 }
+
+static void storeBodyForCgi( Request& rq, int rc, char *buffer )
+{
+		if ( !rq.remainingBody.empty() )
+		{
+			rq.bodyStream->write( rq.remainingBody.c_str(),  rq.remainingBody.length() );
+			rq.bodyStream->flush();
+			rq.remainingBody.clear();
+		}
+		else if ( rc )
+		{
+			rq.bodyStream->write( buffer,  rc );
+			rq.bodyStream->flush();
+		}
+		if ( rq.transferEncoding == true )
+		{
+			if ( rc >= 7 )
+			{
+				if ( !memcmp( buffer + ( rc - 7 ), "\r\n0\r\n\r\n", 7 ) ) // ! not allowed
+				{
+					rq.bodyStream->close();
+					rq.bodyStored = true;
+					return;
+				}
+			}
+			else
+			{
+				rq.bodyStream->close();
+				rq.bodyStored = true;
+				return;
+			}
+	}
+	if ( rq.contentLength == true )
+		processRegularRequestBody( rq, buffer , rc );
+}
+
 
 void	processingBody( Request& rq, char* buffer, int rc, const informations& infoStruct )
 {
@@ -286,18 +342,18 @@ void	processingBody( Request& rq, char* buffer, int rc, const informations& info
     {
 		if ( rq.locationGotChecked == false && location_support_upload( rq, infoStruct ) == -1 )
 			throw std::exception();
-		if ( rq.transferEncoding == true )
-			processChunkedRequestBody( rq, buffer, rc, rq.readyToSendRes );
-		if ( rq.contentLength == true )
+		if ( rq.cgi == true )
 		{
-			if ( rq.contentLength <= rq.limitClientBodySize )		
-				processRegularRequestBody( rq, buffer , rc, rq.readyToSendRes );
-			else
+			storeBodyForCgi( rq, rc, buffer );
+			if ( rq.bodyStored )
 			{
-				rq.stat = 413;
-				Logger::log() << "[ Error ] Request Entity Too Large" << std::endl;
+				std::cout << "CGI READY TO BE EXECUTED" << std::endl;
 				throw std::exception();
 			}
 		}
+		else if ( rq.transferEncoding == true )
+			processChunkedRequestBody( rq, buffer, rc );
+		else if ( rq.contentLength == true ) // ! make a change here !
+			processRegularRequestBody( rq, buffer , rc );
     }
 }
