@@ -19,10 +19,10 @@ class   Executer
         Executer(){}
         Executer(const std::string filename)
         {
-            this->types[".pl"]   = "/bin/perl";
-            this->types[".pm"]   = "/bin/perl";
-            this->types[".py"]   = "/bin/python3";
-            this->types[".js"]   = "/bin/js";
+            this->types[".pl"] = "/bin/perl";
+            this->types[".pm"] = "/bin/perl";
+            this->types[".py"] = "/bin/python3";
+            this->types[".js"] = "/bin/js";
             this->types[".rb"] = "/bin/ruby";
             size_t i = filename.size() - 1;
             for (; i > 0; i--)
@@ -50,15 +50,16 @@ class   CGI
         CGI(std::string method, char *av, char **env)
         {
             std::cout << "- FileName: " << av << std::endl;
-            Executer    obj(av); char    *args[3];
+            Executer obj(av); char *args[3];
             args[0] = av, args[1] = av, args[2] = NULL;
+            std::string save = av;
+            save += ".cgi";
             int processDup1 = fork();
             if (!processDup1)
             {
-                std::string save = av;
-                save += ".cgi";
                 if (!freopen(save.c_str(), "w+", stdout))
                     throw "Error: freopen Failed";
+                write (1, "Content-type: text/html;\r\n\r\n", 28); 
                 int processDup2 = fork();
                 if (!processDup2)
                 {
@@ -68,13 +69,28 @@ class   CGI
                 else if (processDup2 == -1)
                     throw "Error: Fork2 Failed To Create A New Process.";
                 else
+                {
                     while (waitpid(processDup2, NULL, WUNTRACED) == -1);
-                fclose(stdout);
+                    std::fstream F;
+                    F.open(save, std::ios::in);
+                    if (!F)
+                        throw "Failed To Open F";
+                    F.seekg(0, std::ios::end);
+                    if (F.tellg() == 28)
+                        std::cout << "Status: 500 Internal Server Error\r\n\r\n";
+                    fclose(stdout);
+                }
             }
             else if (processDup1 == -1)
                 throw "Error: Fork1 Failed To Create A New Process.";
             else
                 while (waitpid(processDup1, NULL, WUNTRACED) == -1);
+            // std::fstream F;
+            // F.open(save, std::ios::in);
+            // if (!F)
+            //     throw "Failed To Open F";
+            // F.seekg(0, std::ios::end);
+            // std::cout << F.tellg() << std::endl;
         }
 };
 
