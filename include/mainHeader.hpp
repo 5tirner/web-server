@@ -136,7 +136,6 @@ typedef struct clientRequest
         iscr                    = false;
         islf                    = false;
         cgi                     = false;
-        bodyStored              = false;
         isChunkHeader           = true;
         content_length          = 0;
         chunkSizeSum            = 0;
@@ -174,7 +173,6 @@ typedef struct clientRequest
     bool            iscr;
     bool            islf;
     bool            cgi;
-    bool            bodyStored;
 } Request;
 
 typedef struct clientResponse

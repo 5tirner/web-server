@@ -257,82 +257,84 @@ static void	processChunkedRequestBody( Request& rq, char* buffer, int& rc )
     }
 }
 
-static void	processRegularRequestBody( Request& rq, char* buffer, int& rc )
-{
-	if ( !rq.remainingBody.empty() )
+static void processRegularRequestBody(Request& rq, char* buffer, int& rc) {
+    try {
+        if (!rq.remainingBody.empty()) {
+            rq.bodyStream->write(rq.remainingBody.c_str(), rq.remainingBody.size());
+            rq.content_length += rq.remainingBody.size();
+            rq.remainingBody.clear();
+			// rq.bodyStream->flush();
+        } else if (rc) {
+            rq.bodyStream->write(buffer, rc);
+            rq.content_length += rc;
+			// rq.bodyStream->flush();
+        }
+
+        if (!rq.bodyStream->good()) {
+            rq.stat = 500;
+            Logger::log() << "[ Error ] write body stream failed" << std::endl;
+			std::remove(rq.filename.c_str());
+            throw std::exception();
+        }
+
+        if (rq.content_length == rq.headerContentLength)
+		{
+            rq.stat = 201;
+            rq.readyToSendRes = true;
+            Logger::log() << "[ success ] body file created" << std::endl;
+			throw std::exception();
+        }
+		else if (rq.content_length > rq.headerContentLength)
+		{
+            rq.stat = 400;
+            rq.readyToSendRes = true;
+            Logger::log() << "[ Error ] rq.content_length > rq.headerContentLength" << std::endl;
+            std::remove(rq.filename.c_str());
+            throw std::exception();
+        }
+    }
+	catch (...)
 	{
-		rq.bodyStream->write( rq.remainingBody.c_str(),  rq.remainingBody.length() );
-		rq.bodyStream->flush();
-		rq.content_length += rq.remainingBody.length();
-		rq.remainingBody.clear();
-	}
-	else if ( rc ){
-		rq.bodyStream->write( buffer,  rc );
-		rq.bodyStream->flush();
-		rq.content_length += rc;
-	}
-	if ( !rq.bodyStream->good() )
-	{
-		rq.stat = 500;
-		Logger::log() << "[ Error ] write body stream failed" << std::endl;
-		rq.bodyStream->close();
-		throw std::exception();
-	}
-	if ( rq.content_length == rq.headerContentLength )
-	{
-		rq.stat = 201;
-		rq.readyToSendRes = true;
-		rq.bodyStored = true;
-		Logger::log() << "[ sucess ] body file created" << std::endl;
-		rq.bodyStream->close();
-		return;
-	}
-	if ( rq.content_length > rq.headerContentLength )
-	{
-		rq.stat = 400;
-		rq.readyToSendRes = true;
-		Logger::log() << "[ Error ] rq.content_length > rq.headerContentLength " << std::endl;
-		rq.bodyStream->close();
-		std::remove( rq.filename.c_str() );
-		throw std::exception();
-	}
+        rq.bodyStream->close();
+        throw std::exception();
+    }
+    rq.bodyStream->close();
 }
 
-static void storeBodyForCgi( Request& rq, int rc, char *buffer )
-{
-		if ( !rq.remainingBody.empty() )
-		{
-			rq.bodyStream->write( rq.remainingBody.c_str(),  rq.remainingBody.length() );
-			rq.bodyStream->flush();
-			rq.remainingBody.clear();
-		}
-		else if ( rc )
-		{
-			rq.bodyStream->write( buffer,  rc );
-			rq.bodyStream->flush();
-		}
-		if ( rq.transferEncoding == true )
-		{
-			if ( rc >= 7 )
-			{
-				if ( !memcmp( buffer + ( rc - 7 ), "\r\n0\r\n\r\n", 7 ) ) // ! not allowed
-				{
-					rq.bodyStream->close();
-					rq.bodyStored = true;
-					return;
-				}
-			}
-			else
-			{
-				rq.bodyStream->close();
-				rq.bodyStored = true;
-				return;
-			}
-	}
-	if ( rq.contentLength == true )
-		processRegularRequestBody( rq, buffer , rc );
-}
-
+// static void storeBodyForCgi( Request& rq, int rc, char *buffer )
+// {
+// 	if ( !rq.remainingBody.empty() )
+// 	{
+// 		rq.bodyStream->write( rq.remainingBody.c_str(),  rq.remainingBody.length() );
+// 		rq.bodyStream->flush();
+// 		rq.remainingBody.clear();
+// 	}
+// 	else if ( rc )
+// 	{
+// 		rq.bodyStream->write( buffer,  rc );
+// 		rq.bodyStream->flush();
+// 	}
+// 	if ( rq.transferEncoding == true )
+// 	{
+// 		if ( rc >= 7 )
+// 		{
+// 			if ( !memcmp( buffer + ( rc - 7 ), "\r\n0\r\n\r\n", 7 ) ) // ! not allowed
+// 			{
+// 				rq.bodyStream->close();
+// 				rq. = true;
+// 				return;
+// 			}
+// 		}
+// 		else
+// 		{
+// 			rq.bodyStream->close();
+// 			rq. = true;
+// 			return;
+// 		}
+// 	}
+// 	if ( rq.contentLength == true )
+// 		processRegularRequestBody( rq, buffer , rc );
+// }
 
 void	processingBody( Request& rq, char* buffer, int rc, const informations& infoStruct )
 {
@@ -344,16 +346,16 @@ void	processingBody( Request& rq, char* buffer, int rc, const informations& info
 			throw std::exception();
 		if ( rq.cgi == true )
 		{
-			storeBodyForCgi( rq, rc, buffer );
-			if ( rq.bodyStored )
-			{
-				std::cout << "CGI READY TO BE EXECUTED" << std::endl;
-				throw std::exception();
-			}
+			// storeBodyForCgi( rq, rc, buffer );
+			// if ( rq. )
+			// {
+			// 	std::cout << "CGI READY TO BE EXECUTED" << std::endl;
+			// 	throw std::exception();
+			// }
 		}
 		else if ( rq.transferEncoding == true )
 			processChunkedRequestBody( rq, buffer, rc );
-		else if ( rq.contentLength == true ) // ! make a change here !
+		else if ( rq.contentLength == true )
 			processRegularRequestBody( rq, buffer , rc );
     }
 }
