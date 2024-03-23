@@ -109,7 +109,7 @@ typedef struct codeStat
         statMsg[ 400 ] = "Bad Request";
         statMsg[ 403 ] = "Forbidden";
         statMsg[ 404 ] = "Not Found";
-        statMsg[ 405 ] = "Method Not Allowed";
+        statMsg[ 405 ] = "Not Allowed";
         statMsg[ 409 ] = "Conflict";
         statMsg[ 411 ] = "Length Required";
         statMsg[ 413 ] = "Request Entity Too Large";
@@ -151,6 +151,7 @@ typedef struct clientRequest
     std::string     remainingBody;
     std::string     filename;
     std::string     extension;
+    std::string     uploaddir;
 
     size_t          content_length;
     size_t          chunkSizeSum;

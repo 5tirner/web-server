@@ -17,14 +17,14 @@ static std::string& getUrl( std::string& uri )
 static void generateRandomFileName( Request& rq, std::string& path )
 {
 	rq.filename = path;
-	const std::string CHARACTErq = "ABCDEFGHIJKLMNOPQrqTUVWXYZabcdefghijklmnopqrqtuvwxyz";
+	const std::string CHARACTERS = "ABCDEFGHIJKLMNOPQrqTUVWXYZabcdefghijklmnopqrqtuvwxyz";
 	std::srand( std::time( NULL ) );
 
 	try {
 		if ( rq.filename.length() > 1 && rq.filename.at( rq.filename.length() - 1 ) != '/' )
 			rq.filename += "/";
 		for ( int i = 0; i < 25; i++ )
-			rq.filename.push_back( CHARACTErq[ rand() % CHARACTErq.length() ] );
+			rq.filename.push_back( CHARACTERS[ rand() % CHARACTERS.length() ] );
 		rq.filename += rq.extension;
     	rq.bodyStream->open( rq.filename.c_str(), std::ios::binary | std::ios::trunc );
 		if ( !rq.bodyStream->is_open() )
@@ -60,50 +60,63 @@ static int location_support_upload( Request& rq, const informations& infoStruct 
 		if ( newUri == location )
 		{
 			if ( infoStruct.locationsInfo.at( i ).cgi.at("cgi") != "" )
-			{
 				rq.cgi = true;
-			}
-			upload   = infoStruct.locationsInfo.at( i ).upload.at( "upload" );
-			method	 = infoStruct.locationsInfo.at( i ).allowed_methodes.at( "allowed_methodes" );
-			if ( upload[0] )
+
+			rq.uploaddir	= infoStruct.locationsInfo.at( i ).upload.at( "upload" );
+			method	 		= infoStruct.locationsInfo.at( i ).allowed_methodes.at( "allowed_methodes" );
+			if ( rq.uploaddir[0] == 0 )
+				rq.uploaddir = "/nfs/homes/yachaab/Desktop/web-server/upload";
+			if ( method.find( "POST" ) != std::string::npos )
 			{
-				if ( method.find( "POST" ) != std::string::npos )
+				if ( access( rq.uploaddir.c_str(), F_OK | W_OK | X_OK ) == 0 )
 				{
-					if ( access( upload.c_str(), F_OK | W_OK | X_OK ) == 0 )
-					{
-						DIR* directory = opendir( upload.c_str() );
-						if ( directory != NULL )
-							closedir( directory );
-						else
-						{
-							Logger::log() << "[ Error ] : Client can't upload in this location directory not found" << "\'" << upload << "\'" << std::endl;
-							return ( rq.stat = 403, -1 );
-						}
-					}
+					DIR* directory = opendir( rq.uploaddir.c_str() );
+					if ( directory != NULL )
+						closedir( directory );
 					else
 					{
-						Logger::log() << "[ Error ] : Client can't upload in this location " << "\'" << upload << "\'" << std::endl;
+						Logger::log() << "[ Error ] : Client can't upload in this location directory not found" << "\'" << rq.uploaddir << "\'" << std::endl;
 						return ( rq.stat = 403, -1 );
 					}
-					long holder = std::strtol( infoStruct.limitClientBody.at("limit_client_body").c_str(), NULL, 10 ) * 1000000;
-					if ( holder == 0 || holder == LONG_MAX || holder == LONG_MIN )
-					{
-						Logger::log() << "[ Error ] : Client limit body size incorrect" << std::endl;
-						return ( rq.stat = 400, -1 );
-					}
-					rq.limitClientBodySize = holder;
-					if ( rq.headerContentLength > rq.limitClientBodySize )
-					{
-						std::cout << "ILLOGIC: " << rq.headerContentLength << "LIMIT: " << rq.limitClientBodySize << std::endl;
-						Logger::log() << "[ Error ] : Client limit body size smaller that body content length" << std::endl;
-						return ( rq.stat = 413, -1 );
-					}
-					if ( !rq.bodyStream->is_open() )
-						generateRandomFileName( rq, upload );
-					rq.locationGotChecked = true;
-					return ( rq.stat = 201, 0 );
 				}
+				else
+				{
+					Logger::log() << "[ Error ] : Client can't upload in this location " << "\'" << rq.uploaddir << "\'" << std::endl;
+					return ( rq.stat = 403, -1 );
+				}
+				long holder = std::strtol( infoStruct.limitClientBody.at("limit_client_body").c_str(), NULL, 10 ) * 1000000;
+				if ( holder == 0 || holder == LONG_MAX || holder == LONG_MIN )
+				{
+					Logger::log() << "[ Error ] : Client limit body size incorrect" << std::endl;
+					return ( rq.stat = 400, -1 );
+				}
+				else
+					rq.limitClientBodySize = holder;
+				if ( rq.headerContentLength > rq.limitClientBodySize )
+				{
+					// std::cout << "ILLOGIC: " << rq.headerContentLength << "LIMIT: " << rq.limitClientBodySize << std::endl;
+					Logger::log() << "[ Error ] : Client limit body size smaller that body content length" << std::endl;
+					return ( rq.stat = 413, -1 );
+				}
+				if ( !rq.bodyStream->is_open() )
+					generateRandomFileName( rq, rq.uploaddir );
+				rq.locationGotChecked = true;
+				return ( rq.stat = 201, 0 );
 			}
+			// }
+			// else
+			// {
+			// 	//* When a client sends a POST request with a file upload,
+			// 	//* Nginx can read the request body and store the uploaded file
+			// 	//* in a temporary directory specified by the client_body_temp_path directive.
+			// 	//* However, Nginx's default behavior is to handle the file upload as part of
+			// 	//* the request processing, which means that the uploaded file is available only
+			// 	//* during the request lifecycle and is discarded after the request is processed.
+			// 	std::string tmpdir( "/nfs/homes/yachaab/Desktop/web-server/upload" );
+			// 	if ( !rq.bodyStream->is_open() )
+			// 		generateRandomFileName( rq, tmpdir );
+			// 	return ( rq.stat = 201, 0 );
+			// }
 		}	
 	}
 	catch(const std::exception& e)
@@ -112,7 +125,7 @@ static int location_support_upload( Request& rq, const informations& infoStruct 
 		return ( rq.stat = 403, -1 );
 	}
 	Logger::log() << "[ Error ] : upload location was not provided at config file "<< std::endl;
-	return ( rq.stat = 403, -1 );
+	return ( rq.stat = 405, -1 );
 }
 
 static size_t	parseChunkHeader( Request& rq, std::string& buffer )
