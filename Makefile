@@ -40,7 +40,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "@yachaab push this code after rmoving cgi-post-chunked-handler"
+	@git commit -m "@yachaab add the tmp dir for upload process"
 	@git push origin omega
 	@echo "Pushed to omega"
 
