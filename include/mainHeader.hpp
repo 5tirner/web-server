@@ -78,6 +78,7 @@ class   servers
     private:
         std::vector<std::string>    server;
         std::map<int, informations> serversInfo;
+        bool                        rootLocation;
     public:
         servers(void);
         ~servers(void);
