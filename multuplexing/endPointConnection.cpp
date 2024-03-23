@@ -4,10 +4,7 @@
 #include <exception>
 #include <stdexcept>
 
-connection::connection(void)
-{
-    
-}
+connection::connection(void){}
 
 connection::connection(const connection &other){*this = other;}
 
@@ -104,7 +101,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
 		}
         else if (rd)
         {
-            buffer[rd] = '\0';
+            // buffer[rd] = '\0';
             
             /*-------------- yachaab code start ---------------*/
             try {
@@ -147,8 +144,8 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                     // std::cout << "READY YO SEND RESPONSE: 2" << std::endl;
                     if (this->Requests.at(monitor.fd).headers.at("method") == "get")
                         handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
-                    else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
-                        handleRequestDELETE(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
+                    // else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
+                    //     handleRequestDELETE(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
                 }
                 /*-------------- yachaab code start -----------------*/
                 if ( this->Requests.at(monitor.fd).headers["method"] == "post" )

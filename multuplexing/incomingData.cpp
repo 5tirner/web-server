@@ -73,7 +73,7 @@ static bool	validateUri( const std::string& uri )
 	return ( true );
 }
 
-static std::string decodeURI(const std::string& uri)
+std::string decodeURI(const std::string& uri)
 {
     std::string result;
     for (std::size_t i = 0; i < uri.length(); ++i)
