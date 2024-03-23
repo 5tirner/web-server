@@ -40,7 +40,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "@yachaab add the tmp dir for upload process"
+	@git commit -m "@yachaab"
 	@git push origin omega
 	@echo "Pushed to omega"
 
