@@ -138,10 +138,8 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         if ((monitor.revents & POLLOUT) && this->Requests.at(monitor.fd).readyToSendRes)
         {
             try {
-                // std::cout << "READY YO SEND RESPONSE: 1" << std::endl;
                 if (!this->Requests.at(monitor.fd).storeHeader)
                 {
-                    // std::cout << "READY YO SEND RESPONSE: 2" << std::endl;
                     if (this->Requests.at(monitor.fd).headers.at("method") == "get")
                         handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
                     // else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
@@ -162,6 +160,8 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                     throw std::exception();
             } 
             catch (...) {
+                // std::cout << "remove file" << std::endl;
+                // std::remove( this->Requests.at(monitor.fd).filename.c_str() );
                 dropClient(monitor.fd, it);
             }
         }
