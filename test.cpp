@@ -1,28 +1,46 @@
-std::string mapUriToFilePath(std::string& uri, location& locConfig) {
-    try {
-        std::string rootPath = locConfig.root.at("root");
-        std::string filePath = rootPath;
+#include <algorithm>
+#include <arpa/inet.h>
+#include <iostream>
+#include <netdb.h>
+#include <cstring>
+#include <vector>
+int main()
+{
+    // char s[] = "www.1337.ma";
+    // struct addrinfo *hints, *res;
+    // hints = new struct addrinfo();
+    // int status = getaddrinfo(s, "80", hints, &res);
+    // if (status == 0) {
+    //     std::cout << "Zero: Good Infos" << std::endl;
 
-        // Determine pathSuffix more flexibly
-        std::string locPath = locConfig.directory.at("location");
-        std::string pathSuffix;
-        if (uri.find(locPath) == 0) {
-            // URI starts with the location path
-            pathSuffix = uri.substr(locPath.length());
-        } else {
-            // No matching location path; URI might be requesting root or doesn't match any location
-            pathSuffix = uri;
-        }
-
-        // Append slash if missing to construct the full path correctly
-        if (!pathSuffix.empty() && pathSuffix.front() != '/') {
-            pathSuffix = "/" + pathSuffix;
-        }
-
-        // Continue with constructing fullPath using pathSuffix as before
-        // ...
-    } catch (const std::out_of_range& e) {
-        std::cerr << "Configuration error: " << e.what() << '\n';
-    }
-    return "";
+    //     char ip[100];
+    //     inet_ntop(res->ai_addr->sa_family, &res->ai_addr->sa_data[2], ip, sizeof(ip));
+    //     std::cout << "The Address Ip: " << ip << std::endl;
+    //     delete hints;
+    // }
+    // else if (status == EAI_ADDRFAMILY)
+    //     std::cout << "EAI_ADDFAM: network host does not have any network" << std::endl;
+    // else if (status == EAI_AGAIN)
+    //     std::cout << "EAI_AGAIN: server returned a temporary" << std::endl;
+    // else if (status == EAI_BADFLAGS)
+    //     std::cout << "EAI_BADF: hints.ai_flags  contains  invalid  flags" << std::endl;
+    // else if (status == EAI_FAIL)
+    //     std::cout << "EAI_FAIL: name server returned a permanent failure" << std::endl;
+    // else if (status == EAI_FAMILY)
+    //     std::cout << "EAI_FAMILY: The requested address family is not supported" << std::endl;
+    // else if (status == EAI_MEMORY)
+    //     std::cout << "EAI_MEM: Out of memory" << std::endl;
+    // else if (status == EAI_NODATA)
+    //     std::cout << "EAI_NODATA: not have any network addresses defined" << std::endl;
+    // else if (status == EAI_NONAME)
+    //     std::cout << "EAI_NONAME: node  or service is not known" << std::endl;
+    // else if (status == EAI_SOCKTYPE)
+    //     std::cout << "EAI_SOCKTYPE: requested socket type is not supported" << std::endl;
+    // else if (status == EAI_SERVICE)
+    //     std::cout << "EAI_SERVICE: The  requested service is not available" << std::endl;
+    // else if (status == EAI_SYSTEM)
+    //     std::cout << "EAI_SYSTEM: Other system error" << std::endl;
+    std::vector<int> save = {3,2,4};
+    std::vector<int>::iterator it = std::find(save.begin(), save.end(), 2);
+    std::cout << it - save.begin() << std::endl;
 }

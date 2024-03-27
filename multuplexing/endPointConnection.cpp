@@ -1,8 +1,12 @@
 #include "../include/mainHeader.hpp"
+#include <cerrno>
 #include <csignal>
 #include <cstdlib>
+#include <cstring>
 #include <exception>
+#include <netdb.h>
 #include <stdexcept>
+#include <arpa/inet.h>
 
 connection::connection(void)
 {
@@ -26,6 +30,32 @@ void errorGenerator(std::string err, int fd)
     std::cerr << err << std::endl;
 }
 
+void    addrinfoIssue(long status)
+{
+    if (status == EAI_ADDRFAMILY)
+        std::cerr << "EAI_ADDFAM: network host does not have any network" << std::endl;
+    else if (status == EAI_AGAIN)
+        std::cerr << "EAI_AGAIN: server returned a temporary" << std::endl;
+    else if (status == EAI_BADFLAGS)
+        std::cerr << "EAI_BADF: hints.ai_flags  contains  invalid  flags" << std::endl;
+    else if (status == EAI_FAIL)
+        std::cerr << "EAI_FAIL: name server returned a permanent failure" << std::endl;
+    else if (status == EAI_FAMILY)
+        std::cerr << "EAI_FAMILY: The requested address family is not supported" << std::endl;
+    else if (status == EAI_MEMORY)
+        std::cerr << "EAI_MEM: Out of memory" << std::endl;
+    else if (status == EAI_NODATA)
+        std::cerr << "EAI_NODATA: not have any network addresses defined" << std::endl;
+    else if (status == EAI_NONAME)
+        std::cerr << "EAI_NONAME: node  or service is not known" << std::endl;
+    else if (status == EAI_SOCKTYPE)
+        std::cerr << "EAI_SOCKTYPE: requested socket type is not supported" << std::endl;
+    else if (status == EAI_SERVICE)
+        std::cerr << "EAI_SERVICE: The  requested service is not available" << std::endl;
+    else if (status == EAI_SYSTEM)
+        std::cerr << "EAI_SYSTEM: Other system error" << std::endl;
+}
+
 void    connection::serversEndPoint(std::map<int, informations> &info)
 {
     std::map<int, informations>::iterator it = info.begin();
@@ -40,8 +70,25 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
         }
         socklen_t   optval = 1;
         struct sockaddr_in sockInfo;
+        // struct addrinfo hints, *res;
+        // char ip[100];
+        // memset(&hints, 0, sizeof(hints));
         sockInfo.sin_port = htons(atoi(it->second.port.at("listen").c_str())),
-                                    sockInfo.sin_family = AF_INET, sockInfo.sin_addr.s_addr = 0;//must reove 0 and use inet_addr or implement 
+        sockInfo.sin_family = AF_INET,
+        sockInfo.sin_addr.s_addr = inet_addr(it->second.host.at("host").c_str());
+        // sockInfo.sin_addr.s_addr = getaddrinfo(it->second.host.at("host").c_str(),
+        //                                 it->second.port.at("listen").c_str(), &hints, &res);
+        // if (sockInfo.sin_addr.s_addr != 0)
+        // {
+        //     addrinfoIssue(sockInfo.sin_addr.s_addr); freeaddrinfo(res);
+        //     it++; continue;
+        // }
+        // else
+        // {
+        //     inet_ntop(sockInfo.sin_family, &res->ai_addr->sa_data[2], ip, sizeof(ip));
+        //     std::cout << "The Address Ip: " << ip << std::endl;
+        // }
+        //freeaddrinfo(res);
         int bufferAllocation = setsockopt(fd, SOL_SOCKET,
                                             SO_REUSEADDR, &optval, sizeof(optval));
         if (bufferAllocation == -1)
@@ -52,6 +99,7 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
         int AssignName = bind(fd, (struct sockaddr*)&sockInfo, sizeof(sockInfo));
         if (AssignName == -1)
         {
+            std::cout << errno << "-> " <<strerror(errno) << std::endl;
             errorGenerator("Socket Can't Get A Name To Be Defined On The Network", fd);
             it++; continue;
         }
@@ -63,7 +111,8 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
         }
         this->serversSock[fd] = sockInfo;
         this->OverLoad[fd] = it->second;
-        std::cout << "Socket Ready To Listening For The Port: " << it->second.port.at("listen") << " With Number: " << fd << std::endl;
+        std::cout << "Socket Ready To Listening For The Port: "
+        << it->second.port.at("listen") << " With Number: " << fd << std::endl;
         it++;
     }
 }
@@ -88,8 +137,8 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
 {
     if ((monitor.revents & POLLIN))
     {
-        // std::cout << "Cleint-Side, An Event Happen Into " << monitor.fd << " Endpoint." << std::endl;
-        // std::cout << "This Client Is Rlated With Server Endpoint " << it->second << std::endl;
+        std::cout << "Cleint-Side, An Event Happen Into " << monitor.fd << " Endpoint." << std::endl;
+        std::cout << "This Client Is Rlated With Server Endpoint " << it->second << std::endl;
         char buffer[2048];
         int rd = read(monitor.fd, buffer, 2047);
         if (rd == -1)
@@ -115,6 +164,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 {
                     this->Requests[monitor.fd] = Request();
                 }
+                std::cout << "===>: " << buffer << std::endl;
                 processingClientRequest( rd, buffer, this->Requests.at(monitor.fd),
                 infoMap.at( it->second ) );
             }
@@ -141,10 +191,11 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         if ((monitor.revents & POLLOUT) && this->Requests.at(monitor.fd).readyToSendRes)
         {
             try {
-                // std::cout << "READY YO SEND RESPONSE: 1" << std::endl;
+
                 if (!this->Requests.at(monitor.fd).storeHeader)
                 {
                     // std::cout << "READY YO SEND RESPONSE: 2" << std::endl;
+                    // if (this->Requests.at(monitor.fd).headers.at("method"))
                     if (this->Requests.at(monitor.fd).headers.at("method") == "get")
                         handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
                     else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
@@ -164,7 +215,8 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 if (Response.at(monitor.fd).status == response::Complete)
                     throw std::exception();
             } 
-            catch (...) {
+            catch (...)
+            {
                 dropClient(monitor.fd, it);
             }
         }

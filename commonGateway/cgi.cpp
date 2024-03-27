@@ -59,7 +59,7 @@ class   CGI
             {
                 if (!freopen(save.c_str(), "w+", stdout))
                     throw "Error: freopen Failed";
-                write (1, "Content-type: text/html;\r\n\r\n", 28); 
+                write (1, "Content-type: text/html;\r\n\r\n", 28);
                 int processDup2 = fork();
                 if (!processDup2)
                 {
@@ -84,7 +84,10 @@ class   CGI
             else if (processDup1 == -1)
                 throw "Error: Fork1 Failed To Create A New Process.";
             else
+            {
+                //timeout
                 while (waitpid(processDup1, NULL, WUNTRACED) == -1);
+            }
             // std::fstream F;
             // F.open(save, std::ios::in);
             // if (!F)

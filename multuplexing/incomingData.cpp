@@ -40,7 +40,9 @@ static bool	extractMethodAndUri( Request& rq )
 	}catch( ... )
 	{
 		Logger::log() << "[ Error ] extract Method And Uri failed" << std::endl;
-		throw std::exception();
+		// throw std::exception();
+		rq.stat = 400;
+		return false;
 	}
 	return ( true );
 }
