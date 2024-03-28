@@ -136,6 +136,45 @@ static void strTrim( std::string& str )
 	str = str.substr( i, (j - i) + 1 );
 }
 
+std::string getMimeTypeForPost(std::string& type)
+{
+    std::map<std::string, std::string> mimeTypes;
+   std::map<std::string, std::string> mimeTypes;
+	mimeTypes["text/html"] = ".html";
+	mimeTypes["text/css"] = ".css";
+	mimeTypes["text/javascript"] = ".js";
+	mimeTypes["application/json"] = ".json";
+	mimeTypes["image/png"] = ".png";
+	mimeTypes["image/jpeg"] = ".jpg";
+	mimeTypes["image/jpeg"] = ".jpeg";
+	mimeTypes["image/gif"] = ".gif";
+	mimeTypes["image/svg+xml"] = ".svg";
+	mimeTypes["application/xml"] = ".xml";
+	mimeTypes["application/pdf"] = ".pdf";
+	mimeTypes["text/plain"] = ".txt";
+	mimeTypes["audio/mpeg"] = ".mp3";
+	mimeTypes["video/mp4"] = ".mp4";
+	mimeTypes["application/octet-stream"] = ".bin";
+	mimeTypes["video/webm"] = ".webm";
+	mimeTypes["audio/webm"] = ".webm";
+	mimeTypes["audio/ogg"] = ".ogg";
+	mimeTypes["video/ogg"] = ".ogv";
+	mimeTypes["audio/wav"] = ".wav";
+	mimeTypes["font/woff"] = ".woff";
+	mimeTypes["font/woff2"] = ".woff2";
+	mimeTypes["font/ttf"] = ".ttf";
+	mimeTypes["font/otf"] = ".otf";
+	mimeTypes["application/zip"] = ".zip";
+	mimeTypes["application/gzip"] = ".gz";
+	mimeTypes["multipart/form-data"] = ".multipart";
+	mimeTypes["message/http"] = ".http";
+	try
+	{
+		return mimeTypes.at( type );
+	}
+	catch( ... ) {}
+    return "";
+}
 
 static bool	examinHeaders( Request& rq, std::string& first, std::string& second )
 {
@@ -194,11 +233,12 @@ static bool	examinHeaders( Request& rq, std::string& first, std::string& second 
 		}
 		if ( s1 == "multipart" )
 		{
-			Logger::log() << "[ Error ] Content type multipart not implemented" << std::endl;
+			Logger::log() << "[ Error ] Content type multipart should be processed by cgi" << std::endl;
+			if ( rq.cg )
 			return ( rq.stat = 501, false );
 		}
 		else
-			rq.extension = "." + s2;
+			rq.extension = getMimeTypeForPost(second);
 	}
 	return true;
 }
@@ -280,7 +320,6 @@ static int	validateHeadersProcess( Request& rq )
 void	fetchRequestHeader( Request& rq, char* buffer, int rc )
 {
     rq.fullRequest.append( buffer, rc );
-	// std::cout << rq.fullRequest << std::endl;
 	size_t	lfp = rq.fullRequest.find( "\n\n" );
 	size_t	crp = rq.fullRequest.find( "\r\n\r\n" );
 	if ( lfp != std::string::npos )

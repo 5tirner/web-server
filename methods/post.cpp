@@ -1,5 +1,7 @@
 #include "../include/mainHeader.hpp"
 
+
+
 static std::string& getUrl( std::string& uri )
 {
 	size_t slash = 0;
@@ -16,15 +18,17 @@ static std::string& getUrl( std::string& uri )
 
 static void generateRandomFileName( Request& rq, std::string& path )
 {
-	rq.filename = path;
-	const std::string CHARACTErq = "ABCDEFGHIJKLMNOPQrqTUVWXYZabcdefghijklmnopqrqtuvwxyz";
-	std::srand( std::time( NULL ) );
 
 	try {
+		rq.filename = path;
+		const std::string CHARACTErq = "ABCDEFGHIJKLMNOPQrqTUVWXYZabcdefghijklmnopqrqtuvwxyz";
+		std::srand( std::time( NULL ) );
+
 		if ( rq.filename.length() > 1 && rq.filename.at( rq.filename.length() - 1 ) != '/' )
 			rq.filename += "/";
 		for ( int i = 0; i < 25; i++ )
 			rq.filename.push_back( CHARACTErq[ rand() % CHARACTErq.length() ] );
+		std::cout << "EXTENSION: " << rq.extension << std::endl;
 		rq.filename += rq.extension;
     	rq.bodyStream->open( rq.filename.c_str(), std::ios::binary | std::ios::trunc );
 		if ( !rq.bodyStream->is_open() )
@@ -41,14 +45,12 @@ static void generateRandomFileName( Request& rq, std::string& path )
 
 static int location_support_upload( Request& rq, const informations& infoStruct )
 {	
-	std::string upload;
-	std::string method;
-	std::string	location;
-	std::string newUri;
-	size_t i = 0;
 	try
 	{
-		newUri = getUrl( rq.headers.at("uri") );
+		size_t i = 0;
+		std::string	location;
+
+		std::string newUri( getUrl( rq.headers.at("uri") ) );
 		for (; i < infoStruct.locationsInfo.size(); i++ )
 		{
 			location = infoStruct.locationsInfo.at(i).directory.at( "location" );
@@ -59,8 +61,8 @@ static int location_support_upload( Request& rq, const informations& infoStruct 
 		}
 		if ( newUri == location )
 		{
-			upload   = infoStruct.locationsInfo.at( i ).upload.at( "upload" );
-			method	 = infoStruct.locationsInfo.at( i ).allowed_methodes.at( "allowed_methodes" );
+			std::string upload   = infoStruct.locationsInfo.at( i ).upload.at( "upload" );
+			std::string method	 = infoStruct.locationsInfo.at( i ).allowed_methodes.at( "allowed_methodes" );
 			if ( upload[0] )
 			{
 				if ( method.find( "POST" ) != std::string::npos )
@@ -97,7 +99,7 @@ static int location_support_upload( Request& rq, const informations& infoStruct 
 	}
 	catch(const std::exception& e)
 	{
-		Logger::log() << "[ Error ] : Client can't upload in this location " << "\'" << upload << "\'" << std::endl;
+		Logger::log() << "[ Error ] : Client can't upload in this location " << std::endl;
 		return ( rq.stat = 403, -1 );
 	}
 	return ( rq.stat = 403, -1 );

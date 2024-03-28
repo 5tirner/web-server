@@ -164,7 +164,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 {
                     this->Requests[monitor.fd] = Request();
                 }
-                std::cout << "===>: " << buffer << std::endl;
+                // std::cout << "===>: " << buffer << std::endl;
                 processingClientRequest( rd, buffer, this->Requests.at(monitor.fd),
                 infoMap.at( it->second ) );
             }
