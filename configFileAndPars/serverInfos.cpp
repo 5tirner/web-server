@@ -1,4 +1,5 @@
 #include "../include/mainHeader.hpp"
+#include <cstddef>
 
 void    showInfo2(informations &tmp)
 {
@@ -279,6 +280,17 @@ int servers::serverInfos(int i)
     // }
     if (checkInformations(tmp) || checkLocations(tmp))
         return (1);
+    this->rootLocation = false;
+    for (size_t i = 0; i < tmp.locationsInfo.size(); i++)
+    {
+        if (tmp.locationsInfo[i].directory.at("location") == "/")
+        {
+            this->rootLocation = true;
+            break;
+        }
+    }
+    if (this->rootLocation == false)
+    { std::cerr << "Error: Inside Server Nember: " << i + 1 << " No Root Location Founded." << std::endl; return (1);}
     this->serversInfo[i] = tmp;
     return (0);
 }

@@ -51,7 +51,7 @@ int isAgoodServer(std::string &server)
             {
                 if (server[i] != ' ' && server[i] != '\t')
                 {
-                    std::cout << "Wrong THing After The Brackets:\n" + server << std::endl;
+                    std::cout << "Wrong Thing After The Brackets:\n" + server << std::endl;
                     return (1);
                 }
                 i++;

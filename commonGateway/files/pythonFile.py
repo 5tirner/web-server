@@ -1,0 +1,1 @@
+print ("CGI Work Fine With PYTHON Language")

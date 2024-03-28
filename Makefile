@@ -1,6 +1,6 @@
 TARGET  = httpserver
 
-CC      = c++ -Wall -Wextra -Werror  -std=c++98 -fsanitize=address -g3
+CC      = c++ -Wall -Wextra -Werror  -std=c++98 -g3
 
 OBJDIR  = obj
 
@@ -40,7 +40,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "The problem has been fixed on get you can try now"
+	@git commit -m "@yachaab fix some request parse prob"
 	@git push origin omega
 	@echo "Pushed to omega"
 
