@@ -37,10 +37,11 @@ static bool	extractMethodAndUri( Request& rq )
 			throw std::exception();
 		if ( rq.headers["method"] != "get" && rq.headers["method"] != "post" && rq.headers["method"] != "delete" )
 			throw std::exception();
-	}catch( ... )
+	}
+	catch( ... )
 	{
 		Logger::log() << "[ Error ] extract Method And Uri failed" << std::endl;
-		throw std::exception();
+		return ( rq.stat = 400, false );
 	}
 	return ( true );
 }
@@ -132,7 +133,6 @@ static void strTrim( std::string& str )
 
 	for ( ; i < str.length() && whiteSpace( str[i] ); i++ );
 	for ( ; j > 0 && whiteSpace( str[j] ); j-- );
-	j--;
 	str = str.substr( i, (j - i) + 1 );
 }
 
@@ -238,7 +238,9 @@ static int	extractHttpHeaders( Request& rq )
 	}
 	catch( const std::exception& e )
 	{
-		return ( rq.stat = 400, false );
+		std::cout << "What: " << e.what() << std::endl;
+		Logger::log() << "Here" << std::endl;
+		return ( false );
 	}
 	return ( true );
 }
@@ -278,6 +280,7 @@ static int	validateHeadersProcess( Request& rq )
 void	fetchRequestHeader( Request& rq, char* buffer, int rc )
 {
     rq.fullRequest.append( buffer, rc );
+	// std::cout << rq.fullRequest << std::endl;
 	size_t	lfp = rq.fullRequest.find( "\n\n" );
 	size_t	crp = rq.fullRequest.find( "\r\n\r\n" );
 	if ( lfp != std::string::npos )

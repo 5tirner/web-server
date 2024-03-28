@@ -145,14 +145,26 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 if (!this->Requests.at(monitor.fd).storeHeader)
                 {
                     // std::cout << "READY YO SEND RESPONSE: 2" << std::endl;
-                    if (this->Requests.at(monitor.fd).headers.at("method") == "get")
-                        handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
-                    else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
-                        handleRequestDELETE(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
+                    try 
+                    {
+                        if (this->Requests.at(monitor.fd).headers.at("method") == "get")
+                            handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
+                        else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
+                            handleRequestDELETE(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
+                    }
+                    catch( ... )
+                    {
+                        std::string response = creatTemplate( "./src/page.html", this->Requests.at(monitor.fd).stat, codeMsg );
+                        sendResponse( monitor.fd, response );
+                        Response.at(monitor.fd).status = response::Complete;
+                        std::cout << "RESPONSE SENT" << std::endl;
+                        throw ;
+                    }
                 }
                 /*-------------- yachaab code start -----------------*/
                 if ( this->Requests.at(monitor.fd).headers["method"] == "post" )
                 {
+                    // if (  )
                     std::string response = creatTemplate( "./src/page.html", this->Requests.at(monitor.fd).stat, codeMsg );
                     sendResponse( monitor.fd, response );
                     Response.at(monitor.fd).status = response::Complete;
@@ -164,7 +176,8 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 if (Response.at(monitor.fd).status == response::Complete)
                     throw std::exception();
             } 
-            catch (...) {
+            catch ( ... )
+            {
                 dropClient(monitor.fd, it);
             }
         }

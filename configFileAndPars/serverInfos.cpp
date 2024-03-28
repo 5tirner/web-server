@@ -221,8 +221,7 @@ int checkInformations(informations &tmp)
             { std::cout << "Invalid `ClienBody` Syntax: " + it->second << std::endl; return (1); }
         }
         else if (key == "error_page")
-        {
-        }
+        {}
         else
         { std::cout << "Weird KeyWord " + key << std::endl; return (1); }
     }
