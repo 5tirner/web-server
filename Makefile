@@ -40,8 +40,8 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "The problem has been fixed on get you can try now"
-	@git push origin omega
-	@echo "Pushed to omega"
+	@git commit -m "@yachaab fix the logging system path"
+	@git push origin cgi-feature
+	@echo "Pushed to cgi-feature"
 
 .PHONY: clean fclean re all git

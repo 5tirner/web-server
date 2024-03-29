@@ -136,6 +136,7 @@ typedef struct clientRequest
         readyToSendRes          = false;
         iscr                    = false;
         islf                    = false;
+        cgi                     = false;
         isChunkHeader           = true;
         content_length          = 0;
         chunkSizeSum            = 0;
@@ -171,6 +172,7 @@ typedef struct clientRequest
     bool            locationGotChecked;
     bool            iscr;
     bool            islf;
+    bool            cgi;
 } Request;
 
 typedef struct clientResponse
@@ -198,7 +200,7 @@ public:
     {
         static std::ofstream myfile_logs;
         if ( !myfile_logs.is_open() )
-            myfile_logs.open( "./logs", std::ios::out | std::ios::trunc );
+            myfile_logs.open( "./logging/logs", std::ios::out | std::ios::trunc );
         return myfile_logs;
     }
 };
@@ -238,11 +240,13 @@ public:
     code    codeMsg;
     void    serversEndPoint(std::map<int, informations> &info);
     void    checkServer(struct pollfd &monitor, std::map<int, struct sockaddr_in>::iterator &it);
-    void    checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it,  const std::map<int, informations>&  );
+    void    checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it);
     void    dropClient( int&, std::map<int, int>::iterator & );
     // void    closeTheExitClients(void);
     /*-------------- yachaab code start ---------------*/
-    void    processingClientRequest( int, char*, Request& , const informations& );
+    void    processingClientRequest( int, char*, Request&, int );
+    void    processingBody( Request&, char*, int, int );
+    int     location_support_upload( Request& , int );
     /*-------------- yachaab code end -----------------*/
     /*-------------- ysabr code start ---------------*/
     void    handleRequestGET(int, Request&, const informations&);
@@ -270,7 +274,6 @@ int         redirection(int *status, std::string &val);
 void        processingHeader( Request& );
 void        sendResponse( int&, const std::string& );
 void        fetchRequestHeader( Request&, char *, int );
-void        processingBody( Request&, char*, int, const informations& );
 std::string creatTemplate( const char*, int& , code&  );
 /*-------------- yachaab code end -----------------*/
 /*-------------- ysabr code start ---------------*/

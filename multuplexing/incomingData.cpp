@@ -37,12 +37,11 @@ static bool	extractMethodAndUri( Request& rq )
 			throw std::exception();
 		if ( rq.headers["method"] != "get" && rq.headers["method"] != "post" && rq.headers["method"] != "delete" )
 			throw std::exception();
-	}catch( ... )
+	}
+	catch( ... )
 	{
 		Logger::log() << "[ Error ] extract Method And Uri failed" << std::endl;
-		// throw std::exception();
-		rq.stat = 400;
-		return false;
+		return ( rq.stat = 400, false );
 	}
 	return ( true );
 }
@@ -134,10 +133,47 @@ static void strTrim( std::string& str )
 
 	for ( ; i < str.length() && whiteSpace( str[i] ); i++ );
 	for ( ; j > 0 && whiteSpace( str[j] ); j-- );
-	j--;
 	str = str.substr( i, (j - i) + 1 );
 }
 
+std::string getMimeTypeForPost(std::string& type)
+{
+    std::map<std::string, std::string> mimeTypes;
+	mimeTypes["text/html"] = ".html";
+	mimeTypes["text/css"] = ".css";
+	mimeTypes["text/javascript"] = ".js";
+	mimeTypes["application/json"] = ".json";
+	mimeTypes["image/png"] = ".png";
+	mimeTypes["image/jpeg"] = ".jpg";
+	mimeTypes["image/jpeg"] = ".jpeg";
+	mimeTypes["image/gif"] = ".gif";
+	mimeTypes["image/svg+xml"] = ".svg";
+	mimeTypes["application/xml"] = ".xml";
+	mimeTypes["application/pdf"] = ".pdf";
+	mimeTypes["text/plain"] = ".txt";
+	mimeTypes["audio/mpeg"] = ".mp3";
+	mimeTypes["video/mp4"] = ".mp4";
+	mimeTypes["application/octet-stream"] = ".bin";
+	mimeTypes["video/webm"] = ".webm";
+	mimeTypes["audio/webm"] = ".webm";
+	mimeTypes["audio/ogg"] = ".ogg";
+	mimeTypes["video/ogg"] = ".ogv";
+	mimeTypes["audio/wav"] = ".wav";
+	mimeTypes["font/woff"] = ".woff";
+	mimeTypes["font/woff2"] = ".woff2";
+	mimeTypes["font/ttf"] = ".ttf";
+	mimeTypes["font/otf"] = ".otf";
+	mimeTypes["application/zip"] = ".zip";
+	mimeTypes["application/gzip"] = ".gz";
+	mimeTypes["multipart/form-data"] = ".multipart";
+	mimeTypes["message/http"] = ".http";
+	try
+	{
+		return mimeTypes.at( type );
+	}
+	catch( ... ) {}
+    return "";
+}
 
 static bool	examinHeaders( Request& rq, std::string& first, std::string& second )
 {
@@ -196,11 +232,12 @@ static bool	examinHeaders( Request& rq, std::string& first, std::string& second 
 		}
 		if ( s1 == "multipart" )
 		{
-			Logger::log() << "[ Error ] Content type multipart not implemented" << std::endl;
-			return ( rq.stat = 501, false );
+			Logger::log() << "[ Error ] Content type multipart should be processed by cgi" << std::endl;
+			if ( rq.cgi == false )
+				return ( rq.stat = 501, false );
 		}
 		else
-			rq.extension = "." + s2;
+			rq.extension = getMimeTypeForPost(second);
 	}
 	return true;
 }
@@ -240,7 +277,9 @@ static int	extractHttpHeaders( Request& rq )
 	}
 	catch( const std::exception& e )
 	{
-		return ( rq.stat = 400, false );
+		std::cout << "What: " << e.what() << std::endl;
+		Logger::log() << "Here" << std::endl;
+		return ( false );
 	}
 	return ( true );
 }

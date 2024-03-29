@@ -11,10 +11,7 @@
 #include <string>
 #include <vector>
 
-connection::connection(void)
-{
-    
-}
+connection::connection(void) {}
 
 connection::connection(const connection &other){*this = other;}
 
@@ -87,10 +84,11 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
                 std::cerr << "The Same Host Appears More Than Once:" << std::endl
                 << "The Port: " + tmp[0] + ", The HostIP: " + tmp[1] << std::endl;
                 this->notBindingServers[it->second.serverName.at("server_name")] = it->second;
+                checkTheSameServer.push_back(it->second.serverName.at("server_name"));
                 it++; continue;
             }
         }
-        checkDupHost.push_back(tmp), checkTheSameServer.push_back(it->second.serverName.at("server_name"));
+        checkDupHost.push_back(tmp);
         int fd = socket(AF_INET, SOCK_STREAM, 0);
         if (fd == -1)
         {
@@ -145,17 +143,17 @@ void    initializeMonitor(struct pollfd &monitor, int fd)
     monitor.events = POLLIN | POLLOUT;
 }
 
-void connection::processingClientRequest( int rc, char* buffer, Request& rq, const informations& serverInfo )
+void connection::processingClientRequest( int rc, char* buffer, Request& rq, int serverID)
 {
     if ( rq.fetchHeaderDone == false )
         fetchRequestHeader( rq, buffer, rc );
     if ( rq.fetchHeaderDone == true && rq.processingHeaderDone == false )
         processingHeader( rq );
     if ( rq.processingHeaderDone == true )
-        processingBody( rq, buffer, rc, serverInfo );
+        processingBody( rq, buffer, rc, serverID );
 }
 
-void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it, const std::map<int, informations>& infoMap) //!yachaab edit here: add localisation vector
+void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it) //!yachaab edit here: add localisation vector
 {
     if ((monitor.revents & POLLIN))
     {
@@ -186,9 +184,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 {
                     this->Requests[monitor.fd] = Request();
                 }
-                std::cout << "===>: " << buffer << std::endl;
-                processingClientRequest( rd, buffer, this->Requests.at(monitor.fd),
-                infoMap.at( it->second ) );
+                processingClientRequest( rd, buffer, this->Requests.at(monitor.fd), it->second );
             }
             catch ( ... )
             {
@@ -216,12 +212,21 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
 
                 if (!this->Requests.at(monitor.fd).storeHeader)
                 {
-                    // std::cout << "READY YO SEND RESPONSE: 2" << std::endl;
-                    // if (this->Requests.at(monitor.fd).headers.at("method"))
-                    if (this->Requests.at(monitor.fd).headers.at("method") == "get")
-                        handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
-                    else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
-                        handleRequestDELETE(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
+                    try 
+                    {
+                        if (this->Requests.at(monitor.fd).headers.at("method") == "get")
+                            handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
+                        else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
+                            handleRequestDELETE(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
+                    }
+                    catch( ... )
+                    {
+                        std::string response = creatTemplate( "./src/page.html", this->Requests.at(monitor.fd).stat, codeMsg );
+                        sendResponse( monitor.fd, response );
+                        Response.at(monitor.fd).status = response::Complete;
+                        std::cout << "RESPONSE SENT" << std::endl;
+                        throw ;
+                    }
                 }
                 /*-------------- yachaab code start -----------------*/
                 if ( this->Requests.at(monitor.fd).headers["method"] == "post" )
@@ -318,7 +323,7 @@ connection::connection(std::map<int, informations> &configData)
             it1 = this->clientsSock.begin();
             while (it1 != this->clientsSock.end())
             {
-                this->checkClient(monitor[i], it1, OverLoad);
+                this->checkClient(monitor[i], it1);
                 it1++;
                 i++;
             }

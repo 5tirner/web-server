@@ -175,7 +175,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
     else
     {
         std::string filePath2 = mapUriToFilePath(request.headers["uri"], routeConfig);
-        std::cout << "===========>: " << filePath2 << std::endl;
+        // std::cout << "===========>: " << filePath2 << std::endl;
         // if (routeConfig.cgi.at("cgi") == "on")
         // {
         //     //work on cgi now you can use anything you want ba3bab3a3bab3abb3abab3aba3b
@@ -183,11 +183,11 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
         std::string filePath = filePath2;
         if (!fileExists(filePath))
         {
-            std::cout << "===========================================><><><>\n";
+            // std::cout << "===========================================><><><>\n";
                 serveErrorPage(clientSocket, 404, serverConfig);
                 return;
         }
-        std::cout << "=======>: path: " << filePath << std::endl;
+        // std::cout << "=======>: path: " << filePath << std::endl;
         std::string responseD;
         if (isDirectory(filePath))
         {
