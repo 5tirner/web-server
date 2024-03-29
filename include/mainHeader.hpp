@@ -76,9 +76,9 @@ typedef struct info
 class   servers
 {
     private:
-        std::vector<std::string>    server;
-        std::map<int, informations> serversInfo;
-        bool                        rootLocation;
+        std::vector<std::string>            server;
+        std::map<int, informations>         serversInfo;
+        bool                                rootLocation;
     public:
         servers(void);
         ~servers(void);
@@ -228,6 +228,7 @@ private:
     std::vector<int>                                    responsetEnd, EndFd;
     std::vector<std::map<int, int>::iterator>           exited;
     std::vector<std::map<int, Request>::iterator>       requestEnd;
+    std::map<std::string, informations>                 notBindingServers;
 public:
     connection();
     ~connection();
