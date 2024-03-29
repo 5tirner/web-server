@@ -139,7 +139,6 @@ static void strTrim( std::string& str )
 std::string getMimeTypeForPost(std::string& type)
 {
     std::map<std::string, std::string> mimeTypes;
-   std::map<std::string, std::string> mimeTypes;
 	mimeTypes["text/html"] = ".html";
 	mimeTypes["text/css"] = ".css";
 	mimeTypes["text/javascript"] = ".js";
@@ -234,8 +233,8 @@ static bool	examinHeaders( Request& rq, std::string& first, std::string& second 
 		if ( s1 == "multipart" )
 		{
 			Logger::log() << "[ Error ] Content type multipart should be processed by cgi" << std::endl;
-			if ( rq.cg )
-			return ( rq.stat = 501, false );
+			// if ( rq.cgi == false )
+				return ( rq.stat = 501, false );
 		}
 		else
 			rq.extension = getMimeTypeForPost(second);
