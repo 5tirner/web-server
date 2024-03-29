@@ -40,7 +40,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "@yachaab handle hostname server id"
+	@git commit -m "@yachaab fix the logging system path"
 	@git push origin cgi-feature
 	@echo "Pushed to cgi-feature"
 

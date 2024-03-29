@@ -200,7 +200,7 @@ public:
     {
         static std::ofstream myfile_logs;
         if ( !myfile_logs.is_open() )
-            myfile_logs.open( "./logs", std::ios::out | std::ios::trunc );
+            myfile_logs.open( "./logging/logs", std::ios::out | std::ios::trunc );
         return myfile_logs;
     }
 };
