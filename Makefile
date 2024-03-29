@@ -41,7 +41,7 @@ re: fclean $(TARGET)
 git: fclean
 	@git add .
 	@git commit -m "@yachaab want to add cgi check for multipart data"
-	@git push origin omega
-	@echo "Pushed to omega"
+	@git push origin cgi-feature
+	@echo "Pushed to cgi-feature"
 
 .PHONY: clean fclean re all git

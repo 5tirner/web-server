@@ -233,7 +233,7 @@ static bool	examinHeaders( Request& rq, std::string& first, std::string& second 
 		if ( s1 == "multipart" )
 		{
 			Logger::log() << "[ Error ] Content type multipart should be processed by cgi" << std::endl;
-			// if ( rq.cgi == false )
+			if ( rq.cgi == false )
 				return ( rq.stat = 501, false );
 		}
 		else

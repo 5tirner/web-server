@@ -1,7 +1,5 @@
 #include "../include/mainHeader.hpp"
 
-
-
 static std::string& getUrl( std::string& uri )
 {
 	size_t slash = 0;
@@ -28,7 +26,6 @@ static void generateRandomFileName( Request& rq, std::string& path )
 			rq.filename += "/";
 		for ( int i = 0; i < 25; i++ )
 			rq.filename.push_back( CHARACTErq[ rand() % CHARACTErq.length() ] );
-		std::cout << "EXTENSION: " << rq.extension << std::endl;
 		rq.filename += rq.extension;
     	rq.bodyStream->open( rq.filename.c_str(), std::ios::binary | std::ios::trunc );
 		if ( !rq.bodyStream->is_open() )
@@ -43,26 +40,37 @@ static void generateRandomFileName( Request& rq, std::string& path )
 }
 
 
-static int location_support_upload( Request& rq, const informations& infoStruct )
+int connection::location_support_upload( Request& rq, int serverID )
 {	
 	try
 	{
 		size_t i = 0;
 		std::string	location;
+		informations serverInfo;
+		std::map<std::string, informations>::iterator it = notBindingServers.find( rq.headers.at("host") );
+		if ( it != notBindingServers.end() )
+			serverInfo = it->second;
+		else
+			serverInfo = OverLoad.at( serverID );
 
 		std::string newUri( getUrl( rq.headers.at("uri") ) );
-		for (; i < infoStruct.locationsInfo.size(); i++ )
+
+		for (; i < serverInfo.locationsInfo.size(); i++ )
 		{
-			location = infoStruct.locationsInfo.at(i).directory.at( "location" );
+			location = serverInfo.locationsInfo.at(i).directory.at( "location" );
+			std::cout << "location: " << location << std::endl;
 			if ( location.length() > 1 && location.at( location.length() - 1 ) == '/' )
 				location.resize( location.length() - 1 );
 			if ( newUri == location )
 				break ;
 		}
+		std::cout << "NEW URI: " << newUri << " location: " << location << std::endl;
 		if ( newUri == location )
 		{
-			std::string upload   = infoStruct.locationsInfo.at( i ).upload.at( "upload" );
-			std::string method	 = infoStruct.locationsInfo.at( i ).allowed_methodes.at( "allowed_methodes" );
+			if ( serverInfo.locationsInfo.at( i ).cgi.at("cgi") != "" )
+				rq.cgi = true;
+			std::string upload   = serverInfo.locationsInfo.at( i ).upload.at( "upload" );
+			std::string method	 = serverInfo.locationsInfo.at( i ).allowed_methodes.at( "allowed_methodes" );
 			if ( upload[0] )
 			{
 				if ( method.find( "POST" ) != std::string::npos )
@@ -80,10 +88,10 @@ static int location_support_upload( Request& rq, const informations& infoStruct 
 					}
 					else
 					{
-						Logger::log() << "[ Error ] : Client can't upload in this location " << "\'" << upload << "\'" << std::endl;
+						Logger::log() << "[ Error ] : Client can't upload in this location perimssion"<< std::endl;
 						return ( rq.stat = 403, -1 );
 					}
-					rq.limitClientBodySize = std::atol( infoStruct.limitClientBody.at("limit_client_body").c_str() ) * 100000000; //! need the exact amount
+					rq.limitClientBodySize = std::atol( serverInfo.limitClientBody.at("limit_client_body").c_str() ) * 100000000; //! need the exact amount
 					if ( rq.limitClientBodySize == 0 )
 					{
 						Logger::log() << "[ Error ] : Client body size limit is 0" << std::endl;
@@ -280,13 +288,13 @@ static void	processRegularRequestBody( Request& rq, char* buffer, int& rc, bool&
 	}
 }
 
-void	processingBody( Request& rq, char* buffer, int rc, const informations& infoStruct )
+void	connection::processingBody( Request& rq, char* buffer, int rc, int serverID )
 {
 	if ( rq.headers.at( "method" ) == "get" || rq.headers.at( "method" ) == "delete" )
 		rq.readyToSendRes = true;
 	else if ( rq.headers.at( "method" ) == "post" )
     {
-		if ( rq.locationGotChecked == false && location_support_upload( rq, infoStruct ) == -1 )
+		if ( rq.locationGotChecked == false && location_support_upload( rq, serverID ) == -1 )
 			throw std::exception();
 		if ( rq.transferEncoding == true )
 			processChunkedRequestBody( rq, buffer, rc, rq.readyToSendRes );
