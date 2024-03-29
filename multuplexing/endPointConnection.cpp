@@ -69,7 +69,6 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
         std::vector<std::string> tmp;
         tmp.reserve(2);
         tmp.push_back(it->second.port.at("listen")), tmp.push_back(it->second.host.at("host"));
-        checkTheSameServer.push_back(it->second.serverName.at("server_name"));
         if (checkDupHost.size())
         {
             if (std::find(checkDupHost.begin(), checkDupHost.end(), tmp) != checkDupHost.end())
@@ -85,6 +84,7 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
                 std::cerr << "The Same Host Appears More Than Once:" << std::endl
                 << "The Port: " + tmp[0] + ", The HostIP: " + tmp[1] << std::endl;
                 this->notBindingServers[it->second.serverName.at("server_name")] = it->second;
+                checkTheSameServer.push_back(it->second.serverName.at("server_name"));
                 it++; continue;
             }
         }
