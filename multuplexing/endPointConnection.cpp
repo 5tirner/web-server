@@ -153,7 +153,7 @@ void connection::processingClientRequest( int rc, char* buffer, Request& rq, int
         processingBody( rq, buffer, rc, serverID );
 }
 
-void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it) //!yachaab edit here: add localisation vector
+void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it, const std::map<int, informations>& infoMap) //!yachaab edit here: add localisation vector
 {
     if ((monitor.revents & POLLIN))
     {
@@ -214,10 +214,10 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 {
                     try 
                     {
-                        // if (this->Requests.at(monitor.fd).headers.at("method") == "get")
-                        //     handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
-                        // else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
-                        //     handleRequestDELETE(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
+                        if (this->Requests.at(monitor.fd).headers.at("method") == "get")
+                            handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
+                        else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
+                            handleRequestDELETE(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
                     }
                     catch( ... )
                     {
@@ -323,7 +323,7 @@ connection::connection(std::map<int, informations> &configData)
             it1 = this->clientsSock.begin();
             while (it1 != this->clientsSock.end())
             {
-                this->checkClient(monitor[i], it1);
+                this->checkClient(monitor[i], it1, OverLoad);
                 it1++;
                 i++;
             }

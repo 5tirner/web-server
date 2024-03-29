@@ -240,7 +240,7 @@ public:
     code    codeMsg;
     void    serversEndPoint(std::map<int, informations> &info);
     void    checkServer(struct pollfd &monitor, std::map<int, struct sockaddr_in>::iterator &it);
-    void    checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it);
+    void    checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it, const std::map<int, informations>& );
     void    dropClient( int&, std::map<int, int>::iterator & );
     // void    closeTheExitClients(void);
     /*-------------- yachaab code start ---------------*/

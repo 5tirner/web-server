@@ -5,18 +5,18 @@ CC      = c++ -Wall -Wextra -Werror  -std=c++98 -g3
 OBJDIR  = obj
 
 SRC     = main.cpp\
-		  ./configFileAndPars/pars.cpp\
-		  ./configFileAndPars/openFile.cpp\
-		  ./configFileAndPars/selectServers.cpp\
-		  ./configFileAndPars/serverInfos.cpp\
-		  ./configFileAndPars/checkValues.cpp\
-		  ./multuplexing/endPointConnection.cpp\
-		  ./multuplexing/incomingData.cpp \
-		  ./methods/post.cpp\
-		  ./methods/get.cpp \
-		  ./methods/delete.cpp \
-		  ./methods/ErrorPages.cpp \
-		  ./multuplexing/sendResponse.cpp
+			./configFileAndPars/pars.cpp\
+			./configFileAndPars/openFile.cpp\
+			./configFileAndPars/selectServers.cpp\
+			./configFileAndPars/serverInfos.cpp\
+			./configFileAndPars/checkValues.cpp\
+			./multuplexing/endPointConnection.cpp\
+			./multuplexing/incomingData.cpp \
+			./methods/post.cpp\
+			./methods/get.cpp \
+			./methods/delete.cpp \
+			./methods/ErrorPages.cpp \
+			./multuplexing/sendResponse.cpp
 
 OBJ     = $(addprefix $(OBJDIR)/, $(SRC:.cpp=.o))
 
@@ -40,7 +40,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "@yachaab fix the logging system path"
+	@git commit -m "@yachaab add info map for ostora"
 	@git push origin cgi-feature
 	@echo "Pushed to cgi-feature"
 
