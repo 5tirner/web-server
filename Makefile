@@ -40,7 +40,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "@yachaab fix some request parse prob"
+	@git commit -m "@yachaab want to add cgi check for multipart data"
 	@git push origin omega
 	@echo "Pushed to omega"
 

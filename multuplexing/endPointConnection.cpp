@@ -1,4 +1,5 @@
 #include "../include/mainHeader.hpp"
+#include <algorithm>
 #include <cerrno>
 #include <csignal>
 #include <cstdlib>
@@ -7,6 +8,8 @@
 #include <netdb.h>
 #include <stdexcept>
 #include <arpa/inet.h>
+#include <string>
+#include <vector>
 
 connection::connection(void)
 {
@@ -30,38 +33,64 @@ void errorGenerator(std::string err, int fd)
     std::cerr << err << std::endl;
 }
 
-void    addrinfoIssue(long status)
-{
-    if (status == EAI_ADDRFAMILY)
-        std::cerr << "EAI_ADDFAM: network host does not have any network" << std::endl;
-    else if (status == EAI_AGAIN)
-        std::cerr << "EAI_AGAIN: server returned a temporary" << std::endl;
-    else if (status == EAI_BADFLAGS)
-        std::cerr << "EAI_BADF: hints.ai_flags  contains  invalid  flags" << std::endl;
-    else if (status == EAI_FAIL)
-        std::cerr << "EAI_FAIL: name server returned a permanent failure" << std::endl;
-    else if (status == EAI_FAMILY)
-        std::cerr << "EAI_FAMILY: The requested address family is not supported" << std::endl;
-    else if (status == EAI_MEMORY)
-        std::cerr << "EAI_MEM: Out of memory" << std::endl;
-    else if (status == EAI_NODATA)
-        std::cerr << "EAI_NODATA: not have any network addresses defined" << std::endl;
-    else if (status == EAI_NONAME)
-        std::cerr << "EAI_NONAME: node  or service is not known" << std::endl;
-    else if (status == EAI_SOCKTYPE)
-        std::cerr << "EAI_SOCKTYPE: requested socket type is not supported" << std::endl;
-    else if (status == EAI_SERVICE)
-        std::cerr << "EAI_SERVICE: The  requested service is not available" << std::endl;
-    else if (status == EAI_SYSTEM)
-        std::cerr << "EAI_SYSTEM: Other system error" << std::endl;
-}
+// void    addrinfoIssue(long status)
+// {
+//     if (status == EAI_ADDRFAMILY)
+//         std::cerr << "EAI_ADDFAM: network host does not have any network" << std::endl;
+//     else if (status == EAI_AGAIN)
+//         std::cerr << "EAI_AGAIN: server returned a temporary" << std::endl;
+//     else if (status == EAI_BADFLAGS)
+//         std::cerr << "EAI_BADF: hints.ai_flags  contains  invalid  flags" << std::endl;
+//     else if (status == EAI_FAIL)
+//         std::cerr << "EAI_FAIL: name server returned a permanent failure" << std::endl;
+//     else if (status == EAI_FAMILY)
+//         std::cerr << "EAI_FAMILY: The requested address family is not supported" << std::endl;
+//     else if (status == EAI_MEMORY)
+//         std::cerr << "EAI_MEM: Out of memory" << std::endl;
+//     else if (status == EAI_NODATA)
+//         std::cerr << "EAI_NODATA: not have any network addresses defined" << std::endl;
+//     else if (status == EAI_NONAME)
+//         std::cerr << "EAI_NONAME: node  or service is not known" << std::endl;
+//     else if (status == EAI_SOCKTYPE)
+//         std::cerr << "EAI_SOCKTYPE: requested socket type is not supported" << std::endl;
+//     else if (status == EAI_SERVICE)
+//         std::cerr << "EAI_SERVICE: The  requested service is not available" << std::endl;
+//     else if (status == EAI_SYSTEM)
+//         std::cerr << "EAI_SYSTEM: Other system error" << std::endl;
+// }
 
 void    connection::serversEndPoint(std::map<int, informations> &info)
 {
-    std::map<int, informations>::iterator it = info.begin();
+    std::map<int, informations>::iterator   it = info.begin();
+    std::vector<std::vector<std::string> >  checkDupHost;
+    std::vector<std::string>                checkTheSameServer;
+    checkTheSameServer.reserve(info.size());
+    checkDupHost.reserve(info.size());
     while (it != info.end())
     {
         std::cout << "Server Come With Number: " << it->first << std::endl;
+        std::vector<std::string> tmp;
+        tmp.reserve(2);
+        tmp.push_back(it->second.port.at("listen")), tmp.push_back(it->second.host.at("host"));
+        if (checkDupHost.size())
+        {
+            if (std::find(checkDupHost.begin(), checkDupHost.end(), tmp) != checkDupHost.end())
+            {
+                if (std::find(checkTheSameServer.begin(),
+                checkTheSameServer.end(), it->second.serverName.at("server_name")) != checkTheSameServer.end())
+                {
+                    std::cerr << "The Same Host And ServerName Appears More Than Once:" << std::endl
+                    << "The Port: " + tmp[0] + ", The HostIP: " + tmp[1]
+                    << ", ServerName: " + it->second.serverName.at("server_name") << std::endl;
+                    throw std::runtime_error("Bad Server");
+                }
+                std::cerr << "The Same Host Appears More Than Once:" << std::endl
+                << "The Port: " + tmp[0] + ", The HostIP: " + tmp[1] << std::endl;
+                this->notBindingServers[it->second.serverName.at("server_name")] = it->second;
+                it++; continue;
+            }
+        }
+        checkDupHost.push_back(tmp), checkTheSameServer.push_back(it->second.serverName.at("server_name"));
         int fd = socket(AF_INET, SOCK_STREAM, 0);
         if (fd == -1)
         {
@@ -70,25 +99,9 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
         }
         socklen_t   optval = 1;
         struct sockaddr_in sockInfo;
-        // struct addrinfo hints, *res;
-        // char ip[100];
-        // memset(&hints, 0, sizeof(hints));
         sockInfo.sin_port = htons(atoi(it->second.port.at("listen").c_str())),
         sockInfo.sin_family = AF_INET,
         sockInfo.sin_addr.s_addr = inet_addr(it->second.host.at("host").c_str());
-        // sockInfo.sin_addr.s_addr = getaddrinfo(it->second.host.at("host").c_str(),
-        //                                 it->second.port.at("listen").c_str(), &hints, &res);
-        // if (sockInfo.sin_addr.s_addr != 0)
-        // {
-        //     addrinfoIssue(sockInfo.sin_addr.s_addr); freeaddrinfo(res);
-        //     it++; continue;
-        // }
-        // else
-        // {
-        //     inet_ntop(sockInfo.sin_family, &res->ai_addr->sa_data[2], ip, sizeof(ip));
-        //     std::cout << "The Address Ip: " << ip << std::endl;
-        // }
-        //freeaddrinfo(res);
         int bufferAllocation = setsockopt(fd, SOL_SOCKET,
                                             SO_REUSEADDR, &optval, sizeof(optval));
         if (bufferAllocation == -1)
@@ -99,7 +112,6 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
         int AssignName = bind(fd, (struct sockaddr*)&sockInfo, sizeof(sockInfo));
         if (AssignName == -1)
         {
-            std::cout << errno << "-> " <<strerror(errno) << std::endl;
             errorGenerator("Socket Can't Get A Name To Be Defined On The Network", fd);
             it++; continue;
         }
@@ -109,11 +121,21 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
             errorGenerator("Can't Turn The Socket To Passive One", fd);
             it++; continue;
         }
-        this->serversSock[fd] = sockInfo;
-        this->OverLoad[fd] = it->second;
+        this->serversSock[fd] = sockInfo; this->OverLoad[fd] = it->second;
         std::cout << "Socket Ready To Listening For The Port: "
         << it->second.port.at("listen") << " With Number: " << fd << std::endl;
         it++;
+    }
+    std::cout << "\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" << std::endl;
+    std::map<std::string, informations>::iterator NotBind = this->notBindingServers.begin();
+    std::cout << "Those Servers Does not Binding Cause There Host Is Already Binding" << std::endl;
+    int R = 1;
+    while (NotBind != this->notBindingServers.end())
+    {
+        std::cout << "Server Number: " << R << std::endl;
+        showInfo(NotBind->second);
+        R++;
+        NotBind++;
     }
 }
 
