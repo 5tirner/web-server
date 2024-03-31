@@ -1,22 +1,7 @@
 #include "../include/mainHeader.hpp"
 
-static std::string& getUrl( std::string& uri )
-{
-	size_t slash = 0;
-
-	for ( size_t i =  1; i < uri.length(); i++ )
-	{
-		if ( uri.at( i ) == '/' )
-			slash = i;
-	}
-	if ( slash > 0 )
-		uri.resize( slash );
-	return uri;
-}
-
 static void generateRandomFileName( Request& rq, std::string& path )
 {
-
 	try {
 		rq.filename = path;
 		const std::string CHARACTErq = "ABCDEFGHIJKLMNOPQrqTUVWXYZabcdefghijklmnopqrqtuvwxyz";
@@ -53,19 +38,24 @@ int connection::location_support_upload( Request& rq, int serverID )
 		else
 			serverInfo = OverLoad.at( serverID );
 
-		std::string newUri( getUrl( rq.headers.at("uri") ) );
-
+		std::string newUri( rq.headers.at("uri") );
+		int j = -1;
+		std::string saveLcation; 
 		for (; i < serverInfo.locationsInfo.size(); i++ )
 		{
 			location = serverInfo.locationsInfo.at(i).directory.at( "location" );
 			std::cout << "location: " << location << std::endl;
-			if ( location.length() > 1 && location.at( location.length() - 1 ) == '/' )
-				location.resize( location.length() - 1 );
-			if ( newUri == location )
-				break ;
+			// if ( location.length() > 1 && location.at( location.length() - 1 ) == '/' )
+			// 	location.resize( location.length() - 1 );
+			if ( newUri.compare(0, location.size(), location.c_str()) == 0 && location.length() > saveLcation.length())
+			{
+				j = i;
+				saveLcation = location;
+			}
 		}
 		std::cout << "NEW URI: " << newUri << " location: " << location << std::endl;
-		if ( newUri == location )
+		i = j;
+		if ( j != -1 )
 		{
 			if ( serverInfo.locationsInfo.at( i ).cgi.at("cgi") != "" )
 				rq.cgi = true;
@@ -75,21 +65,26 @@ int connection::location_support_upload( Request& rq, int serverID )
 			{
 				if ( method.find( "POST" ) != std::string::npos )
 				{
-					if ( access( upload.c_str(), F_OK | W_OK | X_OK ) == 0 )
+					if ( access( upload.c_str(), F_OK ) == 0 )
 					{
-						DIR* directory = opendir( upload.c_str() );
-						if ( directory != NULL )
-							closedir( directory );
-						else
+						if ( access( upload.c_str(), W_OK ) != 0 )
 						{
-							Logger::log() << "[ Error ] : Client can't upload in this location directory not found" << "\'" << upload << "\'" << std::endl;
+							Logger::log() << "[ Error ] : Client can't upload in this location write permission"<< std::endl;
 							return ( rq.stat = 403, -1 );
 						}
+						// DIR* directory = opendir( upload.c_str() );
+						// if ( directory != NULL )
+						// 	closedir( directory );
+						// else
+						// {
+						// 	Logger::log() << "[ Error ] : Client can't upload in this location directory not found" << "\'" << upload << "\'" << std::endl;
+						// 	return ( rq.stat = 404, -1 );
+						// }
 					}
 					else
 					{
-						Logger::log() << "[ Error ] : Client can't upload in this location perimssion"<< std::endl;
-						return ( rq.stat = 403, -1 );
+						Logger::log() << "[ Error ] : Client can't upload in this location dir not found"<< std::endl;
+						return ( rq.stat = 404, -1 );
 					}
 					rq.limitClientBodySize = std::atol( serverInfo.limitClientBody.at("limit_client_body").c_str() ) * 100000000; //! need the exact amount
 					if ( rq.limitClientBodySize == 0 )
@@ -108,9 +103,10 @@ int connection::location_support_upload( Request& rq, int serverID )
 	catch(const std::exception& e)
 	{
 		Logger::log() << "[ Error ] : Client can't upload in this location " << std::endl;
-		return ( rq.stat = 403, -1 );
+		return ( rq.stat = 500, -1 );
 	}
-	return ( rq.stat = 403, -1 );
+	Logger::log() << "[ Error ] : Client can't upload in this location method not allowed" << std::endl;
+	return ( rq.stat = 404, -1 );
 }
 
 static size_t	parseChunkHeader( Request& rq, std::string& buffer )

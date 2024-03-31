@@ -30,31 +30,6 @@ void errorGenerator(std::string err, int fd)
     std::cerr << err << std::endl;
 }
 
-// void    addrinfoIssue(long status)
-// {
-//     if (status == EAI_ADDRFAMILY)
-//         std::cerr << "EAI_ADDFAM: network host does not have any network" << std::endl;
-//     else if (status == EAI_AGAIN)
-//         std::cerr << "EAI_AGAIN: server returned a temporary" << std::endl;
-//     else if (status == EAI_BADFLAGS)
-//         std::cerr << "EAI_BADF: hints.ai_flags  contains  invalid  flags" << std::endl;
-//     else if (status == EAI_FAIL)
-//         std::cerr << "EAI_FAIL: name server returned a permanent failure" << std::endl;
-//     else if (status == EAI_FAMILY)
-//         std::cerr << "EAI_FAMILY: The requested address family is not supported" << std::endl;
-//     else if (status == EAI_MEMORY)
-//         std::cerr << "EAI_MEM: Out of memory" << std::endl;
-//     else if (status == EAI_NODATA)
-//         std::cerr << "EAI_NODATA: not have any network addresses defined" << std::endl;
-//     else if (status == EAI_NONAME)
-//         std::cerr << "EAI_NONAME: node  or service is not known" << std::endl;
-//     else if (status == EAI_SOCKTYPE)
-//         std::cerr << "EAI_SOCKTYPE: requested socket type is not supported" << std::endl;
-//     else if (status == EAI_SERVICE)
-//         std::cerr << "EAI_SERVICE: The  requested service is not available" << std::endl;
-//     else if (status == EAI_SYSTEM)
-//         std::cerr << "EAI_SYSTEM: Other system error" << std::endl;
-// }
 
 void    connection::serversEndPoint(std::map<int, informations> &info)
 {
@@ -153,7 +128,7 @@ void connection::processingClientRequest( int rc, char* buffer, Request& rq, int
         processingBody( rq, buffer, rc, serverID );
 }
 
-void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it) //!yachaab edit here: add localisation vector
+void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it, const std::map<int, informations>& infoMap) //!yachaab edit here: add localisation vector
 {
     if ((monitor.revents & POLLIN))
     {
@@ -212,17 +187,29 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
 
                 if (!this->Requests.at(monitor.fd).storeHeader)
                 {
-                    try 
+                    try
                     {
-                        // if (this->Requests.at(monitor.fd).headers.at("method") == "get")
-                        //     handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
-                        // else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
-                        //     handleRequestDELETE(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
+                        try
+                        {
+                            std::string host = this->Requests.at(monitor.fd).headers.at("host");
+                            notBindingServers.at(host);
+                            if (this->Requests.at(monitor.fd).headers.at("method") == "get")
+                                handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), notBindingServers.at(host));
+                            else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
+                                handleRequestDELETE(monitor.fd, this->Requests.at(monitor.fd), notBindingServers.at(host));
+                        }
+                        catch(...)
+                        {
+                            if (this->Requests.at(monitor.fd).headers.at("method") == "get")
+                                handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
+                            else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
+                                handleRequestDELETE(monitor.fd, this->Requests.at(monitor.fd),infoMap.at(it->second));
+                        }
                     }
                     catch( ... )
                     {
                         std::string response = creatTemplate( "./src/page.html", this->Requests.at(monitor.fd).stat, codeMsg );
-                        sendResponse( monitor.fd, response );
+                        sendResponse( monitor.fd, response);
                         Response.at(monitor.fd).status = response::Complete;
                         std::cout << "RESPONSE SENT" << std::endl;
                         throw ;
@@ -323,7 +310,7 @@ connection::connection(std::map<int, informations> &configData)
             it1 = this->clientsSock.begin();
             while (it1 != this->clientsSock.end())
             {
-                this->checkClient(monitor[i], it1);
+                this->checkClient(monitor[i], it1, OverLoad);
                 it1++;
                 i++;
             }

@@ -200,7 +200,7 @@ public:
     {
         static std::ofstream myfile_logs;
         if ( !myfile_logs.is_open() )
-            myfile_logs.open( "./logs", std::ios::out | std::ios::trunc );
+            myfile_logs.open( "./logging/logs", std::ios::out | std::ios::trunc );
         return myfile_logs;
     }
 };
@@ -240,7 +240,7 @@ public:
     code    codeMsg;
     void    serversEndPoint(std::map<int, informations> &info);
     void    checkServer(struct pollfd &monitor, std::map<int, struct sockaddr_in>::iterator &it);
-    void    checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it);
+    void    checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it, const std::map<int, informations>& );
     void    dropClient( int&, std::map<int, int>::iterator & );
     // void    closeTheExitClients(void);
     /*-------------- yachaab code start ---------------*/
@@ -280,7 +280,7 @@ std::string creatTemplate( const char*, int& , code&  );
 std::string to_string(int);
 std::string getMimeType(std::string&);
 std::string getNextChunk(response&,size_t);
-std::string mapUriToFilePath(std::string&, location&);
+std::string mapUriToFilePath(std::string&, location);
 std::string generateDirectoryListing(const std::string&);
 bool        hasNextChunk(response&);
 bool        fileExists(std::string&);
@@ -292,5 +292,7 @@ void        sendResponseChunk(int, response&);
 void        openFile(response&,const std::string&);
 location    findRouteConfig(std::string&, const informations&);
 std::string decodeURI(const std::string&);
+bool        isPathWithinRoot(std::string&, std::string&);
+std::string resolveFilePath(std::string&);
 /*-------------- ysabr code end ---------------*/
 #endif

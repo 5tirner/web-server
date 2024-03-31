@@ -1,6 +1,87 @@
 #include "../include/mainHeader.hpp"
+#include <cstddef>
+#include <exception>
 #include <fcntl.h>
 #include <fstream>
+#include <stdexcept>
+#include <sys/wait.h>
+#include <unistd.h>
+
+std::string GetExtentions(std::string &filename)
+{
+    std::map<std::string, std::string> types;
+    types[".pl"]  = "/bin/perl";
+    types[".pm"]  = "/bin/perl";
+    types[".py"]  = "/bin/python3";
+    types[".js"]  = "/bin/js";
+    types[".rb"]  = "/bin/ruby";
+    types[".php"] = "/bin/php-cgi";
+    size_t i = filename.size() - 1;
+    for (; i > 0; i--)
+    {
+        if (filename[i] == '.')
+            break;
+    }
+    std::cout << "- Extention: " << &filename[i] << std::endl;
+    std::string executer;
+    try
+    {
+        executer = types.at(&filename[i]);
+        std::cout << "- Matched With " + executer << std::endl;
+    }
+    catch (...)
+    { executer = "NormalFile"; }
+    return (executer);
+}
+
+std::string cgiFile(std::string &FileName, char **env, std::string &executer)
+{
+    std::cout << "- FileName: " << FileName << std::endl;
+    char *args[3];
+    args[0] = (char *)FileName.c_str(), args[1] = (char *)FileName.c_str(), args[2] = NULL;
+    std::string save = FileName;
+    save += ".cgi";
+    int processDup1 = fork();
+    if (!processDup1)
+    {
+        if (!freopen(save.c_str(), "w+", stdout))
+            throw "Error: freopen Failed Connect The File With stdout.";
+        write (1, "Content-type: text/html;\r\n", 28);
+        int processDup2 = fork();
+        if (!processDup2)
+        {
+            execve(executer.c_str(), args, env);
+            throw "Error: Execve Failed.";
+        }
+        else if (processDup2 == -1)
+            throw "Error: Fork2 Failed To Create A New Process.";
+        else
+        {
+            while (waitpid(processDup2, NULL, WUNTRACED) == -1);
+            std::fstream F;
+            F.open(save.c_str(), std::ios::in);
+            if (!F) throw "Error: Failed To Open The File That Refered To stdout.";
+            F.seekg(0, std::ios::end);
+            if (F.tellg() == 28)
+                std::cout << "Status: 500 Internal Server Error\r\n\r\n";
+            else
+                std::cout << "\r\n";
+            fclose(stdout);
+        }
+    }
+    else if (processDup1 == -1)
+        throw "Error: Fork1 Failed To Create A New Process.";
+    else
+        while (waitpid(processDup1, NULL, WUNTRACED) == -1);
+    std::fstream F;
+    F.open(save.c_str(), std::ios::in);
+    if (!F)
+        throw "Error: Failed To Open The File That Refered To stdout.";
+    F.seekg(0, std::ios::end);
+    std::cout << F.tellg() << std::endl;
+    F.close();
+    return (save);
+}
 
 std::string getMimeType(std::string& filePath)
 {
@@ -34,40 +115,84 @@ bool fileExists(std::string& filePath)
     std::ifstream file(filePath.c_str());
     return file.good();
 }
-
-std::string mapUriToFilePath( std::string& uri,  location& locConfig)
+bool isPathWithinRoot(std::string& resolvedPath, std::string& rootPath)
 {
-    try {
+    std::cout << "res: --->: " << resolvedPath << std::endl;
+    std::cout << "rooot: --->: " << rootPath << std::endl;
+    if (resolvedPath[resolvedPath.length() - 1] != '/')
+        resolvedPath += "/";
+    if (resolvedPath.substr(0, rootPath.size()) == rootPath)
+        return true;
+    return false;
+}
+
+std::string resolveFilePath(std::string& path)
+{
+    char *realPath = NULL;
+    realPath = realpath(path.c_str(), realPath);
+    
+    if (realPath == NULL)
+        return "";
+    return std::string(realPath);
+}
+
+std::string mapUriToFilePath( std::string& uri,  location locConfig)
+{
+    try
+    {
         std::string rootPath = locConfig.root.at("root"); // Use .at() for const map
+
+        std::cout << "================>: rootPath: " << rootPath << std::endl;
         std::string filePath = rootPath; // Start constructing the file path from the root
         std::string locPath = locConfig.directory.at("location");
+        std::cout << "================>: locPath: " << locPath << std::endl;
         std::string pathSuffix;
         if (uri.find(locPath) == 0)
             pathSuffix = uri.substr(locPath.length());
         else
             pathSuffix = uri;
-        if (pathSuffix.empty() || pathSuffix[pathSuffix.size() - 1] == '/')
+        if ((pathSuffix.empty() || pathSuffix[pathSuffix.size() - 1] == '/') && locConfig.autoindex.at("autoindex") != "on")
         {
             std::istringstream iss(locConfig.index.at("index")); // Use .at() here as well
             std::string indexFile;
             while (std::getline(iss, indexFile, ' '))
             {
                 std::string fullPath = filePath + (pathSuffix[pathSuffix.length() - 1] == '/' ? pathSuffix : pathSuffix + "/") + indexFile;
-                if (fileExists(fullPath))
-                    return fullPath; // Found an index file, return its path
+                std::string tmp = fullPath;
+                tmp = resolveFilePath(rootPath);
+                std::cout << "tmp: " << tmp.length() << std::endl;
+                if (tmp.empty())
+                    return "dkhal";
+                if (!isPathWithinRoot(fullPath, rootPath))
+                {
+                    std::cout << "\n\n---->\n\n";
+                    return "dkhal";
+                }
+
+                return fullPath; // Found an index file, return its path
             }
             // Optional: Handle case when no index file is found...
         }
         else
-    {
-        // If the pathSuffix is not empty and does not end with '/', directly append it to filePath.
-        if (filePath[filePath.length() -1 ] != '/')
-            filePath += "/";
-        filePath += pathSuffix;
-        if (fileExists(filePath))
+        {
+            // If the pathSuffix is not empty and does not end with '/', directly append it to filePath.
+            if (filePath[filePath.length() -1 ] != '/')
+                filePath += "/";
+            filePath += pathSuffix;
+            std::string tmp = filePath;
+            tmp = resolveFilePath(rootPath);
+            std::cout << "tmp: " << tmp.length() << std::endl;
+            if (tmp.empty())
+                return "dkhal";
+            if (!isPathWithinRoot(filePath, rootPath))
+            {
+                std::cout << "\n\n---->\n\n";
+                return "dkhal";
+            }
+            // if (fileExists(filePath))
             return filePath;
-        // Handle file not found if necessary.
-    }
+            // Handle file not found if necessary.
+        }
     }
     catch (const std::out_of_range& e)
     {
@@ -91,8 +216,7 @@ location findRouteConfig(std::string& uri,const informations& serverConfig)
                 return loc;
         }
     }
-    location loc = serverConfig.locationsInfo[0];
-    return loc;
+    throw std::runtime_error("no location found");
 }
 
 
@@ -143,13 +267,21 @@ std::string to_string(int value)
 
 void connection::handleRequestGET(int clientSocket, Request& request,const informations& serverConfig)
 {
-    location routeConfig = findRouteConfig(request.headers["uri"], serverConfig);
+    location routeConfig;
+    try
+    {
+        routeConfig = findRouteConfig(request.headers["uri"], serverConfig);
+    }
+    catch(...)
+    {
+        serveErrorPage(clientSocket, 404, serverConfig);
+        return;
+    }
     if (routeConfig.allowed_methodes["allowed_methodes"].find("GET") == std::string::npos)
     {
         serveErrorPage(clientSocket, 405, serverConfig);
         return;
     }
-
     std::map<std::string, std::string>::iterator it = routeConfig.Return.find("return");
     if ( it != routeConfig.Return.end() && !it->second.empty())
     {
@@ -157,9 +289,6 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
         size_t spacePos = redirectURL.find(' ');
         if (spacePos != std::string::npos)
             redirectURL = redirectURL.substr(spacePos + 1);
-        // spacePos = redirectURL.find(';'); //must tell zakaria to remove quotes
-        // if (spacePos != std::string::npos)
-        //     redirectURL = redirectURL.substr(0, spacePos);
         if (redirectURL.find("http://") != 0 && redirectURL.find("https://") != 0)
             redirectURL = "http://" + redirectURL;
         std::string responseD = "HTTP/1.1 301 Moved Permanently\r\n";
@@ -175,19 +304,37 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
     else
     {
         std::string filePath2 = mapUriToFilePath(request.headers["uri"], routeConfig);
-        // std::cout << "===========>: " << filePath2 << std::endl;
-        // if (routeConfig.cgi.at("cgi") == "on")
-        // {
-        //     //work on cgi now you can use anything you want ba3bab3a3bab3abb3abab3aba3b
-        // }
+        std::cout << "===========>->: " << filePath2 << std::endl;
         std::string filePath = filePath2;
-        if (!fileExists(filePath))
+        if (filePath == "dkhal")
         {
-            // std::cout << "===========================================><><><>\n";
-                serveErrorPage(clientSocket, 404, serverConfig);
-                return;
+            std::cout << "\n\n---->\n\n";
+            serveErrorPage(clientSocket, 403, serverConfig);
+            return;
         }
-        // std::cout << "=======>: path: " << filePath << std::endl;
+        std::cout << "fillllePath: " << filePath << std::endl;
+        if (filePath[filePath.length() - 1] == '/')
+            filePath = filePath.substr(0, filePath.length() - 1);
+        if (!access(filePath.c_str(), F_OK))
+        {
+            if (access(filePath.c_str(), R_OK))
+            {
+                std::cout << "\n\n\n\n=======>\n\n\n\n\n\n";
+                serveErrorPage(clientSocket, 403, serverConfig);
+                return;
+            }
+        }
+        else
+        {
+            std::cout << "--->=====>:\n";
+            serveErrorPage(clientSocket, 404, serverConfig);
+            return;
+        }
+        std::string executer = GetExtentions(filePath);
+        if (routeConfig.cgi.at("cgi") == "on" && executer != "NormalFile")
+        {
+            std::string newFileName = cgiFile(filePath, NULL, executer);
+        }
         std::string responseD;
         if (isDirectory(filePath))
         {
@@ -210,31 +357,22 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
                 responseD += "\r\n";
                 responseD += directoryContent;
             }
+            else
+                serveErrorPage(clientSocket, 404, serverConfig);
         }
         else
         {
             responseD = "HTTP/1.1 200 OK\r\n";
             responseD += "Content-Type: " + getMimeType(filePath) + "\r\n";
-            // std::cout << "check if this correct" << std::endl;;
-            /* -------------- yachaab code start ----------------- */
-            // std::fstream file;
-            // file.open( "./media/video/morpho.mp4", std::fstream::binary | std::fstream::ate | std::fstream::in );
-            // size_t size = file.tellg();
-            // file.close();
-            // // std::cout << "size: " << size << std::endl;
-            // responseD += "Content-Length: " + to_string( size ) + "\r\n";
-            // std::cout << "MIME TYPE: " << getMimeType(filePath) << std::endl;
-            // std::cout << "content length: " << xnxx << std::endl;
             /*-------------- yachaab code ended -----------------*/
         }
-        // if (request.flagRespons == 0)
-        // {
-            response responseData;
 
-            responseData.filePath = filePath;
-            responseData.setResponseHeader(responseD);
-            request.storeHeader = true;
-            Response[clientSocket] = responseData;
+        response responseData;
+
+        responseData.filePath = filePath;
+        responseData.setResponseHeader(responseD);
+        request.storeHeader = true;
+        Response[clientSocket] = responseData;
 
     }
 }
