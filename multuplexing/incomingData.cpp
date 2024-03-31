@@ -301,41 +301,49 @@ static int	extractHttpHeaders( Request& rq )
 	catch( const std::exception& e )
 	{
 		std::cout << "What: " << e.what() << std::endl;
-		Logger::log() << "Here" << std::endl;
-		return ( false );
+		Logger::log() << "[ Error ] extractHttpHeaders header malformed" << std::endl;
+		return ( rq.stat = 400, false );
 	}
 	return ( true );
 }
 
 static int	validateHeadersProcess( Request& rq )
 {
-	if ( rq.headers.find( "host" ) == rq.headers.end() )
+	try
+	{
+		std::cout << "THE MIGHTY HOST BEFORE: " << rq.headers.at( "host" ) << std::endl;
+		size_t	separator ( rq.headers.at( "host" ).find_first_of(':') );
+		if ( separator != std::string::npos )
+			rq.headers.at( "host" ).resize( separator );
+		std::cout << "THE MIGHTY HOST AFTER: " << rq.headers.at( "host" ) << std::endl;
+
+		if ( rq.headers.at("method") == "post" )
+		{
+			if ( rq.headers.find( "content-type" ) == rq.headers.end() )
+			{
+				Logger::log() << "[ Error ] Content-Type is required" << std::endl;
+				return ( rq.stat = 400, false );
+			}
+			if ( rq.transferEncoding == false )
+			{
+				if ( rq.contentLength == false )
+				{
+					Logger::log() << "[ Error ] Content-Length is required" << std::endl;
+					return ( rq.stat = 411, false );
+				}
+			}
+			else
+			{
+				if ( rq.contentLength == true )
+					rq.contentLength = false;
+			}
+		}
+	}
+	catch(...)
 	{
 		Logger::log() << "[ Error ] Host is required" << std::endl;
 		return ( rq.stat = 400, false );
 	}
-	if ( rq.headers["method"] == "post" )
-	{
-		if ( rq.headers.find( "content-type" ) == rq.headers.end() )
-		{
-			Logger::log() << "[ Error ] Content-Type is required" << std::endl;
-			return ( rq.stat = 400, false );
-		}
-		if ( rq.transferEncoding == false )
-		{
-			if ( rq.contentLength == false )
-			{
-				Logger::log() << "[ Error ] Content-Length is required" << std::endl;
-				return ( rq.stat = 411, false );
-			}
-		}
-		else
-		{
-			if ( rq.contentLength == true )
-				rq.contentLength = false;
-		}
-	}
-
 	return ( true );
 }
 
