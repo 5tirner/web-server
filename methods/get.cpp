@@ -239,21 +239,23 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             return;
         }
         std::cout << "fillllePath: " << filePath << std::endl;
-        // if (!access(filePath.c_str(), F_OK))
-        // {
-        //     if (access(filePath.c_str(), R_OK))
-        //     {
-        //         std::cout << "\n\n\n\n=======>\n\n\n\n\n\n";
-        //         serveErrorPage(clientSocket, 403, serverConfig);
-        //         return;
-        //     }
-        // }
-        // else
-        // {
-        //     std::cout << "--->=====>:\n";
-        //     serveErrorPage(clientSocket, 404, serverConfig);
-        //     return;
-        // }
+        if (filePath[filePath.length() - 1] == '/')
+            filePath = filePath.substr(0, filePath.length() - 1);
+        if (!access(filePath.c_str(), F_OK))
+        {
+            if (access(filePath.c_str(), R_OK))
+            {
+                std::cout << "\n\n\n\n=======>\n\n\n\n\n\n";
+                serveErrorPage(clientSocket, 403, serverConfig);
+                return;
+            }
+        }
+        else
+        {
+            std::cout << "--->=====>:\n";
+            serveErrorPage(clientSocket, 404, serverConfig);
+            return;
+        }
         std::string responseD;
         if (isDirectory(filePath))
         {
