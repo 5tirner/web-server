@@ -39,7 +39,7 @@ void openFile(response& res , const std::string& path)
     res.fileStream.open(path.c_str(), std::ifstream::binary);
     if (!res.fileStream.is_open())
     {
-        std::cout << "File Not Opened" << std::endl;
+        std::cerr << "File Not Opened" << std::endl;
         // if (res.totalSize == std::string::npos)
         //     return ;
         // sendErrorResponse(clientSocket, 404, "Not Found");

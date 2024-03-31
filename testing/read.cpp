@@ -9,6 +9,6 @@ int main()
     int rc = read( fd, buffer, 1023 );
     rc = read( fd, buffer, 1023 );
     buffer[ rc ] = 0;
-    std::cout << "rc: " << rc << std::endl;
-    // std::cout << "buffer: " << buffer << std::endl;
+    std::cerr << "rc: " << rc << std::endl;
+    // std::cerr << "buffer: " << buffer << std::endl;
 }

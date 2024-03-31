@@ -295,4 +295,7 @@ std::string decodeURI(const std::string&);
 bool        isPathWithinRoot(std::string&, std::string&);
 std::string resolveFilePath(std::string&);
 /*-------------- ysabr code end ---------------*/
+/*CGI*/
+std::string GetExtentions(std::string &filename);
+std::string cgiFile(std::string &FileName, char **env, std::string &executer, bool *FLAG);
 #endif
