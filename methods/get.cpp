@@ -15,7 +15,7 @@ std::string GetExtentions(std::string &filename)
     types[".py"]  = "/bin/python3";
     types[".js"]  = "/bin/js";
     types[".rb"]  = "/bin/ruby";
-    types[".php"] = "/bin/php-cgi";
+    types[".php"] = "/bin/php";
     size_t i = filename.size() - 1;
     for (; i > 0; i--)
     {
@@ -34,9 +34,9 @@ std::string GetExtentions(std::string &filename)
     return (executer);
 }
 
-std::string cgiFile(std::string &FileName, char **env, std::string &executer)
+std::string cgiFile(std::string &FileName, char **env, std::string &executer, bool *FLAG)
 {
-    std::cout << "- FileName: " << FileName << std::endl;
+    std::cout << "1- FileName: " << FileName << std::endl;
     char *args[3];
     args[0] = (char *)FileName.c_str(), args[1] = (char *)FileName.c_str(), args[2] = NULL;
     std::string save = FileName;
@@ -46,7 +46,6 @@ std::string cgiFile(std::string &FileName, char **env, std::string &executer)
     {
         if (!freopen(save.c_str(), "w+", stdout))
             throw "Error: freopen Failed Connect The File With stdout.";
-        write (1, "Content-type: text/html;\r\n", 28);
         int processDup2 = fork();
         if (!processDup2)
         {
@@ -62,10 +61,8 @@ std::string cgiFile(std::string &FileName, char **env, std::string &executer)
             F.open(save.c_str(), std::ios::in);
             if (!F) throw "Error: Failed To Open The File That Refered To stdout.";
             F.seekg(0, std::ios::end);
-            if (F.tellg() == 28)
-                std::cout << "Status: 500 Internal Server Error\r\n\r\n";
-            else
-                std::cout << "\r\n";
+            if (F.tellg() == 0)
+                *FLAG = true;
             fclose(stdout);
         }
     }
@@ -73,13 +70,13 @@ std::string cgiFile(std::string &FileName, char **env, std::string &executer)
         throw "Error: Fork1 Failed To Create A New Process.";
     else
         while (waitpid(processDup1, NULL, WUNTRACED) == -1);
-    std::fstream F;
-    F.open(save.c_str(), std::ios::in);
-    if (!F)
-        throw "Error: Failed To Open The File That Refered To stdout.";
-    F.seekg(0, std::ios::end);
-    std::cout << F.tellg() << std::endl;
-    F.close();
+    // std::fstream F;
+    // F.open(save.c_str(), std::ios::in);
+    // if (!F)
+    //     throw "Error: Failed To Open The File That Refered To stdout.";
+    // F.seekg(0, std::ios::end);
+    // std::cout << F.tellg() << std::endl;
+    // F.close();
     return (save);
 }
 
@@ -293,7 +290,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             redirectURL = "http://" + redirectURL;
         std::string responseD = "HTTP/1.1 301 Moved Permanently\r\n";
         responseD += "Location: " + redirectURL + "\r\n";
-        responseD += "Content-Length: 0\r\n";
+        responseD += "Content-Lengt+h: 0\r\n";
         responseD += "Connection: close\r\n\r\n";
         response responseData;
         responseData.setResponseHeader(responseD);
@@ -331,9 +328,26 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             return;
         }
         std::string executer = GetExtentions(filePath);
+        // std::cout << "PATH: " << executer << std::endl;
+        // std::cout << "CGI Status: " + routeConfig.cgi.at("cgi") << std::endl;
+        bool FLAG = false;
         if (routeConfig.cgi.at("cgi") == "on" && executer != "NormalFile")
         {
-            std::string newFileName = cgiFile(filePath, NULL, executer);
+            try
+            {
+                filePath = cgiFile(filePath, NULL, executer, &FLAG);
+                if (FLAG == true)
+                {
+                    std::cerr << "TRUE FLAGS" << std::endl;
+                    serveErrorPage(clientSocket, 500, serverConfig);
+                    return;
+                }
+            }
+            catch(const char *err)
+            {
+                std::cerr << err << std::endl;
+            }
+            std::cerr << "The File Geted By CGI Is: " + filePath << std::endl;
         }
         std::string responseD;
         if (isDirectory(filePath))
