@@ -40,7 +40,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "@yachaab add info map for ostora"
+	@git commit -m "@yachaab matching the url"
 	@git push origin cgi-feature
 	@echo "Pushed to cgi-feature"
 

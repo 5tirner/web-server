@@ -31,6 +31,7 @@ static bool	extractMethodAndUri( Request& rq )
 		rq.headers["version"]   =	startLine.substr( rq.headers["method"].length() + rq.headers["uri"].length() + 2 );
 		lowcase( rq.headers["method"] );
 		lowcase( rq.headers["uri"] );
+		std::cout << "THE ORIGIN URL: " << rq.headers["uri"] << std::endl;
 		lowcase( rq.headers["version"] );
 
 		if ( rq.headers["version"] != "http/1.1" )
@@ -77,8 +78,25 @@ static bool	validateUri( const std::string& uri )
 std::string decodeURI(const std::string& uri)
 {
     std::string result;
-    for (std::size_t i = 0; i < uri.length(); ++i)
+	std::cout << "THE MOTHEFUCKING URI: " << uri << std::endl;
+    for (std::size_t i = 0; i < uri.size(); ++i)
     {
+		if ( uri[i] == '/' )
+		{
+			size_t j = i + 1;
+			for ( ; j <= i + 2 && uri[j] == '.'; ++j );
+			std::cout << "j = " << j << " size: " << uri.size() << std::endl;
+			if ( j > i + 1 && j == uri.size() )
+			{
+				std::cout << "????????????????????????" << std::endl;
+				return "";
+			}
+			if ( j != i + 1 && uri[ j ] == '/' )
+			{
+				std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+				return "";
+			}
+		}
         if (uri[i] == '%' && i + 2 < uri.length())
         {
             std::string hex = uri.substr(i + 1, 2);
@@ -109,7 +127,12 @@ static bool validateUriAndExtractQueries( Request& rq )
 	}
 
 	rq.headers["uri"] = decodeURI(rq.headers["uri"]);
-
+	std::cout << "THE URI: " << rq.headers["uri"] << std::endl;
+	if ( rq.headers["uri"].empty() )
+	{
+		std::cout << "URI EMPTY" << std::endl;
+		return ( rq.stat = 400, false );
+	}
 	size_t queryPos = rq.headers["uri"].find('?');
     if ( queryPos != std::string::npos )
 	{
