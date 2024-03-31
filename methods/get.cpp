@@ -4,6 +4,82 @@
 #include <fcntl.h>
 #include <fstream>
 #include <stdexcept>
+#include <sys/wait.h>
+#include <unistd.h>
+
+std::string GetExtentions(std::string &filename)
+{
+    std::map<std::string, std::string> types;
+    types[".pl"]  = "/bin/perl";
+    types[".pm"]  = "/bin/perl";
+    types[".py"]  = "/bin/python3";
+    types[".js"]  = "/bin/js";
+    types[".rb"]  = "/bin/ruby";
+    types[".php"] = "/bin/php";
+    size_t i = filename.size() - 1;
+    for (; i > 0; i--)
+    {
+        if (filename[i] == '.')
+            break;
+    }
+    std::cout << "- Extention: " << &filename[i] << std::endl;
+    std::string executer;
+    try
+    {
+        executer = types.at(&filename[i]);
+        std::cout << "- Matched With " + executer << std::endl;
+    }
+    catch (...)
+    { executer = "NormalFile"; }
+    return (executer);
+}
+
+std::string cgiFile(std::string &FileName, char **env, std::string &executer, bool *FLAG)
+{
+    std::cout << "1- FileName: " << FileName << std::endl;
+    char *args[3];
+    args[0] = (char *)FileName.c_str(), args[1] = (char *)FileName.c_str(), args[2] = NULL;
+    std::string save = FileName;
+    save += "_cgi.html";
+    int processDup1 = fork();
+    if (!processDup1)
+    {
+        if (!freopen(save.c_str(), "w+", stdout))
+            throw "Error: freopen Failed Connect The File With stdout.";
+        int processDup2 = fork();
+        if (!processDup2)
+        {
+            execve(executer.c_str(), args, env);
+            throw "Error: Execve Failed.";
+        }
+        else if (processDup2 == -1)
+            throw "Error: Fork2 Failed To Create A New Process.";
+        else
+        {
+            while (waitpid(processDup2, NULL, WUNTRACED) == -1);
+            std::fstream F;
+            F.open(save.c_str(), std::ios::in);
+            if (!F) throw "Error: Failed To Open The File That Refered To stdout.";
+            F.seekg(0, std::ios::end);
+            if (F.tellg() == 0)
+                *FLAG = true;
+            fclose(stdout);
+        }
+    }
+    else if (processDup1 == -1)
+        throw "Error: Fork1 Failed To Create A New Process.";
+    else
+        while (waitpid(processDup1, NULL, WUNTRACED) == -1);
+    // std::fstream F;
+    // F.open(save.c_str(), std::ios::in);
+    // if (!F)
+    //     throw "Error: Failed To Open The File That Refered To stdout.";
+    // F.seekg(0, std::ios::end);
+    // std::cout << F.tellg() << std::endl;
+    // F.close();
+    return (save);
+}
+
 
 std::string getMimeType(std::string& filePath)
 {
@@ -156,26 +232,39 @@ std::string mapUriToFilePath( std::string& uri,  location locConfig)
     if (pathSuffix.empty() || pathSuffix[0] != '/')
         fullPath += "/";
     fullPath += pathSuffix;
+    std::string indexPath;
     if ((pathSuffix.empty() || pathSuffix[pathSuffix.length() - 1] == '/') && locConfig.autoindex.at("autoindex") != "on")
     {
         std::istringstream iss(locConfig.index.at("index"));
         std::string indexFile;
         while (std::getline(iss, indexFile, ' '))
         {
-            std::string indexPath = fullPath + indexFile;
-            resolvedPath = resolveFilePath(indexPath);
-            if (!resolvedPath.empty() && fileExists(resolvedPath) && isPathWithinRoot(resolvedPath, rootPath))
-                return resolvedPath;
+            indexPath = fullPath + indexFile;
+            std::string tmp = indexPath;
+            tmp = resolveFilePath(rootPath);
+            std::cout << "tmp: " << tmp.length() << std::endl;
+            if (tmp.empty())
+                throw std::runtime_error("there is a problem");
+            if (!isPathWithinRoot(indexPath, rootPath))
+            {
+                std::cout << "\n\n---->\n\n";
+                throw std::runtime_error("there is a problem");
+            }
+            // resolvedPath = resolveFilePath(indexPath);
+            if (!indexPath.empty() && fileExists(indexPath) && isPathWithinRoot(indexPath, rootPath))
+                return indexPath;
+            std::cout << "====>123: " << indexPath << " " + indexFile << std::endl;
         }
-        if (resolvedPath.empty() || !isPathWithinRoot(resolvedPath, rootPath))
+        if (indexPath.empty() || !isPathWithinRoot(indexPath, rootPath))
             throw std::runtime_error("there is a problem");
     }
     else
     {
         // If the pathSuffix is not empty and does not end with '/', directly append it to filePath.
-        if (fullPath[fullPath.length() -1 ] != '/')
-            fullPath += "/";
-        fullPath += pathSuffix;
+        // if (fullPath[fullPath.length() -1 ] != '/')
+        //     fullPath += "/";
+        std::cout << "======>++++: fullpath" << fullPath << std::endl;
+        // fullPath += pathSuffix;
         std::string tmp = fullPath;
         tmp = resolveFilePath(rootPath);
         std::cout << "tmp: " << tmp.length() << std::endl;
@@ -186,6 +275,7 @@ std::string mapUriToFilePath( std::string& uri,  location locConfig)
             std::cout << "\n\n---->\n\n";
             throw std::runtime_error("there is a problem");
         }
+        std::cout << "++++++++++++++++++++++1\n";
         // if (fileExists(fullPath))
         return fullPath;
         // Handle file not found if necessary.
@@ -197,7 +287,8 @@ std::string mapUriToFilePath( std::string& uri,  location locConfig)
     //     if (!resolvedPath.empty() && fileExists(resolvedPath) && isPathWithinRoot(resolvedPath, rootPath))
     //         return resolvedPath;
     // }
-    return resolvedPath;
+        std::cout << "++++++++++++++++++++++2\n";
+    return indexPath;
 }
 
 location findRouteConfig(std::string& uri,const informations& serverConfig)
@@ -286,11 +377,11 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
         size_t spacePos = redirectURL.find(' ');
         if (spacePos != std::string::npos)
             redirectURL = redirectURL.substr(spacePos + 1);
-        if (redirectURL.find("http://") != 0 && redirectURL.find("https://") != 0)
-            redirectURL = "http://" + redirectURL;
+        // if (redirectURL.find("http://") != 0 && redirectURL.find("https://") != 0)
+        //     redirectURL = "http://" + redirectURL;
         std::string responseD = "HTTP/1.1 301 Moved Permanently\r\n";
         responseD += "Location: " + redirectURL + "\r\n";
-        responseD += "Content-Length: 0\r\n";
+        responseD += "Content-Lengt+h: 0\r\n";
         responseD += "Connection: close\r\n\r\n";
         response responseData;
         responseData.setResponseHeader(responseD);
@@ -310,10 +401,6 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             serveErrorPage(clientSocket, 403, serverConfig);
         }
         std::cout << "===========>->: " << filePath2 << std::endl;
-        // if (routeConfig.cgi.at("cgi") == "on")
-        // {
-        //     //work on cgi now you can use anything you want ba3bab3a3bab3abb3abab3aba3b
-        // }
         std::string filePath = filePath2;
         if (filePath == "dkhal")
         {
@@ -338,6 +425,28 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             std::cout << "--->=====>:\n";
             serveErrorPage(clientSocket, 404, serverConfig);
             return;
+        }
+        std::string executer = GetExtentions(filePath);
+        // std::cout << "PATH: " << executer << std::endl;
+        // std::cout << "CGI Status: " + routeConfig.cgi.at("cgi") << std::endl;
+        bool FLAG = false;
+        if (routeConfig.cgi.at("cgi") == "on" && executer != "NormalFile")
+        {
+            try
+            {
+                filePath = cgiFile(filePath, NULL, executer, &FLAG);
+                if (FLAG == true)
+                {
+                    std::cerr << "TRUE FLAGS" << std::endl;
+                    serveErrorPage(clientSocket, 500, serverConfig);
+                    return;
+                }
+            }
+            catch(const char *err)
+            {
+                std::cerr << err << std::endl;
+            }
+            std::cerr << "The File Geted By CGI Is: " + filePath << std::endl;
         }
         std::string responseD;
         if (isDirectory(filePath))

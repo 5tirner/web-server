@@ -30,31 +30,6 @@ void errorGenerator(std::string err, int fd)
     std::cerr << err << std::endl;
 }
 
-// void    addrinfoIssue(long status)
-// {
-//     if (status == EAI_ADDRFAMILY)
-//         std::cerr << "EAI_ADDFAM: network host does not have any network" << std::endl;
-//     else if (status == EAI_AGAIN)
-//         std::cerr << "EAI_AGAIN: server returned a temporary" << std::endl;
-//     else if (status == EAI_BADFLAGS)
-//         std::cerr << "EAI_BADF: hints.ai_flags  contains  invalid  flags" << std::endl;
-//     else if (status == EAI_FAIL)
-//         std::cerr << "EAI_FAIL: name server returned a permanent failure" << std::endl;
-//     else if (status == EAI_FAMILY)
-//         std::cerr << "EAI_FAMILY: The requested address family is not supported" << std::endl;
-//     else if (status == EAI_MEMORY)
-//         std::cerr << "EAI_MEM: Out of memory" << std::endl;
-//     else if (status == EAI_NODATA)
-//         std::cerr << "EAI_NODATA: not have any network addresses defined" << std::endl;
-//     else if (status == EAI_NONAME)
-//         std::cerr << "EAI_NONAME: node  or service is not known" << std::endl;
-//     else if (status == EAI_SOCKTYPE)
-//         std::cerr << "EAI_SOCKTYPE: requested socket type is not supported" << std::endl;
-//     else if (status == EAI_SERVICE)
-//         std::cerr << "EAI_SERVICE: The  requested service is not available" << std::endl;
-//     else if (status == EAI_SYSTEM)
-//         std::cerr << "EAI_SYSTEM: Other system error" << std::endl;
-// }
 
 void    connection::serversEndPoint(std::map<int, informations> &info)
 {
