@@ -212,17 +212,29 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
 
                 if (!this->Requests.at(monitor.fd).storeHeader)
                 {
-                    try 
+                    try
                     {
-                        if (this->Requests.at(monitor.fd).headers.at("method") == "get")
-                            handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
-                        else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
-                            handleRequestDELETE(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
+                        try
+                        {
+                            std::string host = this->Requests.at(monitor.fd).headers.at("host");
+                            notBindingServers.at(host);
+                            if (this->Requests.at(monitor.fd).headers.at("method") == "get")
+                                handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), notBindingServers.at(host));
+                            else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
+                                handleRequestDELETE(monitor.fd, this->Requests.at(monitor.fd), notBindingServers.at(host));
+                        }
+                        catch(...)
+                        {
+                            if (this->Requests.at(monitor.fd).headers.at("method") == "get")
+                                handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
+                            else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
+                                handleRequestDELETE(monitor.fd, this->Requests.at(monitor.fd),infoMap.at(it->second));
+                        }
                     }
                     catch( ... )
                     {
                         std::string response = creatTemplate( "./src/page.html", this->Requests.at(monitor.fd).stat, codeMsg );
-                        sendResponse( monitor.fd, response );
+                        sendResponse( monitor.fd, response);
                         Response.at(monitor.fd).status = response::Complete;
                         std::cout << "RESPONSE SENT" << std::endl;
                         throw ;

@@ -280,7 +280,7 @@ std::string creatTemplate( const char*, int& , code&  );
 std::string to_string(int);
 std::string getMimeType(std::string&);
 std::string getNextChunk(response&,size_t);
-std::string mapUriToFilePath(std::string&, location&);
+std::string mapUriToFilePath(std::string&, location);
 std::string generateDirectoryListing(const std::string&);
 bool        hasNextChunk(response&);
 bool        fileExists(std::string&);
@@ -292,5 +292,7 @@ void        sendResponseChunk(int, response&);
 void        openFile(response&,const std::string&);
 location    findRouteConfig(std::string&, const informations&);
 std::string decodeURI(const std::string&);
+bool        isPathWithinRoot(std::string&, std::string&);
+std::string resolveFilePath(std::string&);
 /*-------------- ysabr code end ---------------*/
 #endif
