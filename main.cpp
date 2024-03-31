@@ -5,12 +5,12 @@ void showmeConfigthings(std::map<int, informations> &general)
     std::map<int, informations>::iterator it = general.begin();
     while (it != general.end())
     {
-        std::cout << "Server Number " << it->first + 1 << ":" << std::endl;
-        std::cout << "About Server:" << std::endl;
+        std::cerr << "Server Number " << it->first + 1 << ":" << std::endl;
+        std::cerr << "About Server:" << std::endl;
         showInfo(it->second);
-        std::cout << "About Locations:" << std::endl;
+        std::cerr << "About Locations:" << std::endl;
         showInfo2(it->second);
-        std::cout << "////////////////////////////////////////////////" << std::endl;
+        std::cerr << "////////////////////////////////////////////////" << std::endl;
         it++;
     }
 }

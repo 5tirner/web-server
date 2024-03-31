@@ -44,7 +44,7 @@ int connection::location_support_upload( Request& rq, int serverID )
 		for (; i < serverInfo.locationsInfo.size(); i++ )
 		{
 			location = serverInfo.locationsInfo.at(i).directory.at( "location" );
-			std::cout << "location: " << location << std::endl;
+			std::cerr << "location: " << location << std::endl;
 			// if ( location.length() > 1 && location.at( location.length() - 1 ) == '/' )
 			// 	location.resize( location.length() - 1 );
 			if ( newUri.compare(0, location.size(), location.c_str()) == 0 && location.length() > saveLcation.length())
@@ -53,7 +53,7 @@ int connection::location_support_upload( Request& rq, int serverID )
 				saveLcation = location;
 			}
 		}
-		std::cout << "NEW URI: " << newUri << " location: " << location << std::endl;
+		std::cerr << "NEW URI: " << newUri << " location: " << location << std::endl;
 		i = j;
 		if ( j != -1 )
 		{

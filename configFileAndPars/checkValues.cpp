@@ -16,7 +16,7 @@ int normalCheck(std::string &value)
         save.push_back(value[i]);
         i++;
     }
-    //std::cout << value + " Become " + save << std::endl;
+    //std::cerr << value + " Become " + save << std::endl;
     if (save.size() == 0 || save == ";") return (1);
     if (strchr(save.c_str(), ' ') || strchr(save.c_str(), '\t' ))
         return (1);
@@ -32,7 +32,7 @@ int     methodesSyntax(std::string &value)
     {
         if (value[i] == ' ' || value[i] == '\t')
         {
-            //std::cout << "---->" << check << std::endl;
+            //std::cerr << "---->" << check << std::endl;
             if (check == "POST") Post++;
             else if (check == "DELETE") Delete++;
             else if (check == "GET") Get++;
