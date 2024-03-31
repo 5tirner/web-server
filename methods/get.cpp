@@ -40,7 +40,7 @@ std::string cgiFile(std::string &FileName, char **env, std::string &executer, bo
     char *args[3];
     args[0] = (char *)FileName.c_str(), args[1] = (char *)FileName.c_str(), args[2] = NULL;
     std::string save = FileName;
-    save += ".cgi";
+    save += "_cgi.html";
     int processDup1 = fork();
     if (!processDup1)
     {
