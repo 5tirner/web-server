@@ -225,7 +225,12 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 }
                 /*-------------- yachaab code ended -----------------*/
                 else
-                    sendResponseChunk(monitor.fd, Response.at(monitor.fd));
+                {
+                    if (!this->Requests.at(monitor.fd).cgiGET)
+                        sendResponseChunk(monitor.fd, Response.at(monitor.fd));
+                    else
+                        Response.at(monitor.fd).sendResponseFromCGI(monitor.fd, this->Cgires.at(monitor.fd), Response.at(monitor.fd));
+                }
                 if (Response.at(monitor.fd).status == response::Complete)
                     throw std::exception();
             } 
@@ -256,6 +261,7 @@ void    connection::checkServer(struct pollfd &monitor, std::map<int, struct soc
             std::cerr << "New Client Added To Endpoint " << monitor.fd << " With Number " << newClient << '.' << std::endl;
             this->clientsSock[newClient] = monitor.fd;
             this->Response[newClient] = response();
+            this->Cgires[newClient] = ParsedCGIOutput();
         }
         std::cerr << "Number Of Client Now Is: " << this->clientsSock.size() << std::endl;
     }

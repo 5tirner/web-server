@@ -132,7 +132,6 @@ void sendResponseChunk(int clientSocket, response& respData)
             send(clientSocket, lastChunk.c_str(), lastChunk.size(), 0);
             closeFile(respData);
             respData.status = response::Complete;
-
         }
     }
 }

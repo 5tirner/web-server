@@ -41,7 +41,15 @@ void connection::handleRequestDELETE(int clientSocket, Request& request,const in
 {
     location routeConfig = findRouteConfig(request.headers["uri"], serverConfig);
 
-    std::string filePath = mapUriToFilePath(request.headers["uri"], routeConfig);
+    std::string filePath;
+    try
+    {
+        filePath = mapUriToFilePath(request.headers["uri"], routeConfig);
+    
+    } catch (...)
+    {
+        serveErrorPage(clientSocket, 403, serverConfig);
+    }
     if (routeConfig.allowed_methodes["allowed_methodes"].find("DELETE") == std::string::npos)
     {
         serveErrorPage(clientSocket, 405, serverConfig);
