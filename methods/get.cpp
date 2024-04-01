@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 
+
 std::string getMimeType(std::string& filePath)
 {
     std::map<std::string, std::string> mimeTypes;
@@ -40,92 +41,182 @@ bool fileExists(std::string& filePath)
     std::ifstream file(filePath.c_str());
     return file.good();
 }
-bool isPathWithinRoot(std::string& resolvedPath, std::string& rootPath)
-{
-    std::cerr << "res: --->: " << resolvedPath << std::endl;
-    std::cerr << "rooot: --->: " << rootPath << std::endl;
-    if (resolvedPath[resolvedPath.length() - 1] != '/')
-        resolvedPath += "/";
-    if (resolvedPath.substr(0, rootPath.size()) == rootPath)
-        return true;
-    return false;
-}
-
 std::string resolveFilePath(std::string& path)
 {
-    char *realPath = NULL;
-    realPath = realpath(path.c_str(), realPath);
-    
-    if (realPath == NULL)
-        return "";
-    return std::string(realPath);
+    char *realPath = realpath(path.c_str(), NULL);
+    std::string resolvedPath;
+    if (realPath)
+    {
+        resolvedPath = std::string(realPath);
+        free(realPath); 
+    }
+    return resolvedPath;
 }
+
+bool isPathWithinRoot(std::string& resolvedPath, std::string& rootPath)
+{
+    if (resolvedPath.find(rootPath) != 0)
+        return false;
+    return true;
+}
+// bool isPathWithinRoot(std::string& resolvedPath, std::string& rootPath)
+// {
+//     std::cout << "res: --->: " << resolvedPath << std::endl;
+//     std::cout << "rooot: --->: " << rootPath << std::endl;
+//     if (resolvedPath[resolvedPath.length() - 1] != '/')
+//         resolvedPath += "/";
+//     if (resolvedPath.substr(0, rootPath.size()) == rootPath)
+//         return true;
+//     return false;
+// }
+
+// std::string resolveFilePath(std::string& path)
+// {
+//     char *realPath = NULL;
+//     realPath = realpath(path.c_str(), realPath);
+    
+//     if (realPath == NULL)
+//         return "";
+//     return std::string(realPath);
+// }
+
+// std::string mapUriToFilePath( std::string& uri,  location locConfig)
+// {
+//     try
+//     {
+//         std::string rootPath = locConfig.root.at("root"); // Use .at() for const map
+
+//         std::string filePath = rootPath; // Start constructing the file path from the root
+//         std::string locPath = locConfig.directory.at("location");
+//         std::string pathSuffix;
+//         if (uri.find(locPath) == 0)
+//             pathSuffix = uri.substr(locPath.length());
+//         else
+//             pathSuffix = uri;
+//         if ((pathSuffix.empty() || pathSuffix[pathSuffix.size() - 1] == '/') && locConfig.autoindex.at("autoindex") != "on")
+//         {
+//             std::istringstream iss(locConfig.index.at("index")); // Use .at() here as well
+//             std::string indexFile;
+//             std::cout << "index: " << locConfig.index.at("index") << std::endl;
+//             std::string fullPath;
+//             while (std::getline(iss, indexFile, ' '))
+//             {
+//                 fullPath = filePath + (pathSuffix[pathSuffix.length() - 1] == '/' ? pathSuffix : pathSuffix + "/") + indexFile;
+//                 std::string tmp = fullPath;
+//                 tmp = resolveFilePath(rootPath);
+//                 std::cout << "tmp--->: " << tmp.length() << std::endl;
+//                 if (tmp.empty())
+//                     return "dkhal";
+//                 if (!isPathWithinRoot(fullPath, rootPath))
+//                 {
+//                     std::cout << "\n\n---->\n\n";
+//                     return "dkhal";
+//                 }
+//                 if (fileExists(fullPath) && isPathWithinRoot(fullPath, rootPath))
+//                 {
+//                     return fullPath; // Found an index file that exists and is within root
+//                 }
+//             }
+//             return fullPath;
+//             // Optional: Handle case when no index file is found...
+//         }
+//         else
+//         {
+//             // If the pathSuffix is not empty and does not end with '/', directly append it to filePath.
+//             if (filePath[filePath.length() -1 ] != '/')
+//                 filePath += "/";
+//             filePath += pathSuffix;
+//             std::string tmp = filePath;
+//             tmp = resolveFilePath(rootPath);
+//             std::cout << "tmp: " << tmp.length() << std::endl;
+//             if (tmp.empty())
+//                 return "dkhal";
+//             if (!isPathWithinRoot(filePath, rootPath))
+//             {
+//                 std::cout << "\n\n---->\n\n";
+//                 return "dkhal";
+//             }
+//             // if (fileExists(filePath))
+//             return filePath;
+//             // Handle file not found if necessary.
+//         }
+//     }
+//     catch (const std::out_of_range& e)
+//     {
+//         // Handle the case where a key does not exist in the map
+//         std::cerr << "Key not found in configuration: " << e.what() << '\n';
+//         // Handle error, possibly return a default value or error indicator
+//     }
+//     return ""; // Placeholder return to satisfy all control paths
+// }
 
 std::string mapUriToFilePath( std::string& uri,  location locConfig)
 {
-    try
+    std::string rootPath = locConfig.root.at("root");
+    std::string locPath = locConfig.directory.at("location");
+    std::string pathSuffix = uri.substr(locPath.length());
+    std::string fullPath = rootPath;
+    std::string resolvedPath;
+    if (pathSuffix.empty() || pathSuffix[0] != '/')
+        fullPath += "/";
+    fullPath += pathSuffix;
+    std::string indexPath;
+    if ((pathSuffix.empty() || pathSuffix[pathSuffix.length() - 1] == '/') && locConfig.autoindex.at("autoindex") != "on")
     {
-        std::string rootPath = locConfig.root.at("root"); // Use .at() for const map
-
-        std::cerr << "================>: rootPath: " << rootPath << std::endl;
-        std::string filePath = rootPath; // Start constructing the file path from the root
-        std::string locPath = locConfig.directory.at("location");
-        std::cerr << "================>: locPath: " << locPath << std::endl;
-        std::string pathSuffix;
-        if (uri.find(locPath) == 0)
-            pathSuffix = uri.substr(locPath.length());
-        else
-            pathSuffix = uri;
-        if ((pathSuffix.empty() || pathSuffix[pathSuffix.size() - 1] == '/') && locConfig.autoindex.at("autoindex") != "on")
+        std::istringstream iss(locConfig.index.at("index"));
+        std::string indexFile;
+        while (std::getline(iss, indexFile, ' '))
         {
-            std::istringstream iss(locConfig.index.at("index")); // Use .at() here as well
-            std::string indexFile;
-            while (std::getline(iss, indexFile, ' '))
-            {
-                std::string fullPath = filePath + (pathSuffix[pathSuffix.length() - 1] == '/' ? pathSuffix : pathSuffix + "/") + indexFile;
-                std::string tmp = fullPath;
-                tmp = resolveFilePath(rootPath);
-                std::cerr << "tmp: " << tmp.length() << std::endl;
-                if (tmp.empty())
-                    return "dkhal";
-                if (!isPathWithinRoot(fullPath, rootPath))
-                {
-                    std::cerr << "\n\n---->\n\n";
-                    return "dkhal";
-                }
-
-                return fullPath; // Found an index file, return its path
-            }
-            // Optional: Handle case when no index file is found...
-        }
-        else
-        {
-            // If the pathSuffix is not empty and does not end with '/', directly append it to filePath.
-            if (filePath[filePath.length() -1 ] != '/')
-                filePath += "/";
-            filePath += pathSuffix;
-            std::string tmp = filePath;
+            indexPath = fullPath + indexFile;
+            std::string tmp = indexPath;
             tmp = resolveFilePath(rootPath);
             std::cerr << "tmp: " << tmp.length() << std::endl;
             if (tmp.empty())
-                return "dkhal";
-            if (!isPathWithinRoot(filePath, rootPath))
+                throw std::runtime_error("there is a problem");
+            if (!isPathWithinRoot(indexPath, rootPath))
             {
-                std::cerr << "\n\n---->\n\n";
-                return "dkhal";
+                std::cout << "\n\n---->\n\n";
+                throw std::runtime_error("there is a problem");
             }
-            // if (fileExists(filePath))
-            return filePath;
-            // Handle file not found if necessary.
+            // resolvedPath = resolveFilePath(indexPath);
+            if (!indexPath.empty() && fileExists(indexPath) && isPathWithinRoot(indexPath, rootPath))
+                return indexPath;
+            std::cout << "====>123: " << indexPath << " " + indexFile << std::endl;
         }
+        if (indexPath.empty() || !isPathWithinRoot(indexPath, rootPath))
+            throw std::runtime_error("there is a problem");
     }
-    catch (const std::out_of_range& e)
+    else
     {
-        // Handle the case where a key does not exist in the map
-        std::cerr << "Key not found in configuration: " << e.what() << '\n';
-        // Handle error, possibly return a default value or error indicator
+        // If the pathSuffix is not empty and does not end with '/', directly append it to filePath.
+        // if (fullPath[fullPath.length() -1 ] != '/')
+        //     fullPath += "/";
+        std::cout << "======>++++: fullpath" << fullPath << std::endl;
+        // fullPath += pathSuffix;
+        std::string tmp = fullPath;
+        tmp = resolveFilePath(rootPath);
+        std::cout << "tmp: " << tmp.length() << std::endl;
+        if (tmp.empty())
+            throw std::runtime_error("there is a problem");
+        if (!isPathWithinRoot(fullPath, rootPath))
+        {
+            std::cout << "\n\n---->\n\n";
+            throw std::runtime_error("there is a problem");
+        }
+        std::cout << "++++++++++++++++++++++1\n";
+        // if (fileExists(fullPath))
+        return fullPath;
+        // Handle file not found if necessary.
     }
-    return ""; // Placeholder return to satisfy all control paths
+    // else if (!pathSuffix.empty())
+    // {
+    //     resolvedPath = resolveFilePath(fullPath);
+    //     std::cout << "===>: resolvePath: " << resolvedPath << std::endl;
+    //     if (!resolvedPath.empty() && fileExists(resolvedPath) && isPathWithinRoot(resolvedPath, rootPath))
+    //         return resolvedPath;
+    // }
+        std::cout << "++++++++++++++++++++++2\n";
+    return indexPath;
 }
 
 location findRouteConfig(std::string& uri,const informations& serverConfig)
@@ -214,8 +305,8 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
         size_t spacePos = redirectURL.find(' ');
         if (spacePos != std::string::npos)
             redirectURL = redirectURL.substr(spacePos + 1);
-        if (redirectURL.find("http://") != 0 && redirectURL.find("https://") != 0)
-            redirectURL = "http://" + redirectURL;
+        // if (redirectURL.find("http://") != 0 && redirectURL.find("https://") != 0)
+        //     redirectURL = "http://" + redirectURL;
         std::string responseD = "HTTP/1.1 301 Moved Permanently\r\n";
         responseD += "Location: " + redirectURL + "\r\n";
         responseD += "Content-Lengt+h: 0\r\n";
@@ -228,8 +319,16 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
     }
     else
     {
-        std::string filePath2 = mapUriToFilePath(request.headers["uri"], routeConfig);
-        std::cerr << "===========>->: " << filePath2 << std::endl;
+        std::string filePath2;
+        try
+        {
+            filePath2 = mapUriToFilePath(request.headers["uri"], routeConfig);
+        
+        } catch (...)
+        {
+            serveErrorPage(clientSocket, 403, serverConfig);
+        }
+        std::cout << "===========>->: " << filePath2 << std::endl;
         std::string filePath = filePath2;
         if (filePath == "dkhal")
         {
@@ -273,6 +372,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
         {
             std::vector<location>::const_iterator it = serverConfig.locationsInfo.begin();
             std::string check = request.headers["uri"] + it->index.at("index");
+
             std::map<std::string, std::string>::iterator autoindexIt = routeConfig.autoindex.find("autoindex");
             if (isRegularFile(check))
             {
