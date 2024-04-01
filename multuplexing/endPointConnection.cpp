@@ -216,9 +216,24 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                     }
                 }
                 /*-------------- yachaab code start -----------------*/
-                if ( this->Requests.at(monitor.fd).headers["method"] == "post" )
+                if ( this->Requests.at(monitor.fd).headers.at("method") == "post" )
                 {
-                    std::string response = creatTemplate( "./src/page.html", this->Requests.at(monitor.fd).stat, codeMsg );
+                    std::string newFile = "./src/page.html";
+                    std::string executer = GetExtentions(this->Requests.at(monitor.fd).scriptName);
+                    if (this->Requests.at(monitor.fd).cgi && executer != "NormalFile")
+                    {
+                        try
+                        {
+                            // newFile = cgiFile("POST", this->Requests.at(monitor.fd).scriptName,
+                                // executer, this->Requests.at(monitor.fd).filename);
+                        }
+                        catch (const char *err)
+                        {
+                            std::cerr << err << std::endl;
+                        }
+                    }
+                    std::cerr << "Filename: " << this->Requests.at(monitor.fd).filename << std::endl;
+                    std::string response = creatTemplate( newFile.c_str(), this->Requests.at(monitor.fd).stat, codeMsg );
                     sendResponse( monitor.fd, response );
                     Response.at(monitor.fd).status = response::Complete;
                     std::cerr << "POST RESPONSE SENT" << std::endl;

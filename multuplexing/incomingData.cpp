@@ -190,6 +190,10 @@ std::string getMimeTypeForPost(std::string& type)
 	mimeTypes["application/gzip"] = ".gz";
 	mimeTypes["multipart/form-data"] = ".multipart";
 	mimeTypes["message/http"] = ".http";
+	// mimeTypes["application/x-httpd-php"] = ".php";
+	mimeTypes["application/x-python-code"] = ".py";
+	mimeTypes["text/x-python"] = ".py";
+	
 	try
 	{
 		return mimeTypes.at( type );

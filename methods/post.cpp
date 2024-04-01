@@ -1,4 +1,5 @@
 #include "../include/mainHeader.hpp"
+#include <dirent.h>
 
 static void generateRandomFileName( Request& rq, std::string& path )
 {
@@ -39,30 +40,33 @@ int connection::location_support_upload( Request& rq, int serverID )
 			serverInfo = OverLoad.at( serverID );
 
 		std::string newUri( rq.headers.at("uri") );
+		std::cerr << "NEW URI: " << newUri + "." <<std::endl;
 		int j = -1;
 		std::string saveLcation; 
 		for (; i < serverInfo.locationsInfo.size(); i++ )
 		{
 			location = serverInfo.locationsInfo.at(i).directory.at( "location" );
 			std::cerr << "location: " << location << std::endl;
-			// if ( location.length() > 1 && location.at( location.length() - 1 ) == '/' )
-			// 	location.resize( location.length() - 1 );
 			if ( newUri.compare(0, location.size(), location.c_str()) == 0 && location.length() > saveLcation.length())
 			{
 				j = i;
 				saveLcation = location;
 			}
 		}
-		std::cerr << "NEW URI: " << newUri << " location: " << location << std::endl;
 		i = j;
 		if ( j != -1 )
 		{
-			if ( serverInfo.locationsInfo.at( i ).cgi.at("cgi") != "" )
+			if ( serverInfo.locationsInfo.at( i ).cgi.at("cgi") == "on" )
+			{
+				rq.scriptName = newUri;
 				rq.cgi = true;
+			}	
 			std::string upload   = serverInfo.locationsInfo.at( i ).upload.at( "upload" );
 			std::string method	 = serverInfo.locationsInfo.at( i ).allowed_methodes.at( "allowed_methodes" );
-			if ( upload[0] )
+			if ( upload[0] || rq.cgi )
 			{
+				if ( upload[0] == 0 )
+					upload = "/tmp";
 				if ( method.find( "POST" ) != std::string::npos )
 				{
 					if ( access( upload.c_str(), F_OK ) == 0 )
@@ -72,14 +76,6 @@ int connection::location_support_upload( Request& rq, int serverID )
 							Logger::log() << "[ Error ] : Client can't upload in this location write permission"<< std::endl;
 							return ( rq.stat = 403, -1 );
 						}
-						// DIR* directory = opendir( upload.c_str() );
-						// if ( directory != NULL )
-						// 	closedir( directory );
-						// else
-						// {
-						// 	Logger::log() << "[ Error ] : Client can't upload in this location directory not found" << "\'" << upload << "\'" << std::endl;
-						// 	return ( rq.stat = 404, -1 );
-						// }
 					}
 					else
 					{
