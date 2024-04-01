@@ -1,5 +1,7 @@
 #include "../include/mainHeader.hpp"
 #include <cstddef>
+#include <cstdio>
+#include <cstdlib>
 #include <exception>
 #include <fcntl.h>
 #include <fstream>
@@ -13,9 +15,8 @@ std::string GetExtentions(std::string &filename)
     types[".pl"]  = "/bin/perl";
     types[".pm"]  = "/bin/perl";
     types[".py"]  = "/bin/python3";
-    types[".js"]  = "/bin/js";
     types[".rb"]  = "/bin/ruby";
-    types[".php"] = "/bin/php";
+    types[".php"] = "/bin/php-cgi";
     size_t i = filename.size() - 1;
     for (; i > 0; i--)
     {
@@ -34,48 +35,36 @@ std::string GetExtentions(std::string &filename)
     return (executer);
 }
 
-std::string cgiFile(std::string &FileName, char **env, std::string &executer, bool *FLAG)
+std::string cgiFile(std::string method, std::string &FileName, std::string &executer, std::string &input)
 {
     std::cerr << "1- FileName: " << FileName << std::endl;
+    std::cout << "2- InputFile: " << input << std::endl;
     char *args[3];
     args[0] = (char *)FileName.c_str(), args[1] = (char *)FileName.c_str(), args[2] = NULL;
     std::string save = FileName;
     save += "_cgi.html";
+    if (method == "POST")
+    {
+        save = "SINGALAFATsda.html";
+        std::cout << "In Post " << save << std::endl;
+    }
+    std::cout << "File To Point ON stdout " + save << std::endl;
     int processDup1 = fork();
     if (!processDup1)
     {
         if (!freopen(save.c_str(), "w+", stdout))
             throw "Error: freopen Failed Connect The File With stdout.";
-        int processDup2 = fork();
-        if (!processDup2)
+        if (method == "POST")
         {
-            execve(executer.c_str(), args, env);
-            throw "Error: Execve Failed.";
+            if (!freopen(input.c_str(), "r", stdin))
+                throw "Error: freopen Failed Connect The File With stdin.";
         }
-        else if (processDup2 == -1)
-            throw "Error: Fork2 Failed To Create A New Process.";
-        else
-        {
-            while (waitpid(processDup2, NULL, WUNTRACED) == -1);
-            std::fstream F;
-            F.open(save.c_str(), std::ios::in);
-            if (!F) throw "Error: Failed To Open The File That Refered To stdout.";
-            F.seekg(0, std::ios::end);
-            if (F.tellg() == 0)
-                *FLAG = true;
-            F.close();
-        }
+        execve(executer.c_str(), args, NULL);
+        exit(10000);
     }
     else if (processDup1 == -1)
         throw "Error: Fork1 Failed To Create A New Process.";
     else
         while (waitpid(processDup1, NULL, WUNTRACED) == -1);
-    // std::fstream F;
-    // F.open(save.c_str(), std::ios::in);
-    // if (!F)
-    //     throw "Error: Failed To Open The File That Refered To stdout.";
-    // F.seekg(0, std::ios::end);
-    // std::cerr << F.tellg() << std::endl;
-    // F.close();
     return (save);
 }

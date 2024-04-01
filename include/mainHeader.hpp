@@ -151,6 +151,7 @@ typedef struct clientRequest
     std::string     remainingBody;
     std::string     filename;
     std::string     extension;
+    std::string     scriptName;
 
     size_t          content_length;
     size_t          requestBodyLength;
@@ -297,5 +298,5 @@ std::string resolveFilePath(std::string&);
 /*-------------- ysabr code end ---------------*/
 /*CGI*/
 std::string GetExtentions(std::string &filename);
-std::string cgiFile(std::string &FileName, char **env, std::string &executer, bool *FLAG);
+std::string cgiFile(std::string method, std::string &FileName, std::string &executer, std::string &input);
 #endif
