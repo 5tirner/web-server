@@ -30,7 +30,7 @@ class   Executer
                 if (filename[i] == '.')
                     break;
             }
-            std::cout << "- Extention: " << &filename[i] << std::endl; 
+            // std::cout << "- Extention: " << &filename[i] << std::endl; 
             try
             {
                 this->executer = this->types.at(&filename[i]);

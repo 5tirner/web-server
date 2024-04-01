@@ -40,25 +40,27 @@ int connection::location_support_upload( Request& rq, int serverID )
 
 		std::string newUri( rq.headers.at("uri") );
 		int j = -1;
-		std::string saveLcation; 
+		std::string saveLcation;
+		std::cerr << "THE NEW URI: " << newUri << std::endl;
 		for (; i < serverInfo.locationsInfo.size(); i++ )
 		{
 			location = serverInfo.locationsInfo.at(i).directory.at( "location" );
-			std::cout << "location: " << location << std::endl;
-			// if ( location.length() > 1 && location.at( location.length() - 1 ) == '/' )
-			// 	location.resize( location.length() - 1 );
+			std::cerr << "location: " << location << std::endl;
 			if ( newUri.compare(0, location.size(), location.c_str()) == 0 && location.length() > saveLcation.length())
 			{
 				j = i;
 				saveLcation = location;
 			}
 		}
-		std::cout << "NEW URI: " << newUri << " location: " << location << std::endl;
 		i = j;
 		if ( j != -1 )
 		{
-			if ( serverInfo.locationsInfo.at( i ).cgi.at("cgi") != "" )
+			if ( serverInfo.locationsInfo.at( i ).cgi.at("cgi") == "on" )
+			{
 				rq.cgi = true;
+				std::cerr << "NEW URI: " << newUri << " saveLcation: " << saveLcation << std::endl;
+				return ( 0 );
+			}
 			std::string upload   = serverInfo.locationsInfo.at( i ).upload.at( "upload" );
 			std::string method	 = serverInfo.locationsInfo.at( i ).allowed_methodes.at( "allowed_methodes" );
 			if ( upload[0] )
@@ -72,14 +74,6 @@ int connection::location_support_upload( Request& rq, int serverID )
 							Logger::log() << "[ Error ] : Client can't upload in this location write permission"<< std::endl;
 							return ( rq.stat = 403, -1 );
 						}
-						// DIR* directory = opendir( upload.c_str() );
-						// if ( directory != NULL )
-						// 	closedir( directory );
-						// else
-						// {
-						// 	Logger::log() << "[ Error ] : Client can't upload in this location directory not found" << "\'" << upload << "\'" << std::endl;
-						// 	return ( rq.stat = 404, -1 );
-						// }
 					}
 					else
 					{
@@ -292,9 +286,14 @@ void	connection::processingBody( Request& rq, char* buffer, int rc, int serverID
     {
 		if ( rq.locationGotChecked == false && location_support_upload( rq, serverID ) == -1 )
 			throw std::exception();
-		if ( rq.transferEncoding == true )
+		if ( rq.cgi == true )
+		{
+			std::cerr << "CGI IS ON" << std::endl;
+			throw std::exception();
+		}
+		else if ( rq.transferEncoding == true )
 			processChunkedRequestBody( rq, buffer, rc, rq.readyToSendRes );
-		if ( rq.contentLength == true )
+		else if ( rq.contentLength == true )
 		{
 			if ( rq.contentLength <= rq.limitClientBodySize )		
 				processRegularRequestBody( rq, buffer , rc, rq.readyToSendRes );

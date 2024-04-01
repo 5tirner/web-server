@@ -22,7 +22,7 @@ std::string GetExtentions(std::string &filename)
         if (filename[i] == '.')
             break;
     }
-    std::cout << "- Extention: " << &filename[i] << std::endl;
+    // std::cout << "- Extention: " << &filename[i] << std::endl;
     std::string executer;
     try
     {
@@ -114,8 +114,8 @@ bool fileExists(std::string& filePath)
 }
 bool isPathWithinRoot(std::string& resolvedPath, std::string& rootPath)
 {
-    std::cout << "res: --->: " << resolvedPath << std::endl;
-    std::cout << "rooot: --->: " << rootPath << std::endl;
+    // std::cout << "res: --->: " << resolvedPath << std::endl;
+    // std::cout << "rooot: --->: " << rootPath << std::endl;
     if (resolvedPath[resolvedPath.length() - 1] != '/')
         resolvedPath += "/";
     if (resolvedPath.substr(0, rootPath.size()) == rootPath)
@@ -139,10 +139,10 @@ std::string mapUriToFilePath( std::string& uri,  location locConfig)
     {
         std::string rootPath = locConfig.root.at("root"); // Use .at() for const map
 
-        std::cout << "================>: rootPath: " << rootPath << std::endl;
+        // std::cout << "================>: rootPath: " << rootPath << std::endl;
         std::string filePath = rootPath; // Start constructing the file path from the root
         std::string locPath = locConfig.directory.at("location");
-        std::cout << "================>: locPath: " << locPath << std::endl;
+        // std::cout << "================>: locPath: " << locPath << std::endl;
         std::string pathSuffix;
         if (uri.find(locPath) == 0)
             pathSuffix = uri.substr(locPath.length());
@@ -301,29 +301,29 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
     else
     {
         std::string filePath2 = mapUriToFilePath(request.headers["uri"], routeConfig);
-        std::cout << "===========>->: " << filePath2 << std::endl;
+        // std::cout << "===========>->: " << filePath2 << std::endl;
         std::string filePath = filePath2;
         if (filePath == "dkhal")
         {
-            std::cout << "\n\n---->\n\n";
+            // std::cout << "\n\n---->\n\n";
             serveErrorPage(clientSocket, 403, serverConfig);
             return;
         }
-        std::cout << "fillllePath: " << filePath << std::endl;
+        // std::cout << "fillllePath: " << filePath << std::endl;
         if (filePath[filePath.length() - 1] == '/')
             filePath = filePath.substr(0, filePath.length() - 1);
         if (!access(filePath.c_str(), F_OK))
         {
             if (access(filePath.c_str(), R_OK))
             {
-                std::cout << "\n\n\n\n=======>\n\n\n\n\n\n";
+                // std::cout << "\n\n\n\n=======>\n\n\n\n\n\n";
                 serveErrorPage(clientSocket, 403, serverConfig);
                 return;
             }
         }
         else
         {
-            std::cout << "--->=====>:\n";
+            // std::cout << "--->=====>:\n";
             serveErrorPage(clientSocket, 404, serverConfig);
             return;
         }

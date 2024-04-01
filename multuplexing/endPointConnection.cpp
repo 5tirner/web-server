@@ -99,17 +99,17 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
         << it->second.port.at("listen") << " With Number: " << fd << std::endl;
         it++;
     }
-    std::cout << "\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" << std::endl;
-    std::map<std::string, informations>::iterator NotBind = this->notBindingServers.begin();
-    std::cout << "Those Servers Does not Binding Cause There Host Is Already Binding" << std::endl;
-    int R = 1;
-    while (NotBind != this->notBindingServers.end())
-    {
-        std::cout << "Server Number: " << R << std::endl;
-        showInfo(NotBind->second);
-        R++;
-        NotBind++;
-    }
+    // std::cout << "\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" << std::endl;
+    // std::map<std::string, informations>::iterator NotBind = this->notBindingServers.begin();
+    // // std::cout << "Those Servers Does not Binding Cause There Host Is Already Binding" << std::endl;
+    // int R = 1;
+    // while (NotBind != this->notBindingServers.end())
+    // {
+    //     std::cout << "Server Number: " << R << std::endl;
+    //     showInfo(NotBind->second);
+    //     R++;
+    //     NotBind++;
+    // }
 }
 
 void    initializeMonitor(struct pollfd &monitor, int fd)

@@ -311,12 +311,10 @@ static int	validateHeadersProcess( Request& rq )
 {
 	try
 	{
-		std::cout << "THE MIGHTY HOST BEFORE: " << rq.headers.at( "host" ) << std::endl;
 		size_t	separator ( rq.headers.at( "host" ).find_first_of(':') );
 		if ( separator != std::string::npos )
 			rq.headers.at( "host" ).resize( separator );
-		std::cout << "THE MIGHTY HOST AFTER: " << rq.headers.at( "host" ) << std::endl;
-
+			
 		if ( rq.headers.at("method") == "post" )
 		{
 			if ( rq.headers.find( "content-type" ) == rq.headers.end() )
