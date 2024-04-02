@@ -1,5 +1,7 @@
 #include "../include/mainHeader.hpp"
 #include <cstddef>
+#include <cstdlib>
+#include <ctime>
 #include <exception>
 #include <fcntl.h>
 #include <fstream>
@@ -72,13 +74,14 @@ std::string mapUriToFilePath( std::string& uri,  location locConfig)
         fullPath += "/";
     fullPath += pathSuffix;
     std::string indexPath;
-    if ((pathSuffix.empty() || pathSuffix[pathSuffix.length() - 1] == '/') && locConfig.autoindex.at("autoindex") != "on")
+    if ((pathSuffix.empty() || pathSuffix[pathSuffix.length() - 1] == '/'))
     {
         std::istringstream iss(locConfig.index.at("index"));
         std::string indexFile;
         while (std::getline(iss, indexFile, ' '))
         {
             indexPath = fullPath + indexFile;
+            std::cout << "IndexPath: " << indexPath << std::endl; 
             std::string tmp = indexPath;
             tmp = resolveFilePath(rootPath);
             if (tmp.empty())
@@ -121,11 +124,13 @@ std::string mapUriToFilePath( std::string& uri,  location locConfig)
     //     if (!resolvedPath.empty() && fileExists(resolvedPath) && isPathWithinRoot(resolvedPath, rootPath))
     //         return resolvedPath;
     // }
-    return indexPath;
+    return fullPath;
 }
 
 location findRouteConfig(std::string& uri,const informations& serverConfig)
 {
+    std::string matched;
+    location loc_save;
     for (size_t i = 0; i < serverConfig.locationsInfo.size(); ++i)
     {
         location loc = serverConfig.locationsInfo[i];
@@ -133,11 +138,16 @@ location findRouteConfig(std::string& uri,const informations& serverConfig)
         if (it != loc.directory.end())
         {
             std::string locPath = it->second;
-            if (uri.compare(0, locPath.length(), locPath) == 0)
-                return loc;
+            if (uri.compare(0, locPath.length(), locPath) == 0 && locPath.length() > matched.length())
+            {
+                loc_save = loc;
+                matched = locPath;
+            }
         }
     }
-    throw std::runtime_error("no location found");
+    if (matched.empty())
+        throw std::runtime_error("no location found");
+    return loc_save;
 }
 
 
@@ -338,42 +348,80 @@ ParsedCGIOutput response::parseCGIOutput(std::string& filePath)
     return output;
 }
 
-void response::sendResponseFromCGI(int clientSocket, ParsedCGIOutput& cgiOutput, response& res)
+int response::sendResponseFromCGI(int clientSocket, ParsedCGIOutput& cgiOutput, response& res)
 {
-    if(!cgiOutput.check)
+    if (res.waitCgi)
     {
-        
-        cgiOutput = parseCGIOutput(res.filePath);
-        std::ostringstream responseHeaders;
-        responseHeaders << "HTTP/1.1 " << cgiOutput.status << " " << getStatusMessage(cgiOutput.status) << "\r\n";
-        std::map<std::string, std::string>::const_iterator iter = cgiOutput.headers.begin();
-        for (; iter != cgiOutput.headers.end(); ++iter)
-            responseHeaders << iter->first << ": " << iter->second << "\r\n";
-        responseHeaders << "\r\n";
-        std::string headersStr = responseHeaders.str();
-        std::cout << "------>5: " << headersStr << std::endl;
-        send(clientSocket, headersStr.c_str(), headersStr.length(), 0);
-        cgiOutput.check = 1;
-        res.status = response::InProgress;
-    }
-    else if (res.status == response::InProgress)
-    {
-        // std::string chunk = getNextChunk(res, 2048);
-        char buffer[2048];
-        res.fileStream.read(buffer, 2048);
-        int k = send(clientSocket, buffer, res.fileStream.gcount(), 0);
-        if (k < 0 || res.fileStream.gcount() < 2028)
+        int status;
+        // std::cout << "\033[32m" <<  "i'm waiting" << "\033[0m" << std::endl;
+        if (waitpid(res.pid,&status, WNOHANG))
         {
-            res.status = response::Complete;
-            return ;
+            res.pid = 0;
+            if (WEXITSTATUS(status) == 150)
+            {
+                // serveErrorPage(clientSocket, 500, res.info);
+                return 500;
+            }
+            res.waitCgi = false;
+        }
+        else
+        {
+            // std::cout << "end Time: " << (std::clock() - res.startTime) / CLOCKS_PER_SEC << std::endl;
+            if ((std::clock() - res.startTime) / CLOCKS_PER_SEC > 10)
+            {
+                // serveErrorPage(clientSocket, 408, res.info);
+                kill(res.pid, SIGKILL);
+                waitpid(res.pid,&status, 0);
+                res.pid = 0;
+                return 404;
+            }
         }
     }
+    if (!res.waitCgi)
+    {
+        // std::cerr << "file " << filePath << " is open : " << res.fileStream.is_open() << std::endl;
+        // std::cerr << "i'm sending cgi: " << cgiOutput.check << std::endl;
+        if(!cgiOutput.check)
+        {
+            // std::cerr << "+++++headers" << std::endl;
+            cgiOutput = parseCGIOutput(res.filePath);
+            std::ostringstream responseHeaders;
+            responseHeaders << "HTTP/1.1 " << cgiOutput.status << " " << getStatusMessage(cgiOutput.status) << "\r\n";
+            std::map<std::string, std::string>::const_iterator iter = cgiOutput.headers.begin();
+            for (; iter != cgiOutput.headers.end(); iter++)
+            {
+                std::cout << "fisr: " << iter->first << std::endl;
+                responseHeaders << iter->first << ": " << iter->second << "\r\n";
+            }
+            responseHeaders << "\r\n";
+            std::string headersStr = responseHeaders.str();
+            std::cout << "------>5: " << headersStr << std::endl;
+            send(clientSocket, headersStr.c_str(), headersStr.length(), 0);
+            cgiOutput.check = 1;
+            res.status = response::InProgress;
+        }
+        else if (res.status == response::InProgress || cgiOutput.check == 1)
+        {
+            // std::string chunk = getNextChunk(res, 2048);
+            char buffer[2048];
+            res.fileStream.read(buffer, 2048);
+            int k = send(clientSocket, buffer, res.fileStream.gcount(), 0);
+            // std::cerr << "+++++body => " << res.fileStream.gcount() << std::endl;
+            if (k < 0 || res.fileStream.gcount() < 2048)
+            {
+                res.status = response::Complete;
+                return 200;
+            }
+        }
+    }
+    return 200;
 }
 
 void connection::handleRequestGET(int clientSocket, Request& request,const informations& serverConfig)
 {
     location routeConfig;
     response responseData;
+    responseData.info = serverConfig;
     try
     {
         routeConfig = findRouteConfig(request.headers["uri"], serverConfig);
@@ -443,11 +491,17 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
         {
             try
             {
+                request.cgiInfo.script = filePath;
+                request.cgiInfo.cookies = request.headers["cookie"];
+                request.cgiInfo.binary = executer;
+                std::cout << "queris: " << request.cgiInfo.queries << std::endl;
                 std::cout << "----------->1\n";
-                bool FLAG = false;
-                filePath = cgiFile(filePath, NULL, executer, &FLAG);
+                cgiFile(request.cgiInfo);
+                
                 std::cout << "----------->2\n";
-                if (FLAG == true)
+                filePath = request.cgiInfo.output;
+                
+                if (request.cgiInfo.pid == -1)
                 {
                     serveErrorPage(clientSocket, 500, serverConfig);
                     return;
@@ -460,6 +514,9 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
                 // cgiOutput.filepath = filePath;
                 request.storeHeader = true;
                 request.cgiGET = true;
+                responseData.waitCgi = true;
+                responseData.pid = request.cgiInfo.pid;
+                responseData.startTime = request.cgiInfo.startTime;
                 Response[clientSocket] = responseData;
                 // this->Cgires[clientSocket] = cgiOutput;
             }
@@ -495,7 +552,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
                     responseD += directoryContent;
                 }
                 else
-                    serveErrorPage(clientSocket, 404, serverConfig);
+                    serveErrorPage(clientSocket, 403, serverConfig);
             }
             else
             {

@@ -1,1 +1,0 @@
-print "CGI Work Fine With RUBY language";

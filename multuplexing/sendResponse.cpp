@@ -1,19 +1,34 @@
 #include "../include/mainHeader.hpp"
 #include <fcntl.h>
 #include <iterator>
+#include <sys/wait.h>
 
 response::clientResponse() : totalSize(0), bytesSent(0), status(Pending)
 {
     filePath = "";
     responseHeader = "";
+    waitCgi = true;
+    startTime = 0;
 }
 
+response::~clientResponse()
+{
+    // if (pid > 0)
+    // {
+    //     kill(pid, SIGKILL);
+    //     waitpid(pid,0, 0);
+    // }
+}
 response::clientResponse(const clientResponse& other)
 {
     filePath = other.filePath;
     totalSize = other.totalSize;
     bytesSent = other.bytesSent;
     status = other.status;
+    waitCgi = other.waitCgi;
+    info = other.info;
+    pid = other.pid;
+    startTime = other.startTime;
     responseHeader = other.responseHeader;
 }
 clientResponse& response::operator=(const clientResponse& other)
@@ -25,6 +40,10 @@ clientResponse& response::operator=(const clientResponse& other)
         bytesSent = other.bytesSent;
         status = other.status;
         responseHeader = other.responseHeader;
+        waitCgi = other.waitCgi;
+        info = other.info;
+        pid = other.pid;
+        startTime = other.startTime;
     }
     return *this;
 }
@@ -60,12 +79,12 @@ std::string getNextChunk(response& res, size_t chunkSize)
     res.fileStream.read(buffer, chunkSize);
     size_t bytesRead = res.fileStream.gcount();
     res.bytesSent += bytesRead;
+    std::string buf(buffer, res.fileStream.gcount());
     if (bytesRead <  chunkSize || res.fileStream.eof())
     {
         res.status = res.Complete;
         res.fileStream.close();
     }
-    std::string buf(buffer, 2048);
     return buf;
 }
 
@@ -128,8 +147,8 @@ void sendResponseChunk(int clientSocket, response& respData)
         // Check if file reading is complete
         if (!hasNextChunk(respData))
         {
-            std::string lastChunk = "0\r\n\r\n";
-            send(clientSocket, lastChunk.c_str(), lastChunk.size(), 0);
+            // std::string lastChunk = "0\r\n\r\n";
+            // send(clientSocket, lastChunk.c_str(), lastChunk.size(), 0);
             closeFile(respData);
             respData.status = response::Complete;
         }

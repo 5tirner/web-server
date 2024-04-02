@@ -5,6 +5,10 @@ data
 upload
 .vscode
 logs
+logging
+src
+commonGateway/files
+commonGateway/vv.php
 # kkk.cpp
 # vv.php
 # text.txt

@@ -26,10 +26,10 @@ static void generateRandomFileName( Request& rq, std::string& path )
 }
 
 
-static std::string matchLocation( Request& rq, int serverID )
-{
+// static std::string matchLocation( Request& rq, int serverID )
+// {
 
-}
+// }
 
 int connection::location_support_upload( Request& rq, int serverID )
 {	
@@ -45,7 +45,7 @@ int connection::location_support_upload( Request& rq, int serverID )
 
 		std::string uri( rq.headers.at("uri") );
 		size_t i = 0;
-		size_t j = -1;
+		size_t j = std::string::npos;
 		std::string saveLcation = "";
 		for (; i < serverInfo.locationsInfo.size(); i++ )
 		{
@@ -57,18 +57,38 @@ int connection::location_support_upload( Request& rq, int serverID )
 			}
 		}
 		i = j;
-		if ( j != -1 )
+		if ( j != std::string::npos )
 		{
 			if ( serverInfo.locationsInfo.at( i ).cgi.at("cgi") == "on" )
 			{
-				rq.scriptName = serverInfo.locationsInfo.at( i ).root.at("root") + uri;
-				rq.cgi = true;
+				rq.scriptName = serverInfo.locationsInfo.at( i ).root.at("root") + uri.substr(saveLcation.length());
+				if (GetExtentions(rq.scriptName) != "NormalFile")
+					rq.cgi = true;
+				else if (isDirectory(rq.scriptName))
+				{
+					rq.scriptName += "/";
+					std::string indexPath;
+					if ((rq.scriptName.empty() || rq.scriptName[rq.scriptName.length() - 1] == '/'))
+					{
+						std::istringstream iss(serverInfo.locationsInfo.at( i ).index.at("index"));
+						std::string indexFile;
+						while (std::getline(iss, indexFile, ' '))
+						{
+							indexPath = rq.scriptName + indexFile;
+							if (!indexPath.empty() && fileExists(indexPath))
+							{
+								rq.cgi = true;
+								break;
+							}
+						}
+					}
+				}
 			}	
 			std::string upload   = serverInfo.locationsInfo.at( i ).upload.at( "upload" );
 			std::string method	 = serverInfo.locationsInfo.at( i ).allowed_methodes.at( "allowed_methodes" );
 			if ( upload[0] || rq.cgi )
 			{
-				if ( upload[0] == 0 )
+				if ( rq.cgi )
 					upload = "/tmp";
 				if ( method.find( "POST" ) != std::string::npos )
 				{
@@ -94,7 +114,7 @@ int connection::location_support_upload( Request& rq, int serverID )
 					if ( !rq.bodyStream->is_open() )
 						generateRandomFileName( rq, upload );
 					rq.locationGotChecked = true;
-					return ( rq.stat = 201, 0 );
+					return ( 0 );
 				}
 				else
 					return ( rq.stat = 405, -1 );
@@ -230,8 +250,14 @@ static void	processChunkedRequestBody( Request& rq, char* buffer, int& rc, bool&
     {
         if ( chunkedComplete( rq, rq.remainingBody ) )
         {
-			rq.stat = 201;
+			rq.headers.at("method") = "get";
+			if (!rq.cgi)
+				rq.stat = 201;
+			rq.cgiInfo.contentLength = rq.headers["content-length"];
+			rq.cgiInfo.contentType = rq.headers["content-type"];
+			rq.cgiInfo.method = "POST";
 			sendRes = true;
+			rq.cgiInfo.input = rq.filename;
 			Logger::log() << "[ sucess ] body file created" << std::endl;
 			throw std::exception();
 		}
@@ -242,7 +268,13 @@ static void	processChunkedRequestBody( Request& rq, char* buffer, int& rc, bool&
         std::string receivedData( buffer, rc );
         if ( chunkedComplete( rq, receivedData ) )
         {
-			rq.stat = 201;
+					rq.headers.at("method") = "get";
+			if (!rq.cgi)
+				rq.stat = 201;
+			rq.cgiInfo.contentLength = rq.headers["content-length"];
+			rq.cgiInfo.contentType = rq.headers["content-type"];
+			rq.cgiInfo.method = "POST";
+			rq.cgiInfo.input = rq.filename;
 			sendRes = true;
 			Logger::log() << "[ sucess ] body file created" << std::endl;
 			throw std::exception();
@@ -272,7 +304,13 @@ static void	processRegularRequestBody( Request& rq, char* buffer, int& rc, bool&
 	}
 	if ( rq.content_length == rq.requestBodyLength )
 	{
-		rq.stat = 201;
+		rq.headers.at("method") = "get";
+		if (!rq.cgi)
+			rq.stat = 201;
+		rq.cgiInfo.contentLength = rq.headers["content-length"];
+		rq.cgiInfo.contentType = rq.headers["content-type"];
+		rq.cgiInfo.method = "POST";
+		rq.cgiInfo.input = rq.filename;
 		sendRes = true;
 		Logger::log() << "[ sucess ] body file created" << std::endl;
 		return;
