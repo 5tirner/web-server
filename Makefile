@@ -41,7 +41,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "@ysabr the default ErrorPages work correctly in my code now"
+	@git commit -m "@ysabr the files of cgi has been removed"
 	@git push origin cgi-feature
 	@echo "Pushed to cgi-feature"
 

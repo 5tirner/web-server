@@ -220,6 +220,18 @@ static void lowcase( std::string& str )
 			str[ i ] += 32;
 	}
 }
+void cleanupResponseFiles(std::vector<std::string>& files)
+{
+    std::cout << "==============================++++++++++-______" << std::endl;
+    for (size_t i = 0; i < files.size(); ++i)
+    {
+        std::cout << "=======> files : " << files[i] << std::endl;
+        if (remove(files[i].c_str()) != 0) {
+            std::cerr << "Error removing file: " << files[i] << std::endl;
+        }
+    }
+    files.clear(); // Clear the vector after removing files
+}
 
 bool setHeadet(std::string header)
 {
@@ -500,7 +512,8 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
                 
                 std::cout << "----------->2\n";
                 filePath = request.cgiInfo.output;
-                
+                std::cout << "=========>FILEPATH That must removed: " << request.cgiInfo.output << std::endl;
+                responseData.removeFiles.push_back(request.cgiInfo.output);
                 if (request.cgiInfo.pid == -1)
                 {
                     serveErrorPage(clientSocket, 500, serverConfig);

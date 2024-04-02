@@ -30,6 +30,7 @@ response::clientResponse(const clientResponse& other)
     pid = other.pid;
     startTime = other.startTime;
     responseHeader = other.responseHeader;
+    removeFiles = other.removeFiles;
 }
 clientResponse& response::operator=(const clientResponse& other)
 {
@@ -44,6 +45,7 @@ clientResponse& response::operator=(const clientResponse& other)
         info = other.info;
         pid = other.pid;
         startTime = other.startTime;
+        removeFiles = other.removeFiles;
     }
     return *this;
 }
