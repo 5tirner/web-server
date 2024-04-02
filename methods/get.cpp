@@ -124,7 +124,7 @@ std::string mapUriToFilePath( std::string& uri,  location locConfig)
     //     if (!resolvedPath.empty() && fileExists(resolvedPath) && isPathWithinRoot(resolvedPath, rootPath))
     //         return resolvedPath;
     // }
-    return indexPath;
+    return fullPath;
 }
 
 location findRouteConfig(std::string& uri,const informations& serverConfig)
@@ -552,7 +552,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
                     responseD += directoryContent;
                 }
                 else
-                    serveErrorPage(clientSocket, 404, serverConfig);
+                    serveErrorPage(clientSocket, 403, serverConfig);
             }
             else
             {

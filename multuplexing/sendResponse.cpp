@@ -79,12 +79,12 @@ std::string getNextChunk(response& res, size_t chunkSize)
     res.fileStream.read(buffer, chunkSize);
     size_t bytesRead = res.fileStream.gcount();
     res.bytesSent += bytesRead;
+    std::string buf(buffer, res.fileStream.gcount());
     if (bytesRead <  chunkSize || res.fileStream.eof())
     {
         res.status = res.Complete;
         res.fileStream.close();
     }
-    std::string buf(buffer, 2048);
     return buf;
 }
 
@@ -147,8 +147,8 @@ void sendResponseChunk(int clientSocket, response& respData)
         // Check if file reading is complete
         if (!hasNextChunk(respData))
         {
-            std::string lastChunk = "0\r\n\r\n";
-            send(clientSocket, lastChunk.c_str(), lastChunk.size(), 0);
+            // std::string lastChunk = "0\r\n\r\n";
+            // send(clientSocket, lastChunk.c_str(), lastChunk.size(), 0);
             closeFile(respData);
             respData.status = response::Complete;
         }

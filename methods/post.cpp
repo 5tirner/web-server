@@ -111,7 +111,7 @@ int connection::location_support_upload( Request& rq, int serverID )
 					if ( !rq.bodyStream->is_open() )
 						generateRandomFileName( rq, upload );
 					rq.locationGotChecked = true;
-					return ( rq.stat = 201, 0 );
+					return ( 0 );
 				}
 			}
 		}	
@@ -245,8 +245,14 @@ static void	processChunkedRequestBody( Request& rq, char* buffer, int& rc, bool&
     {
         if ( chunkedComplete( rq, rq.remainingBody ) )
         {
-			rq.stat = 201;
+			rq.headers.at("method") = "get";
+			if (!rq.cgi)
+				rq.stat = 201;
+			rq.cgiInfo.contentLength = rq.headers["content-length"];
+			rq.cgiInfo.contentType = rq.headers["content-type"];
+			rq.cgiInfo.method = "POST";
 			sendRes = true;
+			rq.cgiInfo.input = rq.filename;
 			Logger::log() << "[ sucess ] body file created" << std::endl;
 			throw std::exception();
 		}
@@ -257,7 +263,13 @@ static void	processChunkedRequestBody( Request& rq, char* buffer, int& rc, bool&
         std::string receivedData( buffer, rc );
         if ( chunkedComplete( rq, receivedData ) )
         {
-			rq.stat = 201;
+					rq.headers.at("method") = "get";
+			if (!rq.cgi)
+				rq.stat = 201;
+			rq.cgiInfo.contentLength = rq.headers["content-length"];
+			rq.cgiInfo.contentType = rq.headers["content-type"];
+			rq.cgiInfo.method = "POST";
+			rq.cgiInfo.input = rq.filename;
 			sendRes = true;
 			Logger::log() << "[ sucess ] body file created" << std::endl;
 			throw std::exception();
@@ -287,7 +299,13 @@ static void	processRegularRequestBody( Request& rq, char* buffer, int& rc, bool&
 	}
 	if ( rq.content_length == rq.requestBodyLength )
 	{
-		rq.stat = 201;
+		rq.headers.at("method") = "get";
+		if (!rq.cgi)
+			rq.stat = 201;
+		rq.cgiInfo.contentLength = rq.headers["content-length"];
+		rq.cgiInfo.contentType = rq.headers["content-type"];
+		rq.cgiInfo.method = "POST";
+		rq.cgiInfo.input = rq.filename;
 		sendRes = true;
 		Logger::log() << "[ sucess ] body file created" << std::endl;
 		return;
