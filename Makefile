@@ -41,7 +41,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "@timsah match making cgi"
+	@git commit -m "cgi in get has been work correctly"
 	@git push origin cgi-feature
 	@echo "Pushed to cgi-feature"
 

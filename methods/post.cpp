@@ -58,14 +58,34 @@ int connection::location_support_upload( Request& rq, int serverID )
 		{
 			if ( serverInfo.locationsInfo.at( i ).cgi.at("cgi") == "on" )
 			{
-				rq.scriptName = newUri;
-				rq.cgi = true;
+				rq.scriptName = serverInfo.locationsInfo.at( i ).root.at("root") + newUri.substr(saveLcation.length());
+				if (GetExtentions(rq.scriptName) != "NormalFile")
+					rq.cgi = true;
+				else if (isDirectory(rq.scriptName))
+				{
+					rq.scriptName += "/";
+					std::string indexPath;
+					if ((rq.scriptName.empty() || rq.scriptName[rq.scriptName.length() - 1] == '/'))
+					{
+						std::istringstream iss(serverInfo.locationsInfo.at( i ).index.at("index"));
+						std::string indexFile;
+						while (std::getline(iss, indexFile, ' '))
+						{
+							indexPath = rq.scriptName + indexFile;
+							if (!indexPath.empty() && fileExists(indexPath))
+							{
+								rq.cgi = true;
+								break;
+							}
+						}
+					}
+				}
 			}	
 			std::string upload   = serverInfo.locationsInfo.at( i ).upload.at( "upload" );
 			std::string method	 = serverInfo.locationsInfo.at( i ).allowed_methodes.at( "allowed_methodes" );
 			if ( upload[0] || rq.cgi )
 			{
-				if ( upload[0] == 0 )
+				if ( rq.cgi )
 					upload = "/tmp";
 				if ( method.find( "POST" ) != std::string::npos )
 				{

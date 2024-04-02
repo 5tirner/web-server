@@ -244,8 +244,16 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                     if (!this->Requests.at(monitor.fd).cgiGET)
                         sendResponseChunk(monitor.fd, Response.at(monitor.fd));
                     else
-                        Response.at(monitor.fd).sendResponseFromCGI(monitor.fd, this->Cgires.at(monitor.fd), Response.at(monitor.fd));
+                    {
+                        int status = Response.at(monitor.fd).sendResponseFromCGI(monitor.fd, this->Cgires.at(monitor.fd), Response.at(monitor.fd));
+                        if (status != 200)
+                        {
+                            serveErrorPage(monitor.fd, status,  Response[monitor.fd].info);
+                            Response.at(monitor.fd).status = response::Complete;
+                        }
+                    }
                 }
+                // std::cout << "Response.at(monitor.fd).status: " << Response.at(monitor.fd).status << std::endl;
                 if (Response.at(monitor.fd).status == response::Complete)
                     throw std::exception();
             } 

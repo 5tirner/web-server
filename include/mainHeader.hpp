@@ -1,5 +1,6 @@
 #ifndef MAINHEADER_HPP
 #define MAINHEADER_HPP
+#include <cstddef>
 #include <iostream>
 #include <exception>
 #include <fstream>
@@ -130,12 +131,30 @@ struct ParsedCGIOutput
     int status;
     int check;
 
-    ParsedCGIOutput() : status(200), check(0) {}
+    ParsedCGIOutput() : status(200), check(0) {
+        headers["content-type"] = "text/html";
+    }
 };
 /*-------------- ysabr code end ---------------*/
 
 /*-------------- yachaab code start ---------------*/
 
+
+typedef struct cgiresponse
+{
+    int     pid;
+    std::clock_t    startTime;
+    std::string     queries;
+    std::string     cookies;
+    std::string     method;
+    std::string     contentLength, contentType;
+    std::string     input, output;
+    std::string     script, binary;
+    std::string     pathInfo;
+
+    cgiresponse():startTime(0), method( "GET" ) {}
+
+}cgiInfo;
 
 typedef struct clientRequest
 {
@@ -191,7 +210,9 @@ typedef struct clientRequest
     bool            islf;
     bool            cgi;
     bool            cgiGET;
+    cgiInfo         cgiInfo;
 } Request;
+
 
 typedef struct clientResponse
 {
@@ -200,18 +221,25 @@ typedef struct clientResponse
     size_t          totalSize;
     size_t          bytesSent;
     std::string     responseHeader;
+    int             pid;
+    bool            waitCgi;
+    informations    info;
+    std::clock_t    startTime;
     enum Status{
         Pending,
         InProgress,
         Complete
     } status;
     clientResponse();
+    ~clientResponse();
     clientResponse(const clientResponse& other);
     clientResponse& operator=(const clientResponse&);
     void setResponseHeader(const std::string&);
     ParsedCGIOutput parseCGIOutput(std::string&);
-    void sendResponseFromCGI(int, ParsedCGIOutput&, struct clientResponse&);
+    int sendResponseFromCGI(int clientSocket, ParsedCGIOutput& cgiOutput, struct clientResponse&);
 } response;
+
+
 
 class Logger
 {
@@ -268,6 +296,7 @@ public:
     void    processingClientRequest( int, char*, Request&, int );
     void    processingBody( Request&, char*, int, int );
     int     location_support_upload( Request& , int );
+    void    processingHeader( Request& );
     /*-------------- yachaab code end -----------------*/
     /*-------------- ysabr code start ---------------*/
     void    handleRequestGET(int, Request&, const informations&);
@@ -292,7 +321,6 @@ void        initializeMonitor(struct pollfd &monitor, int fd);
 std::string removeWhiteSpaces(std::string &s);
 int         redirection(int *status, std::string &val);
 /*-------------- yachaab code start ---------------*/
-void        processingHeader( Request& );
 void        sendResponse( int&, const std::string& );
 void        fetchRequestHeader( Request&, char *, int );
 std::string creatTemplate( const char*, int& , code&  );
@@ -319,6 +347,5 @@ void        sendResponseFromCGI(int, ParsedCGIOutput&);
 /*-------------- ysabr code end ---------------*/
 /*CGI*/
 std::string GetExtentions(std::string &filename);
-// std::string cgiFile(std::string method, std::string &FileName, std::string &executer, std::string &input);
-std::string cgiFile(std::string &FileName, char **env, std::string &executer, bool *FLAG);
+void cgiFile(cgiInfo&);
 #endif

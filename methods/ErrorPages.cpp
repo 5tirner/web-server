@@ -1,6 +1,7 @@
 #include "../include/mainHeader.hpp"
 
-void connection::serveErrorPage(int clientSocket, int errorCode, const informations& serverConfig) {
+void connection::serveErrorPage(int clientSocket, int errorCode, const informations& serverConfig)
+{
     std::map<int, std::vector<std::string> >::const_iterator errorPageEntry = serverConfig.error_page.find(errorCode);
     std::string responseHeader;
     std::string responseBody;

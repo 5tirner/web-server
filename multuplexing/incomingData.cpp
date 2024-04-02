@@ -30,7 +30,6 @@ static bool	extractMethodAndUri( Request& rq )
 		rq.headers["uri"]       =	startLine.substr( rq.headers["method"].length() + 1, startLine.find_last_of( ' ' ) -  rq.headers["method"].length() - 1 );
 		rq.headers["version"]   =	startLine.substr( rq.headers["method"].length() + rq.headers["uri"].length() + 2 );
 		lowcase( rq.headers["method"] );
-		lowcase( rq.headers["uri"] );
 		std::cerr << "THE ORIGIN URL: " << rq.headers["uri"] << std::endl;
 		lowcase( rq.headers["version"] );
 
@@ -136,7 +135,9 @@ static bool validateUriAndExtractQueries( Request& rq )
 	size_t queryPos = rq.headers["uri"].find('?');
     if ( queryPos != std::string::npos )
 	{
+		// rq.cgiInfo.queries = rq.headers.at("uri").substr(queryPos + 1);
         std::string query = rq.headers["uri"].substr( queryPos + 1 );
+		rq.cgiInfo.queries = query;
         rq.headers["uri"] = rq.headers["uri"].substr( 0, queryPos );
         decomposeQueryParameters( query, rq );
     }
@@ -292,7 +293,7 @@ static int	extractHttpHeaders( Request& rq )
 			second	=	it->substr( it->find_first_of( ':' ) + 1 );
 			
 			lowcase( first );
-			lowcase( second );
+			// lowcase( second );
 			strTrim( second );
 
 			if ( !examinHeaders( rq, first, second ) )
@@ -361,7 +362,7 @@ void	fetchRequestHeader( Request& rq, char* buffer, int rc )
 }
 
 
-void	processingHeader( Request& rq )
+void	connection::processingHeader( Request& rq )
 {
     if ( !extractMethodAndUri( rq ) )
 		throw std::exception();
@@ -371,5 +372,6 @@ void	processingHeader( Request& rq )
 		throw std::exception();
 	if ( !validateHeadersProcess( rq ) )
 		throw std::exception();
+	
 }
 /*-------------- yachaab code end ---------------*/

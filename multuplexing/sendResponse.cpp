@@ -1,19 +1,34 @@
 #include "../include/mainHeader.hpp"
 #include <fcntl.h>
 #include <iterator>
+#include <sys/wait.h>
 
 response::clientResponse() : totalSize(0), bytesSent(0), status(Pending)
 {
     filePath = "";
     responseHeader = "";
+    waitCgi = true;
+    startTime = 0;
 }
 
+response::~clientResponse()
+{
+    // if (pid > 0)
+    // {
+    //     kill(pid, SIGKILL);
+    //     waitpid(pid,0, 0);
+    // }
+}
 response::clientResponse(const clientResponse& other)
 {
     filePath = other.filePath;
     totalSize = other.totalSize;
     bytesSent = other.bytesSent;
     status = other.status;
+    waitCgi = other.waitCgi;
+    info = other.info;
+    pid = other.pid;
+    startTime = other.startTime;
     responseHeader = other.responseHeader;
 }
 clientResponse& response::operator=(const clientResponse& other)
@@ -25,6 +40,10 @@ clientResponse& response::operator=(const clientResponse& other)
         bytesSent = other.bytesSent;
         status = other.status;
         responseHeader = other.responseHeader;
+        waitCgi = other.waitCgi;
+        info = other.info;
+        pid = other.pid;
+        startTime = other.startTime;
     }
     return *this;
 }
