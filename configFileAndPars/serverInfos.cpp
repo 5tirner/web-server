@@ -1,5 +1,6 @@
 #include "../include/mainHeader.hpp"
 #include <cstddef>
+#include <string>
 
 void    showInfo2(informations &tmp)
 {
@@ -18,7 +19,7 @@ void    showInfo2(informations &tmp)
         it = tmp.locationsInfo[i].autoindex.begin();
         std::cerr << "AutoIndex " << it->first + " - |" + it->second+"|" << std::endl;
         it = tmp.locationsInfo[i].Return.begin();
-        std::cerr << "Return "<< it->first + " - |" + it->second+"| Redirect It With Status="<<tmp.locationsInfo[i].returnValue << std::endl;
+        std::cerr << "Return "<< it->first + " - |" + it->second + "| Redirect It With Status=" << tmp.locationsInfo[i].returnValue << std::endl;
         it = tmp.locationsInfo[i].upload.begin();
         std::cerr << "Upload "<< it->first + " - |" + it->second+"|" << std::endl;
         it = tmp.locationsInfo[i].cgi.begin();
@@ -37,6 +38,9 @@ void    showInfo(informations &tmp)
     std::cerr << "LimitClient " << it->first << " - " << "|"+it->second+"|" << std::endl;
     it = tmp.defaultRoot.begin();
     std::cerr << "DefaultRoot " << it->first << " - " << "|"+it->second+"|" << std::endl;
+    std::map<std::string, int>::iterator it1 = tmp.errorPages.begin();
+    while (it1 != tmp.errorPages.end())
+        std::cerr << "Error Page: " + it1->first << " With Status Code=" << it1->second << std::endl, it1++; 
 }
 
 void    initialLocation(location &save)
@@ -62,7 +66,7 @@ void    etatInitial(informations &tmp)
 
 int checkLocations(informations &tmp)
 {
-    // std::cerr << "I will Check The Location Info" << std::endl;
+    std::cerr << "I will Check The Location Info" << std::endl;
     for (size_t i = 0; i < tmp.locations.size(); i++)
     {
         std::stringstream input(tmp.locations[i]);
@@ -165,7 +169,7 @@ int checkLocations(informations &tmp)
 
 int checkInformations(informations &tmp)
 {
-    // std::cerr << "I will Check The info" << std::endl;
+    std::cerr << "I will Check The info" << std::endl;
     for (size_t i = 0; i < tmp.others.size(); i++)
     {
         std::string key; size_t j = 0;
@@ -222,7 +226,24 @@ int checkInformations(informations &tmp)
             { std::cerr << "Invalid `ClienBody` Syntax: " + it->second << std::endl; return (1); }
         }
         else if (key == "error_page")
-        {}
+        {   
+            std::string s = &tmp.others[i][j];
+            int         status;
+            if (errorPages(s, &status))
+            { std::cerr << "Invalid error Pages syntax: " + s << std::endl; return (1); }
+            try
+            {
+                tmp.errorPages.at(s);
+                std::cerr
+                << "Error: Can't Add Multuple ErrorPage In The Same Server With Different Code Status."
+                << std::endl;
+                return (1);
+            }
+            catch(...)
+            {
+                tmp.errorPages[s] = status;
+            }
+        }
         else
         { std::cerr << "Weird KeyWord " + key << std::endl; return (1); }
     }

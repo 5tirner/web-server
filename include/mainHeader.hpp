@@ -68,10 +68,10 @@ typedef struct routes
 
 typedef struct info
 {
-    std::vector<location>                       locationsInfo;
-    std::map<int, std::vector<std::string> >    error_page;
-    std::map<std::string, std::string>          limitClientBody, port, host, serverName, defaultRoot;
-    std::vector<std::string>                    others, locations;
+    std::vector<location>               locationsInfo;
+    std::map<std::string, int>          errorPages;
+    std::map<std::string, std::string>  limitClientBody, port, host, serverName, defaultRoot;
+    std::vector<std::string>            others, locations;
 }   informations;
 
 class   servers
@@ -320,6 +320,7 @@ void        etatInitial(informations &tmp);
 void        initializeMonitor(struct pollfd &monitor, int fd);
 std::string removeWhiteSpaces(std::string &s);
 int         redirection(int *status, std::string &val);
+int         errorPages(std::string &all, int *status);
 /*-------------- yachaab code start ---------------*/
 void        sendResponse( int&, const std::string& );
 void        fetchRequestHeader( Request&, char *, int );
