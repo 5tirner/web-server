@@ -2,20 +2,27 @@
 
 void connection::serveErrorPage(int clientSocket, int errorCode, const informations& serverConfig)
 {
-    std::map<int, std::vector<std::string> >::const_iterator errorPageEntry = serverConfig.error_page.find(errorCode);
     std::string responseHeader;
     std::string responseBody;
-
+    std::string foundPath;
+    std::map<std::string, int>::const_iterator it = serverConfig.errorPages.begin();
+    for (; it != serverConfig.errorPages.end(); ++it)
+    {
+        if (it->second == errorCode)
+        {
+            foundPath = it->first;
+            break;
+        }
+    }
     // Check if a custom error page is found and is not empty
     // std::cout << "errorPagePath: ------>: " << errorPageEntry->second[0] << std::endl;
-    if (errorPageEntry != serverConfig.error_page.end() && !errorPageEntry->second.empty())
+    if (!foundPath.empty())
     {
-        std::string errorPagePath = errorPageEntry->second[0];
-        std::cout << "errorPagePath: ------>: " << errorPagePath << std::endl;
-        std::ifstream errorPageFile(errorPagePath.c_str(), std::ifstream::in);
-        if (errorPageFile)
+        std::cout << "==>:foundPath:  " <<foundPath << std::endl;
+        std::ifstream errorPageFile(foundPath.c_str(), std::ifstream::in);
+        std::cout << "======>: errorPageFile: " << errorPageFile.is_open() << std::endl;
+        if (errorPageFile.is_open())
         {
-            // Custom error page file found, use its contents
             responseBody.assign((std::istreambuf_iterator<char>(errorPageFile)), std::istreambuf_iterator<char>());
             errorPageFile.close();
         }

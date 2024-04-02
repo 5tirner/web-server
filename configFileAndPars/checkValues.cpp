@@ -1,4 +1,5 @@
 # include "../include/mainHeader.hpp"
+#include <map>
 
 int normalCheck(std::string &value)
 {
@@ -175,11 +176,6 @@ int multiValues(std::string &key, std::string &values)
         if (justMakeItRight(values) || methodesSyntax(values))
             return (1);
     }
-    // else if (key == "cgi")
-    // {
-    //     if (justMakeItRight(values) || cgiAndUploadSyntax(values))
-    //         return (1);
-    // }
     else if (key == "upload")
     {
         if (justMakeItRight(values) || cgiAndUploadSyntax(values))
@@ -202,7 +198,7 @@ int redirection(int *status, std::string &val)
             return (1);
         save.push_back(val[i]);
     }
-    if (save.size() < 3 || save.size() > 5)
+    if (save.size() != 3)
         return (1);
     for (; i < val.size(); i++)
     {
@@ -211,6 +207,38 @@ int redirection(int *status, std::string &val)
     }
     val = &val[i];
     if (!val.size())
+        return (1);
+    *status = std::atoi(save.c_str());
+    return (0);
+}
+
+int errorPages(std::string &all, int *status)
+{
+    if (justMakeItRight(all))
+        return (1);
+    //std::cerr << "ErrorPage Appears As: " + all << std::endl;
+    std::string save;
+    size_t      i = 0;
+    while (i < all.size() && all[i] != ' ' && all[i] != '\t')
+    {
+        if (all[i] == ' ' || all[i] == '\t')
+            break;
+        else if (!std::isdigit(all[i]))
+            return (1);
+        save.push_back(all[i]);
+        i++;
+    }
+    if (!save.size())
+        return (1);
+    if (save.size() != 3)
+        return (1);
+    for (; i < all.size(); i++)
+    {
+        if (all[i] != ' ' && all[i] != '\t')
+            break;
+    }
+    all = &all[i];
+    if (!all.size())
         return (1);
     *status = std::atoi(save.c_str());
     return (0);

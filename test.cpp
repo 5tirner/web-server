@@ -1,105 +1,76 @@
-#include <string>
-#include <map>
+#include <iostream>
 #include <fstream>
 #include <sstream>
-#include <iostream>
+#include <map>
+#include <string>
+#include <vector>
+#include <sys/socket.h> // For send()
 
-struct ParsedCGIOutput
-{
-    std::map<std::string, std::string> headers;
-    std::string body;
-    int status;
+// Assuming the existence of a 'location' struct, defined elsewhere.
+struct location {};
 
-    ParsedCGIOutput() : status(200) {}
+// Assuming existence of a global or accessible map for status messages
+std::map<int, std::string> codeMsg_statMsg = {
+    {404, "Not Found"},
+    {500, "Internal Server Error"}
+    // Add additional status codes as necessary.
 };
 
-ParsedCGIOutput parseCGIOutput(const std::string& filePath)
-{
-    std::ifstream file(filePath);
-    ParsedCGIOutput output;
-    std::string line;
-    bool parsingHeaders = true;
+// Helper function for int to string conversion, necessary for building the HTTP response.
+std::string to_string(int value) {
+    std::ostringstream os;
+    os << value;
+    return os.str();
+}
 
-    while (std::getline(file, line))
-    {
-        if (!line.empty() && line[line.length() - 1] == '\r')
-            line.pop_back();
-        if (parsingHeaders)
-        {
-            if (line.empty())
-                parsingHeaders = false;
-            else
-            {
-                std::istringstream lineStream(line);
-                std::string key, value;
-                std::getline(lineStream, key, ':');
-                std::getline(lineStream, value);
-                if (!value.empty() && value.front() == ' ')
-                    value.erase(0, 1);
-                if (key == "Status")
-                    output.status = std::atoi(value.c_str());
-                else
-                    output.headers[key] = value;
-            }
+// Definition of the 'informations' struct as per user's clarification.
+struct informations {
+    std::vector<location> locationsInfo;
+    std::map<std::string, int> errorPages; // Map of error page path (string) to HTTP status code (int)
+    std::map<std::string, std::string> limitClientBody, port, host, serverName, defaultRoot;
+    std::vector<std::string> others, locations;
+};
+
+class connection {
+public:
+    void serveErrorPage(int clientSocket, int errorCode, const informations& serverConfig);
+};
+
+void connection::serveErrorPage(int clientSocket, int errorCode, const informations& serverConfig) {
+    std::string responseHeader;
+    std::string responseBody;
+    std::string foundPath;
+
+    // Iterate over the map without using auto
+    for (std::map<std::string, int>::const_iterator it = serverConfig.errorPages.begin(); it != serverConfig.errorPages.end(); ++it) {
+        if (it->second == errorCode) {
+            foundPath = it->first;
+            break;
         }
-        else
-            output.body += line + "\n";
     }
-    while (std::getline(file, line))
-    {
-        if (!line.empty() && line[line.length() - 1] == '\r')
-            line.pop_back();
-        output.body += line + "\n";
+
+    if (!foundPath.empty()) {
+        // Attempt to open the file at the found path
+        std::ifstream errorPageFile(foundPath.c_str(), std::ifstream::in);
+        if (errorPageFile) {
+            // File opened successfully, read its contents into responseBody
+            responseBody.assign((std::istreambuf_iterator<char>(errorPageFile)),
+                                std::istreambuf_iterator<char>());
+        } else {
+            // File couldn't be opened. Use a default error message.
+            responseBody = "<html><body><h2>Error " + to_string(errorCode) + "</h2><p>Custom error page not found.</p></body></html>";
+        }
+    } else {
+        // No entry found for this error code. Use a generic error message.
+        responseBody = "<html><body><h2>Error " + to_string(errorCode) + "</h2><p>The requested URL was not found on this server.</p></body></html>";
     }
-    return output;
-}
 
-#include <sys/socket.h> // for send()
-#include <string>
-#include <map>
+    // Build the HTTP response header
+    responseHeader = "HTTP/1.1 " + to_string(errorCode) + " " + codeMsg_statMsg[errorCode] + "\r\n"
+                     "Content-Type: text/html\r\n"
+                     "Content-Length: " + to_string(responseBody.length()) + "\r\n\r\n";
 
-std::string getStatusMessage(int statusCode)
-{
-    std::map<int, std::string> statusMessages =
-    {
-        {200, "OK"},
-        {201, "Created"},
-        {400, "Bad Request"},
-        {403, "Forbidden"},
-        {404, "Not Found"},
-        {413, "Payload Too Large"},
-        {500, "Internal Server Error"},
-        {501, "Not Implemented"},
-        {502, "Bad Gateway"},
-        {503, "Service Unavailable"}
-        // Add other status codes and messages as needed
-    };
-
-    // Find the status code in the map and return the corresponding message.
-    // If the status code is not found, return "Status Unknown".
-    if (statusMessages.find(statusCode) != statusMessages.end())
-        return statusMessages[statusCode];
-    else
-        return "Status Unknown";
-}
-
-void sendResponseFromCGI(int clientSocket, ParsedCGIOutput& cgiOutput)
-{
-    std::ostringstream responseHeaders;
-    // Construct status line
-    responseHeaders << "HTTP/1.1 " << cgiOutput.status << " " << getStatusMessage(cgiOutput.status) << "\r\n";
-
-    // Iterate through headers map to send each header
-    for (std::map<std::string, std::string>::const_iterator iter = cgiOutput.headers.begin(); iter != cgiOutput.headers.end(); ++iter)
-        responseHeaders << iter->first << ": " << iter->second << "\r\n";
-
-    // End headers section
-    responseHeaders << "\r\n";
-
-    // Send headers
-    std::string headersStr = responseHeaders.str();
-    send(clientSocket, headersStr.c_str(), headersStr.length(), 0);
-
-    // Send body
-    send(clientSocket, cgiOutput.body.c_str(), cgiOutput.body.length(), 0);
+    // Send the response header followed by the response body to the client
+    send(clientSocket, responseHeader.c_str(), responseHeader.length(), 0);
+    send(clientSocket, responseBody.c_str(), responseBody.length(), 0);
 }
