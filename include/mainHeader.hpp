@@ -120,7 +120,22 @@ typedef struct codeStat
     }
     std::map<int, std::string> statMsg;
 } code;
+
+/*-------------- ysabr code start ---------------*/
+struct ParsedCGIOutput
+{
+    std::map<std::string, std::string> headers;
+    std::string body;
+    std::string filepath;
+    int status;
+    int check;
+
+    ParsedCGIOutput() : status(200), check(0) {}
+};
+/*-------------- ysabr code end ---------------*/
+
 /*-------------- yachaab code start ---------------*/
+
 
 typedef struct clientRequest
 {
@@ -138,6 +153,7 @@ typedef struct clientRequest
         islf                    = false;
         cgi                     = false;
         isChunkHeader           = true;
+        cgiGET                  = false;
         content_length          = 0;
         chunkSizeSum            = 0;
         limitClientBodySize     = 0;
@@ -151,6 +167,7 @@ typedef struct clientRequest
     std::string     remainingBody;
     std::string     filename;
     std::string     extension;
+    std::string     scriptName;
 
     size_t          content_length;
     size_t          requestBodyLength;
@@ -173,6 +190,7 @@ typedef struct clientRequest
     bool            iscr;
     bool            islf;
     bool            cgi;
+    bool            cgiGET;
 } Request;
 
 typedef struct clientResponse
@@ -189,8 +207,10 @@ typedef struct clientResponse
     } status;
     clientResponse();
     clientResponse(const clientResponse& other);
-    clientResponse& operator=(const clientResponse& other);
-    void setResponseHeader(const std::string& header);
+    clientResponse& operator=(const clientResponse&);
+    void setResponseHeader(const std::string&);
+    ParsedCGIOutput parseCGIOutput(std::string&);
+    void sendResponseFromCGI(int, ParsedCGIOutput&, struct clientResponse&);
 } response;
 
 class Logger
@@ -224,6 +244,7 @@ class   connection
 private:
     std::map<int, int>                                  clientsSock; // each client fd with the server fd that he connect with it in it's value
     std::map<int, Request>                              Requests; // each client fd with it's data in the value
+    std::map<int, ParsedCGIOutput>                      Cgires; // each client fd with it's data in the value
     std::map<int, response>                             Response;
     std::map<int, informations>                         OverLoad; //Here You Will Find The Informations As A Values For The Fds Of The Sockets Servers
     std::map<int, struct sockaddr_in>                   serversSock; // each server fd in key with a ready struct on it's value
@@ -251,7 +272,7 @@ public:
     /*-------------- ysabr code start ---------------*/
     void    handleRequestGET(int, Request&, const informations&);
     void    handleRequestDELETE(int, Request&, const informations&);
-void        serveErrorPage(int, int, const informations&);
+    void        serveErrorPage(int, int, const informations&);
     /*-------------- ysabr code end -----------------*/
 };
 //pars functions
@@ -294,5 +315,10 @@ location    findRouteConfig(std::string&, const informations&);
 std::string decodeURI(const std::string&);
 bool        isPathWithinRoot(std::string&, std::string&);
 std::string resolveFilePath(std::string&);
+void        sendResponseFromCGI(int, ParsedCGIOutput&);
 /*-------------- ysabr code end ---------------*/
+/*CGI*/
+std::string GetExtentions(std::string &filename);
+// std::string cgiFile(std::string method, std::string &FileName, std::string &executer, std::string &input);
+std::string cgiFile(std::string &FileName, char **env, std::string &executer, bool *FLAG);
 #endif

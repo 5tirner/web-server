@@ -40,7 +40,7 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
     checkDupHost.reserve(info.size());
     while (it != info.end())
     {
-        std::cout << "Server Come With Number: " << it->first << std::endl;
+        std::cerr << "Server Number: " << it->first << std::flush;
         std::vector<std::string> tmp;
         tmp.reserve(2);
         tmp.push_back(it->second.port.at("listen")), tmp.push_back(it->second.host.at("host"));
@@ -56,8 +56,9 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
                     << ", ServerName: " + it->second.serverName.at("server_name") << std::endl;
                     throw std::runtime_error("Bad Server");
                 }
-                std::cerr << "The Same Host Appears More Than Once:" << std::endl
-                << "The Port: " + tmp[0] + ", The HostIP: " + tmp[1] << std::endl;
+                // std::cerr << "The Same Host Appears More Than Once:" << std::endl
+                // << "The Port: " + tmp[0] + ", The HostIP: " + tmp[1] << std::endl;
+                std::cerr << " Server Not bound" << std::endl;
                 this->notBindingServers[it->second.serverName.at("server_name")] = it->second;
                 checkTheSameServer.push_back(it->second.serverName.at("server_name"));
                 it++; continue;
@@ -95,21 +96,21 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
             it++; continue;
         }
         this->serversSock[fd] = sockInfo; this->OverLoad[fd] = it->second;
-        std::cout << "Socket Ready To Listening For The Port: "
-        << it->second.port.at("listen") << " With Number: " << fd << std::endl;
+        std::cerr << " Socket Descriptor: " << fd << " Listen On Port Number: "
+        << it->second.port.at("listen") << std::endl;
         it++;
     }
-    // std::cout << "\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" << std::endl;
-    // std::map<std::string, informations>::iterator NotBind = this->notBindingServers.begin();
-    // // std::cout << "Those Servers Does not Binding Cause There Host Is Already Binding" << std::endl;
-    // int R = 1;
-    // while (NotBind != this->notBindingServers.end())
-    // {
-    //     std::cout << "Server Number: " << R << std::endl;
-    //     showInfo(NotBind->second);
-    //     R++;
-    //     NotBind++;
-    // }
+    std::cerr << "<------------ Unbinded Servers Start ------------>" << std::endl;
+    std::map<std::string, informations>::iterator NotBind = this->notBindingServers.begin();
+    int R = 1;
+    while (NotBind != this->notBindingServers.end())
+    {
+        std::cerr << "Server Number: " << R << std::endl;
+        showInfo(NotBind->second);
+        R++;
+        NotBind++;
+    }
+    std::cerr << "<------------------------ ---------------------->" << std::endl;
 }
 
 void    initializeMonitor(struct pollfd &monitor, int fd)
@@ -132,8 +133,8 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
 {
     if ((monitor.revents & POLLIN))
     {
-        std::cout << "Cleint-Side, An Event Happen Into " << monitor.fd << " Endpoint." << std::endl;
-        std::cout << "This Client Is Rlated With Server Endpoint " << it->second << std::endl;
+        std::cerr << "Client-Side, An event happend on socket number: " << monitor.fd << " Endpoint." << std::endl;
+        std::cerr << "Client with socket: " << monitor.fd << " is related to server Endpoint: " << it->second << std::endl;
         char buffer[2048];
         int rd = read(monitor.fd, buffer, 2047);
         if (rd == -1)
@@ -211,21 +212,40 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                         std::string response = creatTemplate( "./src/page.html", this->Requests.at(monitor.fd).stat, codeMsg );
                         sendResponse( monitor.fd, response);
                         Response.at(monitor.fd).status = response::Complete;
-                        std::cout << "RESPONSE SENT" << std::endl;
+                        std::cerr << "RESPONSE SENT" << std::endl;
                         throw ;
                     }
                 }
                 /*-------------- yachaab code start -----------------*/
-                if ( this->Requests.at(monitor.fd).headers["method"] == "post" )
+                if ( this->Requests.at(monitor.fd).headers.at("method") == "post" )
                 {
-                    std::string response = creatTemplate( "./src/page.html", this->Requests.at(monitor.fd).stat, codeMsg );
+                    std::string newFile = "./src/page.html";
+                    std::string executer = GetExtentions(this->Requests.at(monitor.fd).scriptName);
+                    if (this->Requests.at(monitor.fd).cgi && executer != "NormalFile")
+                    {
+                        try
+                        {
+                            
+                        }
+                        catch ( ... )
+                        {
+                            
+                        }
+                    }
+                    std::cerr << "Filename: " << this->Requests.at(monitor.fd).filename << std::endl;
+                    std::string response = creatTemplate( newFile.c_str(), this->Requests.at(monitor.fd).stat, codeMsg );
                     sendResponse( monitor.fd, response );
                     Response.at(monitor.fd).status = response::Complete;
-                    std::cout << "POST RESPONSE SENT" << std::endl;
+                    std::cerr << "POST RESPONSE SENT" << std::endl;
                 }
                 /*-------------- yachaab code ended -----------------*/
                 else
-                    sendResponseChunk(monitor.fd, Response.at(monitor.fd));
+                {
+                    if (!this->Requests.at(monitor.fd).cgiGET)
+                        sendResponseChunk(monitor.fd, Response.at(monitor.fd));
+                    else
+                        Response.at(monitor.fd).sendResponseFromCGI(monitor.fd, this->Cgires.at(monitor.fd), Response.at(monitor.fd));
+                }
                 if (Response.at(monitor.fd).status == response::Complete)
                     throw std::exception();
             } 
@@ -243,21 +263,22 @@ void    connection::checkServer(struct pollfd &monitor, std::map<int, struct soc
 {
     if ((monitor.revents & POLLIN))
     {
-        std::cout << "Server-Side, An event Comming Into " << monitor.fd << " Endpoint." << std::endl;
+        std::cerr << "Server-Side, An event happend on server socket number: " << monitor.fd << std::endl;
         socklen_t   addLen = sizeof(it->second);
         int newClient = accept(monitor.fd, (struct sockaddr *)&it->second, &addLen);
         if (newClient == -1)
             std::cerr << "Error: Filed To Create New EndPoint With Socket " << monitor.fd << std::endl;
         else
         {
-            std::cerr << "Clients Those Already Here :" << std::endl;
+            // std::cerr << "Clients Those Already Here :" << std::endl;
             for (std::map<int, Request>::iterator it = this->Requests.begin(); it != this->Requests.end(); it++)
-                std::cerr << "Clinet Of Fd Number: " << it->first << std::endl;
-            std::cout << "New Client Added To Endpoint " << monitor.fd << " With Number " << newClient << '.' << std::endl;
+                std::cerr << "Client Of Fd Number: " << it->first << std::endl;
+            std::cerr << "New client number: " << newClient << " Added to server endpoint: " << monitor.fd << std::endl;
             this->clientsSock[newClient] = monitor.fd;
             this->Response[newClient] = response();
+            this->Cgires[newClient] = ParsedCGIOutput();
         }
-        std::cout << "Number Of Client Now Is: " << this->clientsSock.size() << std::endl;
+        std::cerr << "Number Of Client Now Is: " << this->clientsSock.size() << std::endl;
     }
     else if (monitor.revents & POLLHUP)
         std::cerr << "Error: Server-Side, Connection Destroyed For " << monitor.fd << " Endpoint." << std::endl;
@@ -268,21 +289,21 @@ void    connection::checkServer(struct pollfd &monitor, std::map<int, struct soc
 connection::connection(std::map<int, informations> &configData)
 {
     this->serversEndPoint(configData);
-    // std::cout << "---------------Read This Before Start------------------" << std::endl;
+    // std::cerr << "---------------Read This Before Start------------------" << std::endl;
     // std::map<int, informations>::iterator o = this->OverLoad.begin();
     // int i = 1;
     // while (o != this->OverLoad.end())
     // {
-    //     std::cout << "Socket For Server Number " << i << " is "
+    //     std::cerr << "Socket For Server Number " << i << " is "
     //     << o->first << '.' << std::endl;
-    //     std::cout << o->second.port.at("listen") << std::endl;
-    //     std::cout << o->second.host.at("host") << std::endl;
-    //     std::cout << o->second.serverName.at("server_name") << std::endl;
+    //     std::cerr << o->second.port.at("listen") << std::endl;
+    //     std::cerr << o->second.host.at("host") << std::endl;
+    //     std::cerr << o->second.serverName.at("server_name") << std::endl;
     //     o++;
     //     i++;
-    //     std::cout << "\\\\" << std::endl;
+    //     std::cerr << "\\\\" << std::endl;
     // }
-    // std::cout << "----------------------------------------------------------" << std::endl;
+    // std::cerr << "----------------------------------------------------------" << std::endl;
     while (1)
     {
         struct pollfd monitor[this->serversSock.size() + this->clientsSock.size()];
@@ -342,8 +363,8 @@ void connection::dropClient( int& fd, std::map<int, int>::iterator &it )
     if (std::find(this->EndFd.begin(), this->EndFd.end(), fd) != this->EndFd.end())
         return;
     this->EndFd.push_back(fd);
-    std::cout << "-> Fd Closed." << std::endl;
-    std::cout << "Search For Data..." << std::endl;
+    std::cerr << "-> Fd Closed." << std::endl;
+    std::cerr << "Search For Data..." << std::endl;
 
     std::map<int, Request>::iterator toRemove = this->Requests.find(it->first);
     std::map<int, response>::iterator rm = this->Response.find(it->first);
@@ -352,13 +373,13 @@ void connection::dropClient( int& fd, std::map<int, int>::iterator &it )
         this->responsetEnd.push_back(it->first);
     if (toRemove != this->Requests.end())
     {
-        std::cout << "Found Some Data For: " << toRemove->first << std::endl;
+        std::cerr << "Found Some Data For: " << toRemove->first << std::endl;
         this->requestEnd.push_back(toRemove);
-        std::cout << "Data Deleted." << std::endl;
+        std::cerr << "Data Deleted." << std::endl;
     }
     std::cerr << "Client " << it->first << " Related With Server "
     << it->second << " Exited." << std::endl;
     this->exited.push_back(it);
-    std::cout << "Number Of Client Left: " << this->clientsSock.size() - 1 << std::endl;
+    std::cerr << "Number Of Client Left: " << this->clientsSock.size() - 1 << std::endl;
 }
 /*-------------- yachaab edit start ---------------*/

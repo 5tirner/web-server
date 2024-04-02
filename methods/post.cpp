@@ -1,4 +1,5 @@
 #include "../include/mainHeader.hpp"
+#include <dirent.h>
 
 static void generateRandomFileName( Request& rq, std::string& path )
 {
@@ -25,12 +26,16 @@ static void generateRandomFileName( Request& rq, std::string& path )
 }
 
 
+static std::string matchLocation( Request& rq, int serverID )
+{
+
+}
+
 int connection::location_support_upload( Request& rq, int serverID )
 {	
 	try
 	{
-		size_t i = 0;
-		std::string	location;
+		std::string	location = "";
 		informations serverInfo;
 		std::map<std::string, informations>::iterator it = notBindingServers.find( rq.headers.at("host") );
 		if ( it != notBindingServers.end() )
@@ -38,15 +43,14 @@ int connection::location_support_upload( Request& rq, int serverID )
 		else
 			serverInfo = OverLoad.at( serverID );
 
-		std::string newUri( rq.headers.at("uri") );
-		int j = -1;
-		std::string saveLcation;
-		std::cerr << "THE NEW URI: " << newUri << std::endl;
+		std::string uri( rq.headers.at("uri") );
+		size_t i = 0;
+		size_t j = -1;
+		std::string saveLcation = "";
 		for (; i < serverInfo.locationsInfo.size(); i++ )
 		{
 			location = serverInfo.locationsInfo.at(i).directory.at( "location" );
-			std::cerr << "location: " << location << std::endl;
-			if ( newUri.compare(0, location.size(), location.c_str()) == 0 && location.length() > saveLcation.length())
+			if ( uri.compare(0, location.size(), location.c_str()) == 0 && location.length() > saveLcation.length())
 			{
 				j = i;
 				saveLcation = location;
@@ -57,14 +61,15 @@ int connection::location_support_upload( Request& rq, int serverID )
 		{
 			if ( serverInfo.locationsInfo.at( i ).cgi.at("cgi") == "on" )
 			{
+				rq.scriptName = serverInfo.locationsInfo.at( i ).root.at("root") + uri;
 				rq.cgi = true;
-				std::cerr << "NEW URI: " << newUri << " saveLcation: " << saveLcation << std::endl;
-				return ( 0 );
-			}
+			}	
 			std::string upload   = serverInfo.locationsInfo.at( i ).upload.at( "upload" );
 			std::string method	 = serverInfo.locationsInfo.at( i ).allowed_methodes.at( "allowed_methodes" );
-			if ( upload[0] )
+			if ( upload[0] || rq.cgi )
 			{
+				if ( upload[0] == 0 )
+					upload = "/tmp";
 				if ( method.find( "POST" ) != std::string::npos )
 				{
 					if ( access( upload.c_str(), F_OK ) == 0 )
@@ -91,6 +96,8 @@ int connection::location_support_upload( Request& rq, int serverID )
 					rq.locationGotChecked = true;
 					return ( rq.stat = 201, 0 );
 				}
+				else
+					return ( rq.stat = 405, -1 );
 			}
 		}	
 	}
@@ -286,11 +293,6 @@ void	connection::processingBody( Request& rq, char* buffer, int rc, int serverID
     {
 		if ( rq.locationGotChecked == false && location_support_upload( rq, serverID ) == -1 )
 			throw std::exception();
-		if ( rq.cgi == true )
-		{
-			std::cerr << "CGI IS ON" << std::endl;
-			throw std::exception();
-		}
 		else if ( rq.transferEncoding == true )
 			processChunkedRequestBody( rq, buffer, rc, rq.readyToSendRes );
 		else if ( rq.contentLength == true )

@@ -6,79 +6,9 @@
 #include <stdexcept>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <vector>
 
-std::string GetExtentions(std::string &filename)
-{
-    std::map<std::string, std::string> types;
-    types[".pl"]  = "/bin/perl";
-    types[".pm"]  = "/bin/perl";
-    types[".py"]  = "/bin/python3";
-    types[".js"]  = "/bin/js";
-    types[".rb"]  = "/bin/ruby";
-    types[".php"] = "/bin/php";
-    size_t i = filename.size() - 1;
-    for (; i > 0; i--)
-    {
-        if (filename[i] == '.')
-            break;
-    }
-    // std::cout << "- Extention: " << &filename[i] << std::endl;
-    std::string executer;
-    try
-    {
-        executer = types.at(&filename[i]);
-        std::cout << "- Matched With " + executer << std::endl;
-    }
-    catch (...)
-    { executer = "NormalFile"; }
-    return (executer);
-}
 
-std::string cgiFile(std::string &FileName, char **env, std::string &executer, bool *FLAG)
-{
-    std::cout << "1- FileName: " << FileName << std::endl;
-    char *args[3];
-    args[0] = (char *)FileName.c_str(), args[1] = (char *)FileName.c_str(), args[2] = NULL;
-    std::string save = FileName;
-    save += "_cgi.html";
-    int processDup1 = fork();
-    if (!processDup1)
-    {
-        if (!freopen(save.c_str(), "w+", stdout))
-            throw "Error: freopen Failed Connect The File With stdout.";
-        int processDup2 = fork();
-        if (!processDup2)
-        {
-            execve(executer.c_str(), args, env);
-            throw "Error: Execve Failed.";
-        }
-        else if (processDup2 == -1)
-            throw "Error: Fork2 Failed To Create A New Process.";
-        else
-        {
-            while (waitpid(processDup2, NULL, WUNTRACED) == -1);
-            std::fstream F;
-            F.open(save.c_str(), std::ios::in);
-            if (!F) throw "Error: Failed To Open The File That Refered To stdout.";
-            F.seekg(0, std::ios::end);
-            if (F.tellg() == 0)
-                *FLAG = true;
-            fclose(stdout);
-        }
-    }
-    else if (processDup1 == -1)
-        throw "Error: Fork1 Failed To Create A New Process.";
-    else
-        while (waitpid(processDup1, NULL, WUNTRACED) == -1);
-    // std::fstream F;
-    // F.open(save.c_str(), std::ios::in);
-    // if (!F)
-    //     throw "Error: Failed To Open The File That Refered To stdout.";
-    // F.seekg(0, std::ios::end);
-    // std::cout << F.tellg() << std::endl;
-    // F.close();
-    return (save);
-}
 
 std::string getMimeType(std::string& filePath)
 {
@@ -112,92 +42,86 @@ bool fileExists(std::string& filePath)
     std::ifstream file(filePath.c_str());
     return file.good();
 }
-bool isPathWithinRoot(std::string& resolvedPath, std::string& rootPath)
-{
-    // std::cout << "res: --->: " << resolvedPath << std::endl;
-    // std::cout << "rooot: --->: " << rootPath << std::endl;
-    if (resolvedPath[resolvedPath.length() - 1] != '/')
-        resolvedPath += "/";
-    if (resolvedPath.substr(0, rootPath.size()) == rootPath)
-        return true;
-    return false;
-}
-
 std::string resolveFilePath(std::string& path)
 {
-    char *realPath = NULL;
-    realPath = realpath(path.c_str(), realPath);
-    
-    if (realPath == NULL)
-        return "";
-    return std::string(realPath);
+    char *realPath = realpath(path.c_str(), NULL);
+    std::string resolvedPath;
+    if (realPath)
+    {
+        resolvedPath = std::string(realPath);
+        free(realPath); 
+    }
+    return resolvedPath;
+}
+
+bool isPathWithinRoot(std::string& resolvedPath, std::string& rootPath)
+{
+    if (resolvedPath.find(rootPath) != 0)
+        return false;
+    return true;
 }
 
 std::string mapUriToFilePath( std::string& uri,  location locConfig)
 {
-    try
+    std::string rootPath = locConfig.root.at("root");
+    std::string locPath = locConfig.directory.at("location");
+    std::string pathSuffix = uri.substr(locPath.length());
+    std::string fullPath = rootPath;
+    std::string resolvedPath;
+    if (pathSuffix.empty() || pathSuffix[0] != '/')
+        fullPath += "/";
+    fullPath += pathSuffix;
+    std::string indexPath;
+    if ((pathSuffix.empty() || pathSuffix[pathSuffix.length() - 1] == '/') && locConfig.autoindex.at("autoindex") != "on")
     {
-        std::string rootPath = locConfig.root.at("root"); // Use .at() for const map
-
-        // std::cout << "================>: rootPath: " << rootPath << std::endl;
-        std::string filePath = rootPath; // Start constructing the file path from the root
-        std::string locPath = locConfig.directory.at("location");
-        // std::cout << "================>: locPath: " << locPath << std::endl;
-        std::string pathSuffix;
-        if (uri.find(locPath) == 0)
-            pathSuffix = uri.substr(locPath.length());
-        else
-            pathSuffix = uri;
-        if ((pathSuffix.empty() || pathSuffix[pathSuffix.size() - 1] == '/') && locConfig.autoindex.at("autoindex") != "on")
+        std::istringstream iss(locConfig.index.at("index"));
+        std::string indexFile;
+        while (std::getline(iss, indexFile, ' '))
         {
-            std::istringstream iss(locConfig.index.at("index")); // Use .at() here as well
-            std::string indexFile;
-            while (std::getline(iss, indexFile, ' '))
-            {
-                std::string fullPath = filePath + (pathSuffix[pathSuffix.length() - 1] == '/' ? pathSuffix : pathSuffix + "/") + indexFile;
-                std::string tmp = fullPath;
-                tmp = resolveFilePath(rootPath);
-                std::cout << "tmp: " << tmp.length() << std::endl;
-                if (tmp.empty())
-                    return "dkhal";
-                if (!isPathWithinRoot(fullPath, rootPath))
-                {
-                    std::cout << "\n\n---->\n\n";
-                    return "dkhal";
-                }
-
-                return fullPath; // Found an index file, return its path
-            }
-            // Optional: Handle case when no index file is found...
-        }
-        else
-        {
-            // If the pathSuffix is not empty and does not end with '/', directly append it to filePath.
-            if (filePath[filePath.length() -1 ] != '/')
-                filePath += "/";
-            filePath += pathSuffix;
-            std::string tmp = filePath;
+            indexPath = fullPath + indexFile;
+            std::string tmp = indexPath;
             tmp = resolveFilePath(rootPath);
-            std::cout << "tmp: " << tmp.length() << std::endl;
             if (tmp.empty())
-                return "dkhal";
-            if (!isPathWithinRoot(filePath, rootPath))
+                throw std::runtime_error("there is a problem");
+            if (!isPathWithinRoot(indexPath, rootPath))
             {
                 std::cout << "\n\n---->\n\n";
-                return "dkhal";
+                throw std::runtime_error("there is a problem");
             }
-            // if (fileExists(filePath))
-            return filePath;
-            // Handle file not found if necessary.
+            // resolvedPath = resolveFilePath(indexPath);
+            if (!indexPath.empty() && fileExists(indexPath) && isPathWithinRoot(indexPath, rootPath))
+                return indexPath;
         }
+        if (indexPath.empty() || !isPathWithinRoot(indexPath, rootPath))
+            throw std::runtime_error("there is a problem");
     }
-    catch (const std::out_of_range& e)
+    else
     {
-        // Handle the case where a key does not exist in the map
-        std::cerr << "Key not found in configuration: " << e.what() << '\n';
-        // Handle error, possibly return a default value or error indicator
+        // If the pathSuffix is not empty and does not end with '/', directly append it to filePath.
+        // if (fullPath[fullPath.length() -1 ] != '/')
+        //     fullPath += "/";
+        // fullPath += pathSuffix;
+        std::string tmp = fullPath;
+        tmp = resolveFilePath(rootPath);
+        if (tmp.empty())
+            throw std::runtime_error("there is a problem");
+        if (!isPathWithinRoot(fullPath, rootPath))
+        {
+            std::cout << "\n\n---->\n\n";
+            throw std::runtime_error("there is a problem");
+        }
+        // if (fileExists(fullPath))
+        return fullPath;
+        // Handle file not found if necessary.
     }
-    return ""; // Placeholder return to satisfy all control paths
+    // else if (!pathSuffix.empty())
+    // {
+    //     resolvedPath = resolveFilePath(fullPath);
+    //     std::cout << "===>: resolvePath: " << resolvedPath << std::endl;
+    //     if (!resolvedPath.empty() && fileExists(resolvedPath) && isPathWithinRoot(resolvedPath, rootPath))
+    //         return resolvedPath;
+    // }
+    return indexPath;
 }
 
 location findRouteConfig(std::string& uri,const informations& serverConfig)
@@ -237,14 +161,14 @@ std::string generateDirectoryListing(const std::string& path)
     DIR *dir;
     struct dirent *ent;
     std::ostringstream html;
-    std::cout << "path dire: " << path << std::endl;
+    std::cerr << "path dire: " << path << std::endl;
     html << "<html><head><title>Index of " << path << "</title></head><body>";
     html << "<h1>Index of " << path << "</h1><hr><pre>";
 
     dir = opendir(path.c_str());
     if (dir != NULL)
     {
-        std::cout << "dir: " << dir << std::endl;
+        std::cerr << "dir: " << dir << std::endl;
         while ((ent = readdir(dir)) != NULL)
             html << "<a href='" << ent->d_name << "'>" << ent->d_name << "</a><br>";
         closedir(dir);
@@ -261,10 +185,195 @@ std::string to_string(int value)
     os << value;
     return os.str();
 }
+std::string getStatusMessage(int statusCode)
+{
+    std::map<int, std::string> statusMessages;
+    statusMessages[200] = "OK";
+    statusMessages[201] = "Created";
+    statusMessages[400] = "Bad Request";
+    statusMessages[403] = "Forbidden";
+    statusMessages[404] = "Not Found";
+    statusMessages[413] = "Payload Too Large";
+    statusMessages[500] = "Internal Server Error";
+    statusMessages[501] = "Not Implemented";
+    statusMessages[503] = "Service Unavailable";
+    if (statusMessages.find(statusCode) != statusMessages.end())
+        return statusMessages[statusCode];
+    else
+        return "Status Unknown";
+}
+static void lowcase( std::string& str )
+{
+	for ( size_t i = 0; i < str.length(); i++  )
+	{
+		if ( str[ i ] >= 65 && str[ i ] <= 90 )
+			str[ i ] += 32;
+	}
+}
+
+bool setHeadet(std::string header)
+{
+    std::vector<std::string> headers;
+    headers.push_back("accept-ch");
+    headers.push_back("access-control-allow-origin");
+    headers.push_back("accept-patch");
+    headers.push_back("accept-ranges");
+    headers.push_back("age");
+    headers.push_back("allow");
+    headers.push_back("alt-svc");
+    headers.push_back("cache-control");
+    headers.push_back("connection");
+    headers.push_back("content-disposition");
+    headers.push_back("content-encoding");
+    headers.push_back("content-language");
+    headers.push_back("content-length");
+    headers.push_back("content-location");
+    headers.push_back("content-md5");
+    headers.push_back("content-range");
+    headers.push_back("content-type");
+    headers.push_back("date");
+    headers.push_back("delta-base");
+    headers.push_back("etag");
+    headers.push_back("expires");
+    headers.push_back("im");
+    headers.push_back("last-modified");
+    headers.push_back("link");
+    headers.push_back("location");
+    headers.push_back("p3p");
+    headers.push_back("pragma");
+    headers.push_back("preference-applied");
+    headers.push_back("proxy-authenticate");
+    headers.push_back("public-key-pins");
+    headers.push_back("retry-after");
+    headers.push_back("server");
+    headers.push_back("set-cookie");
+    headers.push_back("strict-transport-security");
+    headers.push_back("trailer");
+    headers.push_back("transfer-encoding");
+    headers.push_back("tk");
+    headers.push_back("upgrade");
+    headers.push_back("vary");
+    headers.push_back("via");
+    headers.push_back("warning");
+    headers.push_back("www-authenticate");
+    headers.push_back("x-frame-options");
+    headers.push_back("x-webkit-csp");
+    headers.push_back("expect-ct");
+    headers.push_back("nel");
+    headers.push_back("permissions-policy");
+    headers.push_back("refresh");
+    headers.push_back("report-to");
+    headers.push_back("status");
+    headers.push_back("timing-allow-origin");
+    headers.push_back("x-content-duration");
+    headers.push_back("x-content-type-options");
+    headers.push_back("x-powered-by");
+    headers.push_back("x-redirect-by");
+    headers.push_back("x-request-id");
+    headers.push_back("x-ua-compatible");
+    headers.push_back("x-xss-protection");
+    lowcase(header);
+    std::vector<std::string>::iterator it = std::find(headers.begin(), headers.end(), header);
+    if (it == headers.end())
+        return false;
+    return true;
+}
+
+ParsedCGIOutput response::parseCGIOutput(std::string& filePath)
+{
+    fileStream.open(filePath.c_str());
+    ParsedCGIOutput output;
+    std::string line;
+    // bool parsingHeaders = true;
+    if (std::getline(fileStream, line))
+    {
+        if (line.empty() || line.find(":")== std::string::npos)
+        {
+            fileStream.seekg(0);
+            return output;
+        }
+        std::istringstream lineStream(line);
+        std::string key, value;
+        std::getline(lineStream, key, ':');
+        std::getline(lineStream, value);
+        lowcase(key);
+        if (!setHeadet(key))
+        {
+            fileStream.seekg(0);
+            return output;
+        }
+        if (key == "status")
+            output.status = std::atoi(value.c_str());
+        else
+            output.headers[key] = value;
+    }
+    int count  = 1;
+    while (std::getline(fileStream, line))
+    {
+        if (line.empty() || (line[0] == '\r' && line.size() == 1))
+            return output;
+        std::istringstream lineStream(line);
+        std::string key, value;
+        std::getline(lineStream, key, ':');
+        std::getline(lineStream, value);
+        lowcase(key);
+        if (key == "status")
+            output.status = std::atoi(value.c_str());
+        else
+            output.headers[key] = value;
+        if (count == 500)
+        {
+            fileStream.seekg(0);
+            return output;
+        }
+        count++;
+    }
+
+    // while (std::getline(file, line))
+    // {
+    //     if (!line.empty() && line[line.length() - 1] == '\r')
+    //         line.erase(line.size() - 1);
+    //     output.body += line + "\n";
+    // }
+    return output;
+}
+
+void response::sendResponseFromCGI(int clientSocket, ParsedCGIOutput& cgiOutput, response& res)
+{
+    if(!cgiOutput.check)
+    {
+        
+        cgiOutput = parseCGIOutput(res.filePath);
+        std::ostringstream responseHeaders;
+        responseHeaders << "HTTP/1.1 " << cgiOutput.status << " " << getStatusMessage(cgiOutput.status) << "\r\n";
+        std::map<std::string, std::string>::const_iterator iter = cgiOutput.headers.begin();
+        for (; iter != cgiOutput.headers.end(); ++iter)
+            responseHeaders << iter->first << ": " << iter->second << "\r\n";
+        responseHeaders << "\r\n";
+        std::string headersStr = responseHeaders.str();
+        std::cout << "------>5: " << headersStr << std::endl;
+        send(clientSocket, headersStr.c_str(), headersStr.length(), 0);
+        cgiOutput.check = 1;
+        res.status = response::InProgress;
+    }
+    else if (res.status == response::InProgress)
+    {
+        // std::string chunk = getNextChunk(res, 2048);
+        char buffer[2048];
+        res.fileStream.read(buffer, 2048);
+        int k = send(clientSocket, buffer, res.fileStream.gcount(), 0);
+        if (k < 0 || res.fileStream.gcount() < 2028)
+        {
+            res.status = response::Complete;
+            return ;
+        }
+    }
+}
 
 void connection::handleRequestGET(int clientSocket, Request& request,const informations& serverConfig)
 {
     location routeConfig;
+    response responseData;
     try
     {
         routeConfig = findRouteConfig(request.headers["uri"], serverConfig);
@@ -286,11 +395,9 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
         size_t spacePos = redirectURL.find(' ');
         if (spacePos != std::string::npos)
             redirectURL = redirectURL.substr(spacePos + 1);
-        if (redirectURL.find("http://") != 0 && redirectURL.find("https://") != 0)
-            redirectURL = "http://" + redirectURL;
         std::string responseD = "HTTP/1.1 301 Moved Permanently\r\n";
         responseD += "Location: " + redirectURL + "\r\n";
-        responseD += "Content-Lengt+h: 0\r\n";
+        responseD += "Content-Length: 0\r\n";
         responseD += "Connection: close\r\n\r\n";
         response responseData;
         responseData.setResponseHeader(responseD);
@@ -300,48 +407,61 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
     }
     else
     {
-        std::string filePath2 = mapUriToFilePath(request.headers["uri"], routeConfig);
-        // std::cout << "===========>->: " << filePath2 << std::endl;
+        std::string filePath2;
+        try
+        {
+            filePath2 = mapUriToFilePath(request.headers["uri"], routeConfig);
+        
+        } catch (...)
+        {
+            serveErrorPage(clientSocket, 403, serverConfig);
+        }
         std::string filePath = filePath2;
         if (filePath == "dkhal")
         {
-            // std::cout << "\n\n---->\n\n";
             serveErrorPage(clientSocket, 403, serverConfig);
             return;
         }
-        // std::cout << "fillllePath: " << filePath << std::endl;
+        std::cerr << "fillllePath: " << filePath << std::endl;
         if (filePath[filePath.length() - 1] == '/')
             filePath = filePath.substr(0, filePath.length() - 1);
         if (!access(filePath.c_str(), F_OK))
         {
             if (access(filePath.c_str(), R_OK))
             {
-                // std::cout << "\n\n\n\n=======>\n\n\n\n\n\n";
                 serveErrorPage(clientSocket, 403, serverConfig);
                 return;
             }
         }
         else
         {
-            // std::cout << "--->=====>:\n";
             serveErrorPage(clientSocket, 404, serverConfig);
             return;
         }
         std::string executer = GetExtentions(filePath);
-        // std::cout << "PATH: " << executer << std::endl;
-        // std::cout << "CGI Status: " + routeConfig.cgi.at("cgi") << std::endl;
-        bool FLAG = false;
         if (routeConfig.cgi.at("cgi") == "on" && executer != "NormalFile")
         {
             try
             {
+                std::cout << "----------->1\n";
+                bool FLAG = false;
                 filePath = cgiFile(filePath, NULL, executer, &FLAG);
+                std::cout << "----------->2\n";
                 if (FLAG == true)
                 {
-                    std::cerr << "TRUE FLAGS" << std::endl;
                     serveErrorPage(clientSocket, 500, serverConfig);
                     return;
                 }
+                std::string cgiOutputFilePath = filePath;
+                std::cout << "----------->3: " << filePath << std::endl;
+                responseData.filePath = filePath;
+                // ParsedCGIOutput cgiOutput = responseData.parseCGIOutput(cgiOutputFilePath);
+                std::cout << "----------->4\n";
+                // cgiOutput.filepath = filePath;
+                request.storeHeader = true;
+                request.cgiGET = true;
+                Response[clientSocket] = responseData;
+                // this->Cgires[clientSocket] = cgiOutput;
             }
             catch(const char *err)
             {
@@ -349,44 +469,44 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             }
             std::cerr << "The File Geted By CGI Is: " + filePath << std::endl;
         }
-        std::string responseD;
-        if (isDirectory(filePath))
-        {
-            std::vector<location>::const_iterator it = serverConfig.locationsInfo.begin();
-            std::string check = request.headers["uri"] + it->index.at("index");
-            std::map<std::string, std::string>::iterator autoindexIt = routeConfig.autoindex.find("autoindex");
-            if (isRegularFile(check))
-            {
-                responseD = "HTTP/1.1 301 OK\r\n";
-                responseD += "Location: " + check + " \r\n";
-            }
-            else if (autoindexIt != routeConfig.autoindex.end() && autoindexIt->second == "on")
-            {
-                std::string directoryContent = generateDirectoryListing(filePath);
-                std::cout << directoryContent << std::endl;
-                responseD = "HTTP/1.1 200 OK\r\n";
-                responseD += "Content-Type: text/html\r\n";
-                responseD += "Content-Length: " + to_string(directoryContent.size()) + "\r\n";
-                
-                responseD += "\r\n";
-                responseD += directoryContent;
-            }
-            else
-                serveErrorPage(clientSocket, 404, serverConfig);
-        }
         else
         {
-            responseD = "HTTP/1.1 200 OK\r\n";
-            responseD += "Content-Type: " + getMimeType(filePath) + "\r\n";
-            /*-------------- yachaab code ended -----------------*/
+            std::string responseD;
+            if (isDirectory(filePath))
+            {
+                std::vector<location>::const_iterator it = serverConfig.locationsInfo.begin();
+                std::string check = request.headers["uri"] + it->index.at("index");
+
+                std::map<std::string, std::string>::iterator autoindexIt = routeConfig.autoindex.find("autoindex");
+                if (isRegularFile(check))
+                {
+                    responseD = "HTTP/1.1 301 OK\r\n";
+                    responseD += "Location: " + check + " \r\n";
+                }
+                else if (autoindexIt != routeConfig.autoindex.end() && autoindexIt->second == "on")
+                {
+                    std::string directoryContent = generateDirectoryListing(filePath);
+                    std::cerr << directoryContent << std::endl;
+                    responseD = "HTTP/1.1 200 OK\r\n";
+                    responseD += "Content-Type: text/html\r\n";
+                    responseD += "Content-Length: " + to_string(directoryContent.size()) + "\r\n";
+                    
+                    responseD += "\r\n";
+                    responseD += directoryContent;
+                }
+                else
+                    serveErrorPage(clientSocket, 404, serverConfig);
+            }
+            else
+            {
+                responseD = "HTTP/1.1 200 OK\r\n";
+                responseD += "Content-Type: " + getMimeType(filePath) + "\r\n";
+                /*-------------- yachaab code ended -----------------*/
+            }
+            responseData.filePath = filePath;
+            responseData.setResponseHeader(responseD);
+            request.storeHeader = true;
+            Response[clientSocket] = responseData;
         }
-
-        response responseData;
-
-        responseData.filePath = filePath;
-        responseData.setResponseHeader(responseD);
-        request.storeHeader = true;
-        Response[clientSocket] = responseData;
-
     }
 }

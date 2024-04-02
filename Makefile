@@ -1,6 +1,6 @@
 TARGET  = httpserver
 
-CC      = c++ -Wall -Wextra -Werror  -std=c++98 -g3
+CC      = c++ -Wall -Wextra -Werror  -fsanitize=address -std=c++98 -g3
 
 OBJDIR  = obj
 
@@ -16,7 +16,8 @@ SRC     = main.cpp\
 			./methods/get.cpp \
 			./methods/delete.cpp \
 			./methods/ErrorPages.cpp \
-			./multuplexing/sendResponse.cpp
+			./multuplexing/sendResponse.cpp\
+			./commonGateway/cgi.cpp
 
 OBJ     = $(addprefix $(OBJDIR)/, $(SRC:.cpp=.o))
 
@@ -40,7 +41,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "@yachaab matching the url"
+	@git commit -m "@timsah match making cgi"
 	@git push origin cgi-feature
 	@echo "Pushed to cgi-feature"
 
