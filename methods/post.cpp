@@ -26,12 +26,16 @@ static void generateRandomFileName( Request& rq, std::string& path )
 }
 
 
+// static std::string matchLocation( Request& rq, int serverID )
+// {
+
+// }
+
 int connection::location_support_upload( Request& rq, int serverID )
 {	
 	try
 	{
-		size_t i = 0;
-		std::string	location;
+		std::string	location = "";
 		informations serverInfo;
 		std::map<std::string, informations>::iterator it = notBindingServers.find( rq.headers.at("host") );
 		if ( it != notBindingServers.end() )
@@ -39,26 +43,25 @@ int connection::location_support_upload( Request& rq, int serverID )
 		else
 			serverInfo = OverLoad.at( serverID );
 
-		std::string newUri( rq.headers.at("uri") );
-		std::cerr << "NEW URI: " << newUri + "." <<std::endl;
-		int j = -1;
-		std::string saveLcation; 
+		std::string uri( rq.headers.at("uri") );
+		size_t i = 0;
+		size_t j = std::string::npos;
+		std::string saveLcation = "";
 		for (; i < serverInfo.locationsInfo.size(); i++ )
 		{
 			location = serverInfo.locationsInfo.at(i).directory.at( "location" );
-			std::cerr << "location: " << location << std::endl;
-			if ( newUri.compare(0, location.size(), location.c_str()) == 0 && location.length() > saveLcation.length())
+			if ( uri.compare(0, location.size(), location.c_str()) == 0 && location.length() > saveLcation.length())
 			{
 				j = i;
 				saveLcation = location;
 			}
 		}
 		i = j;
-		if ( j != -1 )
+		if ( j != std::string::npos )
 		{
 			if ( serverInfo.locationsInfo.at( i ).cgi.at("cgi") == "on" )
 			{
-				rq.scriptName = serverInfo.locationsInfo.at( i ).root.at("root") + newUri.substr(saveLcation.length());
+				rq.scriptName = serverInfo.locationsInfo.at( i ).root.at("root") + uri.substr(saveLcation.length());
 				if (GetExtentions(rq.scriptName) != "NormalFile")
 					rq.cgi = true;
 				else if (isDirectory(rq.scriptName))
@@ -113,6 +116,8 @@ int connection::location_support_upload( Request& rq, int serverID )
 					rq.locationGotChecked = true;
 					return ( 0 );
 				}
+				else
+					return ( rq.stat = 405, -1 );
 			}
 		}	
 	}
@@ -326,9 +331,9 @@ void	connection::processingBody( Request& rq, char* buffer, int rc, int serverID
     {
 		if ( rq.locationGotChecked == false && location_support_upload( rq, serverID ) == -1 )
 			throw std::exception();
-		if ( rq.transferEncoding == true )
+		else if ( rq.transferEncoding == true )
 			processChunkedRequestBody( rq, buffer, rc, rq.readyToSendRes );
-		if ( rq.contentLength == true )
+		else if ( rq.contentLength == true )
 		{
 			if ( rq.contentLength <= rq.limitClientBodySize )		
 				processRegularRequestBody( rq, buffer , rc, rq.readyToSendRes );

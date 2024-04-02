@@ -29,8 +29,8 @@ static bool	extractMethodAndUri( Request& rq )
 		rq.headers["method"]    =	startLine.substr( 0, startLine.find( ' ' )  );
 		rq.headers["uri"]       =	startLine.substr( rq.headers["method"].length() + 1, startLine.find_last_of( ' ' ) -  rq.headers["method"].length() - 1 );
 		rq.headers["version"]   =	startLine.substr( rq.headers["method"].length() + rq.headers["uri"].length() + 2 );
+		
 		lowcase( rq.headers["method"] );
-		std::cerr << "THE ORIGIN URL: " << rq.headers["uri"] << std::endl;
 		lowcase( rq.headers["version"] );
 
 		if ( rq.headers["version"] != "http/1.1" )
@@ -305,42 +305,47 @@ static int	extractHttpHeaders( Request& rq )
 	}
 	catch( const std::exception& e )
 	{
-		std::cerr << "What: " << e.what() << std::endl;
-		Logger::log() << "Here" << std::endl;
-		return ( false );
+		Logger::log() << "[ Error ] extractHttpHeaders header malformed" << std::endl;
+		return ( rq.stat = 400, false );
 	}
 	return ( true );
 }
 
 static int	validateHeadersProcess( Request& rq )
 {
-	if ( rq.headers.find( "host" ) == rq.headers.end() )
+	try
+	{
+		size_t	separator ( rq.headers.at( "host" ).find_first_of(':') );
+		if ( separator != std::string::npos )
+			rq.headers.at( "host" ).resize( separator );
+			
+		if ( rq.headers.at("method") == "post" )
+		{
+			if ( rq.headers.find( "content-type" ) == rq.headers.end() )
+			{
+				Logger::log() << "[ Error ] Content-Type is required" << std::endl;
+				return ( rq.stat = 400, false );
+			}
+			if ( rq.transferEncoding == false )
+			{
+				if ( rq.contentLength == false )
+				{
+					Logger::log() << "[ Error ] Content-Length is required" << std::endl;
+					return ( rq.stat = 411, false );
+				}
+			}
+			else
+			{
+				if ( rq.contentLength == true )
+					rq.contentLength = false;
+			}
+		}
+	}
+	catch(...)
 	{
 		Logger::log() << "[ Error ] Host is required" << std::endl;
 		return ( rq.stat = 400, false );
 	}
-	if ( rq.headers["method"] == "post" )
-	{
-		if ( rq.headers.find( "content-type" ) == rq.headers.end() )
-		{
-			Logger::log() << "[ Error ] Content-Type is required" << std::endl;
-			return ( rq.stat = 400, false );
-		}
-		if ( rq.transferEncoding == false )
-		{
-			if ( rq.contentLength == false )
-			{
-				Logger::log() << "[ Error ] Content-Length is required" << std::endl;
-				return ( rq.stat = 411, false );
-			}
-		}
-		else
-		{
-			if ( rq.contentLength == true )
-				rq.contentLength = false;
-		}
-	}
-
 	return ( true );
 }
 

@@ -29,13 +29,13 @@ void    showInfo2(informations &tmp)
 void    showInfo(informations &tmp)
 {
     std::map<std::string, std::string>::iterator it = tmp.port.begin();
-    std::cerr << "Port " << it->first << " - " << "|"+it->second+"|" << std::endl;
+    std::cerr << "Port: " << it->first << " - " << "|"+it->second+"|" << std::endl;
     it = tmp.host.begin();
-    std::cerr << "Host " << it->first << " - " << "|"+it->second+"|" << std::endl;
+    std::cerr << "Host: " << it->first << " - " << "|"+it->second+"|" << std::endl;
     it = tmp.serverName.begin();
-    std::cerr << "ServerName " << it->first << " - " << "|"+it->second+"|" << std::endl;
+    std::cerr << "ServerName: " << it->first << " - " << "|"+it->second+"|" << std::endl;
     it = tmp.limitClientBody.begin();
-    std::cerr << "LimitClient " << it->first << " - " << "|"+it->second+"|" << std::endl;
+    std::cerr << "LimitClient: " << it->first << " - " << "|"+it->second+"|" << std::endl;
     it = tmp.defaultRoot.begin();
     std::cerr << "DefaultRoot " << it->first << " - " << "|"+it->second+"|" << std::endl;
     std::map<std::string, int>::iterator it1 = tmp.errorPages.begin();
@@ -206,7 +206,7 @@ int checkInformations(informations &tmp)
             std::map<std::string, std::string>::iterator it = tmp.defaultRoot.begin();
             if (normalCheck(it->second) || !it->second[0])
             { std::cerr << "Invalid `DefualtRoot` Syntax: " + it->second << std::endl; return (1); }
-            std::cerr << it->second << " The Deafualt Root" << std::endl;
+            // std::cerr << "Server default root: " << it->second << std::endl;
             struct stat metadata;
             if (stat(it->second.c_str(), &metadata))
             { std::cerr << "Invalid DefaultRoot Path " + it->second << std::endl; return (1);}

@@ -40,7 +40,7 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
     checkDupHost.reserve(info.size());
     while (it != info.end())
     {
-        std::cerr << "Server Come With Number: " << it->first << std::endl;
+        std::cerr << "Server Number: " << it->first << std::flush;
         std::vector<std::string> tmp;
         tmp.reserve(2);
         tmp.push_back(it->second.port.at("listen")), tmp.push_back(it->second.host.at("host"));
@@ -56,8 +56,9 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
                     << ", ServerName: " + it->second.serverName.at("server_name") << std::endl;
                     throw std::runtime_error("Bad Server");
                 }
-                std::cerr << "The Same Host Appears More Than Once:" << std::endl
-                << "The Port: " + tmp[0] + ", The HostIP: " + tmp[1] << std::endl;
+                // std::cerr << "The Same Host Appears More Than Once:" << std::endl
+                // << "The Port: " + tmp[0] + ", The HostIP: " + tmp[1] << std::endl;
+                std::cerr << " Server Not bound" << std::endl;
                 this->notBindingServers[it->second.serverName.at("server_name")] = it->second;
                 checkTheSameServer.push_back(it->second.serverName.at("server_name"));
                 it++; continue;
@@ -95,13 +96,12 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
             it++; continue;
         }
         this->serversSock[fd] = sockInfo; this->OverLoad[fd] = it->second;
-        std::cerr << "Socket Ready To Listening For The Port: "
-        << it->second.port.at("listen") << " With Number: " << fd << std::endl;
+        std::cerr << " Socket Descriptor: " << fd << " Listen On Port Number: "
+        << it->second.port.at("listen") << std::endl;
         it++;
     }
-    std::cerr << "\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" << std::endl;
+    std::cerr << "<------------ Unbinded Servers Start ------------>" << std::endl;
     std::map<std::string, informations>::iterator NotBind = this->notBindingServers.begin();
-    std::cerr << "Those Servers Does not Binding Cause There Host Is Already Binding" << std::endl;
     int R = 1;
     while (NotBind != this->notBindingServers.end())
     {
@@ -110,6 +110,7 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
         R++;
         NotBind++;
     }
+    std::cerr << "<------------------------ ---------------------->" << std::endl;
 }
 
 void    initializeMonitor(struct pollfd &monitor, int fd)
@@ -132,8 +133,8 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
 {
     if ((monitor.revents & POLLIN))
     {
-        std::cerr << "Cleint-Side, An Event Happen Into " << monitor.fd << " Endpoint." << std::endl;
-        std::cerr << "This Client Is Rlated With Server Endpoint " << it->second << std::endl;
+        std::cerr << "Client-Side, An event happend on socket number: " << monitor.fd << " Endpoint." << std::endl;
+        std::cerr << "Client with socket: " << monitor.fd << " is related to server Endpoint: " << it->second << std::endl;
         char buffer[2048];
         int rd = read(monitor.fd, buffer, 2047);
         if (rd == -1)
@@ -224,12 +225,11 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                     {
                         try
                         {
-                            // newFile = cgiFile("POST", this->Requests.at(monitor.fd).scriptName,
-                                // executer, this->Requests.at(monitor.fd).filename);
+                            
                         }
-                        catch (const char *err)
+                        catch ( ... )
                         {
-                            std::cerr << err << std::endl;
+                            
                         }
                     }
                     std::cerr << "Filename: " << this->Requests.at(monitor.fd).filename << std::endl;
@@ -271,17 +271,17 @@ void    connection::checkServer(struct pollfd &monitor, std::map<int, struct soc
 {
     if ((monitor.revents & POLLIN))
     {
-        std::cerr << "Server-Side, An event Comming Into " << monitor.fd << " Endpoint." << std::endl;
+        std::cerr << "Server-Side, An event happend on server socket number: " << monitor.fd << std::endl;
         socklen_t   addLen = sizeof(it->second);
         int newClient = accept(monitor.fd, (struct sockaddr *)&it->second, &addLen);
         if (newClient == -1)
             std::cerr << "Error: Filed To Create New EndPoint With Socket " << monitor.fd << std::endl;
         else
         {
-            std::cerr << "Clients Those Already Here :" << std::endl;
+            // std::cerr << "Clients Those Already Here :" << std::endl;
             for (std::map<int, Request>::iterator it = this->Requests.begin(); it != this->Requests.end(); it++)
-                std::cerr << "Clinet Of Fd Number: " << it->first << std::endl;
-            std::cerr << "New Client Added To Endpoint " << monitor.fd << " With Number " << newClient << '.' << std::endl;
+                std::cerr << "Client Of Fd Number: " << it->first << std::endl;
+            std::cerr << "New client number: " << newClient << " Added to server endpoint: " << monitor.fd << std::endl;
             this->clientsSock[newClient] = monitor.fd;
             this->Response[newClient] = response();
             this->Cgires[newClient] = ParsedCGIOutput();

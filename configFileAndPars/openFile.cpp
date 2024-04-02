@@ -20,7 +20,7 @@ configFile::configFile(int ac, char **av)
         this->fileName = av[1];
     else
         throw BadRunException();
-    std::cerr << "Config File Name: " + this->fileName << std::endl; 
+    // ?std::cerr << "Config File Name: " + this->fileName << std::endl; 
     this->File.open(this->fileName.c_str(), std::ios_base::in);
     if (!this->File)
         throw BadFileException();
