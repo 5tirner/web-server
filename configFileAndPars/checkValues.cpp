@@ -216,7 +216,7 @@ int errorPages(std::string &all, int *status)
 {
     if (justMakeItRight(all))
         return (1);
-    std::cerr << "ErrorPage Appears As: " + all << std::endl;
+    //std::cerr << "ErrorPage Appears As: " + all << std::endl;
     std::string save;
     size_t      i = 0;
     while (i < all.size() && all[i] != ' ' && all[i] != '\t')
