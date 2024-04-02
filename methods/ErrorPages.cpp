@@ -7,9 +7,11 @@ void connection::serveErrorPage(int clientSocket, int errorCode, const informati
     std::string responseBody;
 
     // Check if a custom error page is found and is not empty
+    // std::cout << "errorPagePath: ------>: " << errorPageEntry->second[0] << std::endl;
     if (errorPageEntry != serverConfig.error_page.end() && !errorPageEntry->second.empty())
     {
         std::string errorPagePath = errorPageEntry->second[0];
+        std::cout << "errorPagePath: ------>: " << errorPagePath << std::endl;
         std::ifstream errorPageFile(errorPagePath.c_str(), std::ifstream::in);
         if (errorPageFile)
         {
