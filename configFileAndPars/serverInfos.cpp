@@ -241,6 +241,9 @@ int checkInformations(informations &tmp)
             }
             catch(...)
             {
+                struct stat metadata;
+                if (stat(s.c_str(), &metadata))
+                { std::cerr << "Invalid ErrorPage Path " + s << std::endl; return (1);}
                 tmp.errorPages[s] = status;
             }
         }
