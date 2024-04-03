@@ -81,7 +81,7 @@ std::string mapUriToFilePath( std::string& uri,  location locConfig)
         while (std::getline(iss, indexFile, ' '))
         {
             indexPath = fullPath + indexFile;
-            std::cout << "IndexPath: " << indexPath << std::endl; 
+            // std::cout << "IndexPath: " << indexPath << std::endl; 
             std::string tmp = indexPath;
             tmp = resolveFilePath(rootPath);
             if (tmp.empty())
@@ -91,7 +91,6 @@ std::string mapUriToFilePath( std::string& uri,  location locConfig)
                 std::cout << "\n\n---->\n\n";
                 throw std::runtime_error("there is a problem");
             }
-            // resolvedPath = resolveFilePath(indexPath);
             if (!indexPath.empty() && fileExists(indexPath) && isPathWithinRoot(indexPath, rootPath))
                 return indexPath;
         }
@@ -100,10 +99,6 @@ std::string mapUriToFilePath( std::string& uri,  location locConfig)
     }
     else
     {
-        // If the pathSuffix is not empty and does not end with '/', directly append it to filePath.
-        // if (fullPath[fullPath.length() -1 ] != '/')
-        //     fullPath += "/";
-        // fullPath += pathSuffix;
         std::string tmp = fullPath;
         tmp = resolveFilePath(rootPath);
         if (tmp.empty())
@@ -113,17 +108,17 @@ std::string mapUriToFilePath( std::string& uri,  location locConfig)
             std::cout << "\n\n---->\n\n";
             throw std::runtime_error("there is a problem");
         }
-        // if (fileExists(fullPath))
         return fullPath;
-        // Handle file not found if necessary.
     }
-    // else if (!pathSuffix.empty())
-    // {
-    //     resolvedPath = resolveFilePath(fullPath);
-    //     std::cout << "===>: resolvePath: " << resolvedPath << std::endl;
-    //     if (!resolvedPath.empty() && fileExists(resolvedPath) && isPathWithinRoot(resolvedPath, rootPath))
-    //         return resolvedPath;
-    // }
+    std::string tmp = fullPath;
+    tmp = resolveFilePath(rootPath);
+    if (tmp.empty())
+        throw std::runtime_error("there is a problem");
+    if (!isPathWithinRoot(fullPath, rootPath))
+    {
+        std::cout << "\n\n---->\n\n";
+        throw std::runtime_error("there is a problem");
+    }
     return fullPath;
 }
 
@@ -219,6 +214,18 @@ static void lowcase( std::string& str )
 		if ( str[ i ] >= 65 && str[ i ] <= 90 )
 			str[ i ] += 32;
 	}
+}
+void cleanupResponseFiles(std::vector<std::string>& files)
+{
+    std::cout << "==============================++++++++++-______" << std::endl;
+    for (size_t i = 0; i < files.size(); ++i)
+    {
+        std::cout << "=======> files : " << files[i] << std::endl;
+        if (remove(files[i].c_str()) != 0) {
+            std::cerr << "Error removing file: " << files[i] << std::endl;
+        }
+    }
+    files.clear(); // Clear the vector after removing files
 }
 
 bool setHeadet(std::string header)
@@ -470,7 +477,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             serveErrorPage(clientSocket, 403, serverConfig);
             return;
         }
-        std::cerr << "fillllePath: " << filePath << std::endl;
+        // std::cerr << "fillllePath: " << filePath << std::endl;
         if (filePath[filePath.length() - 1] == '/')
             filePath = filePath.substr(0, filePath.length() - 1);
         if (!access(filePath.c_str(), F_OK))
@@ -486,7 +493,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             serveErrorPage(clientSocket, 404, serverConfig);
             return;
         }
-        std::string executer = GetExtentions(filePath);
+        std::string executer = GetExtension(filePath);
         if (routeConfig.cgi.at("cgi") == "on" && executer != "NormalFile")
         {
             try
@@ -500,7 +507,8 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
                 
                 std::cout << "----------->2\n";
                 filePath = request.cgiInfo.output;
-                
+                std::cout << "=========>FILEPATH That must removed: " << request.cgiInfo.output << std::endl;
+                responseData.removeFiles.push_back(request.cgiInfo.output);
                 if (request.cgiInfo.pid == -1)
                 {
                     serveErrorPage(clientSocket, 500, serverConfig);

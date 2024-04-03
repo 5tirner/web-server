@@ -1,170 +1,322 @@
 #include "../include/mainHeader.hpp"
 #include <dirent.h>
 
-static void generateRandomFileName( Request& rq, std::string& path )
+static void generateRandomFileName( Request& request, const std::string& uploadDirectory )
 {
-	try {
-		rq.filename = path;
-		const std::string CHARACTErq = "ABCDEFGHIJKLMNOPQrqTUVWXYZabcdefghijklmnopqrqtuvwxyz";
-		std::srand( std::time( NULL ) );
+    try
+    {
+        const std::string validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        std::string randomFileName;
 
-		if ( rq.filename.length() > 1 && rq.filename.at( rq.filename.length() - 1 ) != '/' )
-			rq.filename += "/";
+        std::srand(std::time(NULL));
 		for ( int i = 0; i < 25; i++ )
-			rq.filename.push_back( CHARACTErq[ rand() % CHARACTErq.length() ] );
-		rq.filename += rq.extension;
-    	rq.bodyStream->open( rq.filename.c_str(), std::ios::binary | std::ios::trunc );
-		if ( !rq.bodyStream->is_open() )
-		{
-			Logger::log() << "[ Error ] : couldn't open file to store request body" << std::endl;
-			throw std::exception();
-		}
-	} catch (...) {
-		rq.stat = 500;
-		throw std::exception();
-	}
+			randomFileName.push_back( validChars[ rand() % validChars.length() ] );
+
+        std::string filePath = uploadDirectory;
+        if (filePath.at( filePath.size() - 1 ) != '/')
+            filePath.push_back('/');
+        filePath += randomFileName + request.extension;
+
+        request.filename = filePath;
+        request.bodyStream->open(filePath.c_str(), std::ios::binary | std::ios::trunc);
+
+        if (!request.bodyStream->is_open())
+        {
+            Logger::log() << "[ Error ]: Could not open file to store request body" << std::endl;
+            throw std::runtime_error("Failed to open file");
+        }
+    }
+    catch (const std::exception& e)
+    {
+        request.stat = 500;
+        throw std::exception();
+    }
 }
 
+// int connection::location_support_upload( Request& rq, int serverID )
+// {	
+// 	try
+// 	{
+// 		std::string	location;
+// 		informations serverInfo;
+// 		std::map<std::string, informations>::iterator it = notBindingServers.find( rq.headers.at("host") );
+// 		if ( it != notBindingServers.end() )
+// 			serverInfo = it->second;
+// 		else
+// 			serverInfo = OverLoad.at( serverID );
 
-int connection::location_support_upload( Request& rq, int serverID )
-{	
-	try
-	{
-		size_t i = 0;
-		std::string	location;
-		informations serverInfo;
-		std::map<std::string, informations>::iterator it = notBindingServers.find( rq.headers.at("host") );
-		if ( it != notBindingServers.end() )
-			serverInfo = it->second;
-		else
-			serverInfo = OverLoad.at( serverID );
+// 		size_t i = 0;
+// 		size_t longestMatchingIndex = std::string::npos;
+// 		std::string longestMatchingLocation;
+// 		std::string uri( rq.headers.at("uri") );
+// 		for (; i < serverInfo.locationsInfo.size(); i++ )
+// 		{
+// 			location = serverInfo.locationsInfo.at(i).directory.at( "location" );
+// 			if ( uri.compare(0, location.size(), location.c_str()) == 0 && location.length() > longestMatchingLocation.length())
+// 			{
+// 				longestMatchingIndex = i;
+// 				longestMatchingLocation = location;
+// 			}
+// 		}
+// 		i = longestMatchingIndex;
+// 		if ( longestMatchingIndex != std::string::npos )
+// 		{
+// 			bool isdir( false );
+// 			if ( serverInfo.locationsInfo.at( i ).cgi.at("cgi") == "on" )
+// 			{
+// 				rq.scriptName = serverInfo.locationsInfo.at( i ).root.at("root") + uri.substr(longestMatchingLocation.length());
+// 				if (GetExtension(rq.scriptName) != "NormalFile")
+// 					rq.cgi = true;
+// 				else if (isDirectory(rq.scriptName))
+// 				{
+// 					rq.scriptName += "/";
+// 					std::string indexPath;
+// 					if ((rq.scriptName.empty() || rq.scriptName[rq.scriptName.length() - 1] == '/'))
+// 					{
+// 						std::istringstream iss(serverInfo.locationsInfo.at( i ).index.at("index"));
+// 						std::string indexFile;
+// 						while (std::getline(iss, indexFile, ' '))
+// 						{
+// 							indexPath = rq.scriptName + indexFile;
+// 							if (!indexPath.empty() && fileExists(indexPath))
+// 							{
+// 								rq.cgi = true;
+// 								isdir = true;
+// 								break;
+// 							}
+// 						}
+// 					}
+// 				}
+// 			}	
+// 			std::string uploadDirectory = serverInfo.locationsInfo.at(i).upload.at("upload");
+//             std::string allowedMethods = serverInfo.locationsInfo.at(i).allowed_methodes.at("allowed_methodes");
+// 			if ( upload[0] || rq.cgi )
+// 			{
+// 				if ( rq.cgi && !isdir )
+// 					upload = "/tmp";
+// 				if ( method.find( "POST" ) != std::string::npos )
+// 				{
+// 					if ( access( upload.c_str(), F_OK ) == 0 )
+// 					{
+// 						if ( access( upload.c_str(), W_OK ) != 0 )
+// 						{
+// 							Logger::log() << "[ Error ] : Client can't upload in this location write permission"<< std::endl;
+// 							return ( rq.stat = 403, -1 );
+// 						}
+// 					}
+// 					else
+// 					{
+// 						Logger::log() << "[ Error ] : Client can't upload in this location dir not found"<< std::endl;
+// 						return ( rq.stat = 404, -1 );
+// 					}
+// 					rq.limitClientBodySize = std::atol( serverInfo.limitClientBody.at("limit_client_body").c_str() ) * 100000000; //! need the exact amount
+// 					if ( rq.limitClientBodySize == 0 )
+// 					{
+// 						Logger::log() << "[ Error ] : Client body size limit is 0" << std::endl;
+// 						return ( rq.stat = 400, -1 );
+// 					}
+// 					if ( !rq.bodyStream->is_open() )
+// 						generateRandomFileName( rq, upload );
+// 					rq.locationGotChecked = true;
+// 					return ( 0 );
+// 				}
+// 				else
+// 					return ( rq.stat = 405, -1 );
+// 			}
+// 		}	
+// 	}
+// 	catch(const std::exception& e)
+// 	{
+// 		Logger::log() << "[ Error ] : Client can't upload in this location " << std::endl;
+// 		return ( rq.stat = 500, -1 );
+// 	}
+// 	Logger::log() << "[ Error ] : Client can't upload in this location method not allowed" << std::endl;
+// 	return ( rq.stat = 404, -1 );
+// }
 
-		std::string newUri( rq.headers.at("uri") );
-		std::cerr << "NEW URI: " << newUri + "." <<std::endl;
-		int j = -1;
-		std::string saveLcation; 
-		for (; i < serverInfo.locationsInfo.size(); i++ )
+int connection::location_support_upload(Request& request, int serverId) {
+    try {
+        std::string location;
+        informations serverInfo;
+        std::map<std::string, informations>::iterator it = notBindingServers.find(request.headers.at("host"));
+        if (it != notBindingServers.end()) {
+            serverInfo = it->second;
+        } else {
+            serverInfo = OverLoad.at(serverId);
+        }
+
+        std::string uri(request.headers.at("uri"));
+        std::string longestMatchingLocation;
+        size_t longestMatchingIndex = std::string::npos;
+
+        for (size_t i = 0; i < serverInfo.locationsInfo.size(); ++i) {
+            location = serverInfo.locationsInfo.at(i).directory.at("location");
+            if (uri.compare(0, location.size(), location) == 0 && location.length() > longestMatchingLocation.length()) {
+                longestMatchingIndex = i;
+                longestMatchingLocation = location;
+            }
+        }
+
+        if (longestMatchingIndex != std::string::npos)
 		{
-			location = serverInfo.locationsInfo.at(i).directory.at( "location" );
-			std::cerr << "location: " << location << std::endl;
-			if ( newUri.compare(0, location.size(), location.c_str()) == 0 && location.length() > saveLcation.length())
+            bool isDir = false;
+            size_t i = longestMatchingIndex;
+            if (serverInfo.locationsInfo.at(i).cgi.at("cgi") == "on")
 			{
-				j = i;
-				saveLcation = location;
-			}
-		}
-		i = j;
-		if ( j != -1 )
-		{
-			if ( serverInfo.locationsInfo.at( i ).cgi.at("cgi") == "on" )
-			{
-				rq.scriptName = serverInfo.locationsInfo.at( i ).root.at("root") + newUri.substr(saveLcation.length());
-				if (GetExtentions(rq.scriptName) != "NormalFile")
-					rq.cgi = true;
-				else if (isDirectory(rq.scriptName))
+                request.scriptName = serverInfo.locationsInfo.at(i).root.at("root") + uri.substr(longestMatchingLocation.length());
+                if (GetExtension(request.scriptName) != "NormalFile") request.cgi = true;
+				else if (isDirectory(request.scriptName))
 				{
-					rq.scriptName += "/";
-					std::string indexPath;
-					if ((rq.scriptName.empty() || rq.scriptName[rq.scriptName.length() - 1] == '/'))
+                    request.scriptName += "/";
+                    std::string indexPath;
+                    if (request.scriptName.empty() || request.scriptName.at(request.scriptName.size() - 1) == '/')
 					{
-						std::istringstream iss(serverInfo.locationsInfo.at( i ).index.at("index"));
-						std::string indexFile;
-						while (std::getline(iss, indexFile, ' '))
+                        std::istringstream iss(serverInfo.locationsInfo.at(i).index.at("index"));
+                        std::string indexFile;
+                        while (std::getline(iss, indexFile, ' '))
 						{
-							indexPath = rq.scriptName + indexFile;
-							if (!indexPath.empty() && fileExists(indexPath))
+                            indexPath = request.scriptName + indexFile;
+                            if (!indexPath.empty() && fileExists(indexPath))
 							{
-								rq.cgi = true;
-								break;
-							}
-						}
-					}
-				}
-			}	
-			std::string upload   = serverInfo.locationsInfo.at( i ).upload.at( "upload" );
-			std::string method	 = serverInfo.locationsInfo.at( i ).allowed_methodes.at( "allowed_methodes" );
-			if ( upload[0] || rq.cgi )
-			{
-				if ( rq.cgi )
-					upload = "/tmp";
-				if ( method.find( "POST" ) != std::string::npos )
-				{
-					if ( access( upload.c_str(), F_OK ) == 0 )
-					{
-						if ( access( upload.c_str(), W_OK ) != 0 )
-						{
-							Logger::log() << "[ Error ] : Client can't upload in this location write permission"<< std::endl;
-							return ( rq.stat = 403, -1 );
-						}
-					}
-					else
-					{
-						Logger::log() << "[ Error ] : Client can't upload in this location dir not found"<< std::endl;
-						return ( rq.stat = 404, -1 );
-					}
-					rq.limitClientBodySize = std::atol( serverInfo.limitClientBody.at("limit_client_body").c_str() ) * 100000000; //! need the exact amount
-					if ( rq.limitClientBodySize == 0 )
-					{
-						Logger::log() << "[ Error ] : Client body size limit is 0" << std::endl;
-						return ( rq.stat = 400, -1 );
-					}
-					if ( !rq.bodyStream->is_open() )
-						generateRandomFileName( rq, upload );
-					rq.locationGotChecked = true;
-					return ( 0 );
-				}
+                                request.cgi = true;
+                                isDir = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+			std::string allowedMethods = serverInfo.locationsInfo.at(i).allowed_methodes.at("allowed_methodes");
+			std::string uploadDirectory = serverInfo.locationsInfo.at(i).upload.at("upload");
+
+			if (!uploadDirectory.empty() || request.cgi)
+			{ 
+				if (request.cgi && !isDir)
+					uploadDirectory = "/tmp";
 			}
-		}	
-	}
-	catch(const std::exception& e)
-	{
-		Logger::log() << "[ Error ] : Client can't upload in this location " << std::endl;
-		return ( rq.stat = 500, -1 );
-	}
-	Logger::log() << "[ Error ] : Client can't upload in this location method not allowed" << std::endl;
-	return ( rq.stat = 404, -1 );
+			
+			if (allowedMethods.find("POST") != std::string::npos)
+			{
+				if (access(uploadDirectory.c_str(), F_OK) == 0) {
+					if (access(uploadDirectory.c_str(), W_OK) != 0) {
+						Logger::log() << "[ Error ]: Client can't upload in this location due to write permission" << std::endl;
+						return request.stat = 403, -1;
+					}
+				}
+				else
+				{
+					Logger::log() << "[ Error ]: Client can't upload in this location as directory not found" << std::endl;
+					return request.stat = 404, -1;
+				}
+
+				request.limitClientBodySize = std::atol(serverInfo.limitClientBody.at("limit_client_body").c_str()) * 100000000; //! what???
+				if (request.limitClientBodySize == 0)
+				{
+					Logger::log() << "[ Error ]: Client body size limit is 0" << std::endl;
+					return request.stat = 400, -1;
+				}
+
+				if (!request.bodyStream->is_open()) generateRandomFileName(request, uploadDirectory);
+
+				request.locationGotChecked = true;
+				return 0;
+			}
+			else
+				return request.stat = 405, -1;
+        }
+    } catch (const std::exception& e) {
+        Logger::log() << "[ Error ]: Client can't upload in this location" << std::endl;
+        return request.stat = 500, -1;
+    }
+
+    Logger::log() << "[ Error ]: Client can't upload in this location as method not allowed" << std::endl;
+    return request.stat = 404, -1;
 }
 
-static size_t	parseChunkHeader( Request& rq, std::string& buffer )
-{
-	std::string	chunkHead;
-	long		size;
-	size_t 		crlfPos = 0;
+// static size_t	parseChunkHeader( Request& rq, std::string& buffer )
+// {
+// 	std::string	chunkHead;
+// 	long		size;
+// 	size_t 		crlfPos = 0;
 
-	if ( rq.iscr == true )
-	{
-		buffer = buffer.substr( 2 );
-		rq.iscr = false;
-	}
-	else if ( rq.islf == true )
-	{
-		buffer = buffer.substr( 1 );
-		rq.islf = false;
-	}
+// 	if ( rq.iscr == true )
+// 	{
+// 		buffer = buffer.substr( 2 );
+// 		rq.iscr = false;
+// 	}
+// 	else if ( rq.islf == true )
+// 	{
+// 		buffer = buffer.substr( 1 );
+// 		rq.islf = false;
+// 	}
 
-	crlfPos = buffer.find( "\r\n" );
+// 	crlfPos = buffer.find( "\r\n" );
 	
-	if ( crlfPos == std::string::npos )
-		return std::string::npos;
-	chunkHead = buffer.substr( 0, crlfPos );
-	if ( !chunkHead.empty() )
-		size = std::strtol( chunkHead.c_str(), NULL, 16 );
-	else
+// 	if ( crlfPos == std::string::npos )
+// 		return std::string::npos;
+// 	chunkHead = buffer.substr( 0, crlfPos );
+// 	if ( !chunkHead.empty() )
+// 		size = std::strtol( chunkHead.c_str(), NULL, 16 );
+// 	else
+// 	{
+// 		rq.stat = 400;
+// 		Logger::log() << "[ Error ] Invalid chunk size header" << std::endl;
+// 		throw std::exception();
+// 	}
+// 	if ( size == LONG_MAX || size == LONG_MIN )
+// 	{
+// 		rq.stat = 400;
+// 		Logger::log() << "[ Error ] Invalid chunk size header" << std::endl;
+// 		throw std::exception();
+// 	}
+// 	else
+// 		rq.currentChunkSize = size;
+// 	buffer = buffer.substr( chunkHead.length() + 2 );
+// 	return ( rq.currentChunkSize );
+// }
+
+static size_t parseChunkHeader(Request& request, std::string& buffer)
+{
+    // Remove leading CRLF if present
+    if (request.iscr)
 	{
-		rq.stat = 400;
-		Logger::log() << "[ Error ] Invalid chunk size header" << std::endl;
-		throw std::exception();
-	}
-	if ( size == LONG_MAX || size == LONG_MIN )
+        buffer.erase(0, 2);
+        request.iscr = false;
+    }
+	else if (request.islf)
 	{
-		rq.stat = 400;
-		Logger::log() << "[ Error ] Invalid chunk size header" << std::endl;
-		throw std::exception();
-	}
-	else
-		rq.currentChunkSize = size;
-	buffer = buffer.substr( chunkHead.length() + 2 );
-	return ( rq.currentChunkSize );
+        buffer.erase(0, 1);
+        request.islf = false;
+    }
+
+    size_t crlfPos = buffer.find("\r\n");
+    if (crlfPos == std::string::npos)
+        return std::string::npos;
+
+    std::string chunkHeader = buffer.substr(0, crlfPos);
+
+    char* endPtr;
+    long chunkSize = std::strtol(chunkHeader.c_str(), &endPtr, 16);
+
+    if (endPtr == chunkHeader.c_str() || (*endPtr != '\0' && !std::isspace(*endPtr)))
+	{
+        request.stat = 400;
+        Logger::log() << "[ Error ] Invalid chunk size header" << std::endl;
+        throw std::invalid_argument("Invalid chunk size header");
+    }
+
+    if (chunkSize == LONG_MAX || chunkSize == LONG_MIN)
+	{
+        request.stat = 400;
+        Logger::log() << "[ Error ] Invalid chunk size header" << std::endl;
+        throw std::overflow_error("Chunk size overflow/underflow");
+    }
+
+    request.currentChunkSize = static_cast<size_t>(chunkSize);
+    buffer.erase(0, crlfPos + 2);
+
+    return request.currentChunkSize;
 }
 
 static bool    chunkedComplete( Request& rq,  std::string& buffer )
@@ -190,7 +342,7 @@ static bool    chunkedComplete( Request& rq,  std::string& buffer )
 		}
 		if ( rq.currentChunkSize > buffer.length() )
 		{
-			rq.bodyStream->write( buffer.c_str(),  buffer.length() );
+			rq.bodyStream->write( buffer.data(),  buffer.length() );
 			if ( !rq.bodyStream->good() )
 			{
 				rq.stat = 500;
@@ -204,7 +356,7 @@ static bool    chunkedComplete( Request& rq,  std::string& buffer )
 		}
 		else if ( rq.currentChunkSize < buffer.length() )
 		{
-			rq.bodyStream->write( buffer.c_str(), rq.currentChunkSize );
+			rq.bodyStream->write( buffer.data(), rq.currentChunkSize );
 			if ( !rq.bodyStream->good() )
 			{
 				rq.stat = 500;
@@ -228,7 +380,7 @@ static bool    chunkedComplete( Request& rq,  std::string& buffer )
 		}
 		else if ( rq.currentChunkSize == buffer.length() )
 		{
-			rq.bodyStream->write( buffer.c_str(), rq.currentChunkSize );
+			rq.bodyStream->write( buffer.data(), rq.currentChunkSize );
 			rq.bodyStream->flush();
 			bufflen -= rq.currentChunkSize;
 			rq.iscr = true;
@@ -245,14 +397,17 @@ static void	processChunkedRequestBody( Request& rq, char* buffer, int& rc, bool&
     {
         if ( chunkedComplete( rq, rq.remainingBody ) )
         {
-			rq.headers.at("method") = "get";
 			if (!rq.cgi)
 				rq.stat = 201;
-			rq.cgiInfo.contentLength = rq.headers["content-length"];
-			rq.cgiInfo.contentType = rq.headers["content-type"];
-			rq.cgiInfo.method = "POST";
+			else
+			{
+				rq.cgiInfo.contentLength = rq.headers["content-length"];
+				rq.cgiInfo.contentType = rq.headers["content-type"];
+				rq.cgiInfo.method = "POST";
+				rq.cgiInfo.input = rq.filename;
+				rq.headers.at("method") = "get";
+			}
 			sendRes = true;
-			rq.cgiInfo.input = rq.filename;
 			Logger::log() << "[ sucess ] body file created" << std::endl;
 			throw std::exception();
 		}
@@ -263,13 +418,16 @@ static void	processChunkedRequestBody( Request& rq, char* buffer, int& rc, bool&
         std::string receivedData( buffer, rc );
         if ( chunkedComplete( rq, receivedData ) )
         {
-					rq.headers.at("method") = "get";
 			if (!rq.cgi)
 				rq.stat = 201;
-			rq.cgiInfo.contentLength = rq.headers["content-length"];
-			rq.cgiInfo.contentType = rq.headers["content-type"];
-			rq.cgiInfo.method = "POST";
-			rq.cgiInfo.input = rq.filename;
+			else
+			{
+				rq.cgiInfo.contentLength = rq.headers["content-length"];
+				rq.cgiInfo.contentType = rq.headers["content-type"];
+				rq.cgiInfo.method = "POST";
+				rq.cgiInfo.input = rq.filename;
+				rq.headers.at("method") = "get";
+			}
 			sendRes = true;
 			Logger::log() << "[ sucess ] body file created" << std::endl;
 			throw std::exception();
@@ -281,7 +439,7 @@ static void	processRegularRequestBody( Request& rq, char* buffer, int& rc, bool&
 {
 	if ( !rq.remainingBody.empty() )
 	{
-		rq.bodyStream->write( rq.remainingBody.c_str(),  rq.remainingBody.length() );
+		rq.bodyStream->write( rq.remainingBody.data(),  rq.remainingBody.length() );
 		rq.bodyStream->flush();
 		rq.content_length += rq.remainingBody.length();
 		rq.remainingBody.clear();
@@ -299,16 +457,19 @@ static void	processRegularRequestBody( Request& rq, char* buffer, int& rc, bool&
 	}
 	if ( rq.content_length == rq.requestBodyLength )
 	{
-		rq.headers.at("method") = "get";
 		if (!rq.cgi)
 			rq.stat = 201;
-		rq.cgiInfo.contentLength = rq.headers["content-length"];
-		rq.cgiInfo.contentType = rq.headers["content-type"];
-		rq.cgiInfo.method = "POST";
-		rq.cgiInfo.input = rq.filename;
+		else
+		{
+			rq.cgiInfo.contentLength = rq.headers["content-length"];
+			rq.cgiInfo.contentType = rq.headers["content-type"];
+			rq.cgiInfo.method = "POST";
+			rq.cgiInfo.input = rq.filename;
+			rq.headers.at("method") = "get";
+		}
 		sendRes = true;
 		Logger::log() << "[ sucess ] body file created" << std::endl;
-		return;
+		throw std::exception();
 	}
 	else if ( rq.content_length > rq.requestBodyLength )
 	{
@@ -326,9 +487,9 @@ void	connection::processingBody( Request& rq, char* buffer, int rc, int serverID
     {
 		if ( rq.locationGotChecked == false && location_support_upload( rq, serverID ) == -1 )
 			throw std::exception();
-		if ( rq.transferEncoding == true )
+		else if ( rq.transferEncoding == true )
 			processChunkedRequestBody( rq, buffer, rc, rq.readyToSendRes );
-		if ( rq.contentLength == true )
+		else if ( rq.contentLength == true )
 		{
 			if ( rq.contentLength <= rq.limitClientBodySize )		
 				processRegularRequestBody( rq, buffer , rc, rq.readyToSendRes );

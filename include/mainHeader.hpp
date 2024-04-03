@@ -225,6 +225,7 @@ typedef struct clientResponse
     bool            waitCgi;
     informations    info;
     std::clock_t    startTime;
+    std::vector<std::string> removeFiles;
     enum Status{
         Pending,
         InProgress,
@@ -351,8 +352,9 @@ std::string decodeURI(const std::string&);
 bool        isPathWithinRoot(std::string&, std::string&);
 std::string resolveFilePath(std::string&);
 void        sendResponseFromCGI(int, ParsedCGIOutput&);
+void        cleanupResponseFiles(std::vector<std::string>&);
 /*-------------- ysabr code end ---------------*/
 /*CGI*/
-std::string GetExtentions(std::string &filename);
+std::string GetExtension(std::string &filename);
 void cgiFile(cgiInfo&);
 #endif

@@ -30,6 +30,7 @@ response::clientResponse(const clientResponse& other)
     pid = other.pid;
     startTime = other.startTime;
     responseHeader = other.responseHeader;
+    removeFiles = other.removeFiles;
 }
 clientResponse& response::operator=(const clientResponse& other)
 {
@@ -44,6 +45,7 @@ clientResponse& response::operator=(const clientResponse& other)
         info = other.info;
         pid = other.pid;
         startTime = other.startTime;
+        removeFiles = other.removeFiles;
     }
     return *this;
 }
@@ -204,7 +206,7 @@ std::string creatTemplate( const char* filepath, int& statcode, code& msgCode )
 
 void    sendResponse( int& fd, const std::string& response )
 {
-    int rc = write( fd, response.c_str(), response.length() );
+    int rc = write( fd, response.data(), response.length() );
     if ( rc < 0 )
         throw std::exception();
 }

@@ -55,8 +55,8 @@ void connection::handleRequestDELETE(int clientSocket, Request& request,const in
         serveErrorPage(clientSocket, 405, serverConfig);
         return;
     }
-    if (filePath == "dkhal")
-        serveErrorPage(clientSocket, 403, serverConfig);
+    // if (filePath == "dkhal")
+    //     serveErrorPage(clientSocket, 403, serverConfig);
     struct stat path_stat;
     stat(filePath.c_str(), &path_stat);
 
