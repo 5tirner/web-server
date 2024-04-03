@@ -31,10 +31,10 @@ $(OBJDIR)/%.o: %.cpp
 	$(CC) -c -o $@ $<
 
 clean:
+	@rm -f upload/* .cgi_file*
 	@rm -f $(OBJ)
 
 fclean: clean
-	@rm -f upload/*
 	@rm -fr $(TARGET) $(OBJDIR)
 
 re: fclean $(TARGET)

@@ -21,21 +21,25 @@ static bool	extractMethodAndUri( Request& rq )
 			startLine = rq.fullRequest.substr( 0, lfp );
 		else
 			throw std::exception();
+
 		if ( startLine.at( startLine.length() - 1 ) == '\r' )
-        	startLine.resize( startLine.length() - 1 ); //! make some changes here
+        	startLine.resize( startLine.length() - 1 );
+
 		int spNbr = std::count( startLine.begin(), startLine.end(), ' ' );
+
 		if ( spNbr != 2 )
 			throw std::exception();
-		rq.headers["method"]    =	startLine.substr( 0, startLine.find( ' ' )  );
-		rq.headers["uri"]       =	startLine.substr( rq.headers["method"].length() + 1, startLine.find_last_of( ' ' ) -  rq.headers["method"].length() - 1 );
-		rq.headers["version"]   =	startLine.substr( rq.headers["method"].length() + rq.headers["uri"].length() + 2 );
-		
-		lowcase( rq.headers["method"] );
-		lowcase( rq.headers["version"] );
 
-		if ( rq.headers["version"] != "http/1.1" )
+		rq.headers["method"]    =	startLine.substr( 0, startLine.find( ' ' )  );
+		rq.headers["uri"]       =	startLine.substr( rq.headers.at("method").length() + 1, startLine.find_last_of( ' ' ) -  rq.headers.at("method").length() - 1 );
+		rq.headers["version"]   =	startLine.substr( rq.headers.at("method").length() + rq.headers.at("uri").length() + 2 );
+		
+		lowcase( rq.headers.at("method") );
+		lowcase( rq.headers.at("version") );
+
+		if ( rq.headers.at("version") != "http/1.1" )
 			throw std::exception();
-		if ( rq.headers["method"] != "get" && rq.headers["method"] != "post" && rq.headers["method"] != "delete" )
+		if ( rq.headers.at("method") != "get" && rq.headers.at("method") != "post" && rq.headers.at("method") != "delete" )
 			throw std::exception();
 	}
 	catch( ... )
@@ -44,21 +48,6 @@ static bool	extractMethodAndUri( Request& rq )
 		return ( rq.stat = 400, false );
 	}
 	return ( true );
-}
-
-static void	decomposeQueryParameters( const std::string& query, Request& rq )
-{
-    std::string param;
-    std::stringstream ss( query );
-
-    while ( std::getline(ss, param, '&') )
-	{
-        if ( param.empty() ) continue;
-        size_t equalPos		=	param.find( '=' );
-        std::string key		=	param.substr( 0, equalPos );
-        std::string value	=	equalPos != std::string::npos ? param.substr( equalPos + 1 ) : "";
-        rq.queries[key] = value;
-    }
 }
 
 static bool	validateUri( const std::string& uri )
@@ -79,25 +68,23 @@ static bool	validateUri( const std::string& uri )
 std::string decodeURI(const std::string& uri)
 {
     std::string result;
-	std::cerr << "THE MOTHEFUCKING URI: " << uri << std::endl;
     for (std::size_t i = 0; i < uri.size(); ++i)
     {
-		// if ( uri[i] == '/' )
-		// {
-		// 	size_t j = i + 1;
-		// 	for ( ; j <= i + 2 && uri[j] == '.'; ++j );
-		// 	std::cerr << "j = " << j << " size: " << uri.size() << std::endl;
-		// 	if ( j > i + 1 && j == uri.size() )
-		// 	{
-		// 		std::cerr << "????????????????????????" << std::endl;
-		// 		return "";
-		// 	}
-		// 	if ( j != i + 1 && uri[ j ] == '/' )
-		// 	{
-		// 		std::cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
-		// 		return "";
-		// 	}
-		// }
+		if ( uri[i] == '/' )
+		{
+			size_t j = i + 1;
+			for ( ; j <= i + 2 && uri[j] == '.'; ++j );
+			if ( j > i + 1 && j == uri.size() )
+			{
+				std::cerr << "????????????????????????" << std::endl;
+				return "";
+			}
+			if ( j != i + 1 && uri[ j ] == '/' )
+			{
+				std::cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+				return "";
+			}
+		}
         if (uri[i] == '%' && i + 2 < uri.length())
         {
             std::string hex = uri.substr(i + 1, 2);
@@ -116,9 +103,9 @@ std::string decodeURI(const std::string& uri)
 
 static bool validateUriAndExtractQueries( Request& rq )
 {
-	if ( validateUri( rq.headers["uri"] ) == false )
+	if ( validateUri( rq.headers.at("uri") ) == false )
 	{
-		if ( rq.headers["uri"].length() > 2048 )
+		if ( rq.headers.at("uri").length() > 2048 )
 		{
 			return ( rq.stat = 414, false );
 			Logger::log() << "[ Error ] validate Uri And Extract Queries: Request-URI Too Long" << std::endl;
@@ -127,21 +114,16 @@ static bool validateUriAndExtractQueries( Request& rq )
 		return ( rq.stat = 400, false );
 	}
 
-	rq.headers["uri"] = decodeURI(rq.headers["uri"]);
-	std::cerr << "THE URI: " << rq.headers["uri"] << std::endl;
-	if ( rq.headers["uri"].empty() )
-	{
-		std::cerr << "URI EMPTY" << std::endl;
+	rq.headers.at("uri") = decodeURI(rq.headers.at("uri"));
+
+	if ( rq.headers.at("uri").empty() )
 		return ( rq.stat = 400, false );
-	}
-	size_t queryPos = rq.headers["uri"].find('?');
+		
+	size_t queryPos = rq.headers.at("uri").find('?');
     if ( queryPos != std::string::npos )
 	{
-		// rq.cgiInfo.queries = rq.headers.at("uri").substr(queryPos + 1);
-        std::string query = rq.headers["uri"].substr( queryPos + 1 );
-		rq.cgiInfo.queries = query;
-        rq.headers["uri"] = rq.headers["uri"].substr( 0, queryPos );
-        decomposeQueryParameters( query, rq );
+        rq.cgiInfo.queries = rq.headers.at("uri").substr( queryPos + 1 );
+        rq.headers.at("uri") = rq.headers.at("uri").substr( 0, queryPos );
     }
 	return ( true );
 }

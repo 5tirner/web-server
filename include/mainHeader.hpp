@@ -349,6 +349,6 @@ void        sendResponseFromCGI(int, ParsedCGIOutput&);
 void        cleanupResponseFiles(std::vector<std::string>&);
 /*-------------- ysabr code end ---------------*/
 /*CGI*/
-std::string GetExtentions(std::string &filename);
+std::string GetExtension(std::string &filename);
 void cgiFile(cgiInfo&);
 #endif

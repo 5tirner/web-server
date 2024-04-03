@@ -81,7 +81,7 @@ std::string mapUriToFilePath( std::string& uri,  location locConfig)
         while (std::getline(iss, indexFile, ' '))
         {
             indexPath = fullPath + indexFile;
-            std::cout << "IndexPath: " << indexPath << std::endl; 
+            // std::cout << "IndexPath: " << indexPath << std::endl; 
             std::string tmp = indexPath;
             tmp = resolveFilePath(rootPath);
             if (tmp.empty())
@@ -477,7 +477,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             serveErrorPage(clientSocket, 403, serverConfig);
             return;
         }
-        std::cerr << "fillllePath: " << filePath << std::endl;
+        // std::cerr << "fillllePath: " << filePath << std::endl;
         if (filePath[filePath.length() - 1] == '/')
             filePath = filePath.substr(0, filePath.length() - 1);
         if (!access(filePath.c_str(), F_OK))
@@ -493,7 +493,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             serveErrorPage(clientSocket, 404, serverConfig);
             return;
         }
-        std::string executer = GetExtentions(filePath);
+        std::string executer = GetExtension(filePath);
         if (routeConfig.cgi.at("cgi") == "on" && executer != "NormalFile")
         {
             try

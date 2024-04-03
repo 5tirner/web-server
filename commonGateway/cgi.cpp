@@ -11,7 +11,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-std::string GetExtentions(std::string &filename)
+std::string GetExtension(std::string &filename)
 {
     std::map<std::string, std::string> types;
     types[".pl"]  = "/bin/perl";
@@ -25,7 +25,7 @@ std::string GetExtentions(std::string &filename)
         if (filename[i] == '.')
             break;
     }
-    std::cerr << "- Extention: " << &filename[i] << std::endl;
+    // std::cerr << "- Extention: " << &filename[i] << std::endl;
     std::string executer;
     try
     {
