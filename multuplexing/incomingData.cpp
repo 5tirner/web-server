@@ -353,6 +353,7 @@ void	fetchRequestHeader( Request& rq, char* buffer, int rc )
 
 void	connection::processingHeader( Request& rq )
 {
+	//intilize time request here
     if ( !extractMethodAndUri( rq ) )
 		throw std::exception();
 	if ( !validateUriAndExtractQueries( rq ) )

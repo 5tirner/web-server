@@ -112,6 +112,7 @@ typedef struct codeStat
         statMsg[ 403 ] = "Forbidden";
         statMsg[ 404 ] = "Not Found";
         statMsg[ 405 ] = "Method Not Allowed";
+        statMsg[ 408 ] = "Request Timeout";
         statMsg[ 409 ] = "Conflict";
         statMsg[ 411 ] = "Length Required";
         statMsg[ 413 ] = "Request Entity Too Large";
@@ -268,11 +269,6 @@ public:
     }
 };
 
-typedef struct  timeSaver
-{
-
-}   Timer;
-
 class   connection
 {
 private:
@@ -286,7 +282,7 @@ private:
     std::vector<std::map<int, int>::iterator>     exited;
     std::vector<std::map<int, Request>::iterator> requestEnd;
     std::map<std::string, informations>           notBindingServers;
-    std::map<int, Timer>                          TimeoutChecking;
+    std::map<int, clock_t>                        clientTimer;
 public:
     connection();
     ~connection();

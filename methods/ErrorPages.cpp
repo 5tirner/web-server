@@ -20,8 +20,10 @@ void connection::serveErrorPage(int clientSocket, int errorCode, const informati
         std::ifstream errorPageFile(foundPath.c_str(), std::ifstream::in);
         if (errorPageFile.is_open())
         {
+            std::cerr << "Reach The Expected THROW" << std::endl;
             responseBody.assign((std::istreambuf_iterator<char>(errorPageFile)), std::istreambuf_iterator<char>());
             errorPageFile.close();
+            std::cerr << "SKIP IT" << std::endl;
         }
         else
         {
