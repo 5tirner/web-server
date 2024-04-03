@@ -215,7 +215,7 @@ int checkInformations(informations &tmp)
         {
             tmp.serverName[key] = &tmp.others[i][j];
             std::map<std::string, std::string>::iterator it = tmp.serverName.begin(); 
-            if (multiValues(key, it->second))
+            if (normalCheck(it->second))
             { std::cerr << "Invalid `ServerName` Syntax: " + it->second << std::endl; return (1); }
         }
         else if (key == "limit_client_body")
