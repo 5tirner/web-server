@@ -323,7 +323,7 @@ connection::connection(std::map<int, informations> &configData)
         }
         int eventChecker = poll(monitor, this->clientsSock.size() + this->serversSock.size(), -1);
         if (eventChecker == -1)
-            std::cerr << "Error: Poll Failed To When It's Looking For An Event." << std::endl;
+            std::cerr << "Error: Poll Failed When It's Looking For An Event." << std::endl;
         else if (eventChecker)
         {
             i = 0;
