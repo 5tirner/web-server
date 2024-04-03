@@ -113,6 +113,7 @@ typedef struct codeStat
         statMsg[ 403 ] = "Forbidden";
         statMsg[ 404 ] = "Not Found";
         statMsg[ 405 ] = "Method Not Allowed";
+        statMsg[ 408 ] = "Request Timeout";
         statMsg[ 409 ] = "Conflict";
         statMsg[ 411 ] = "Length Required";
         statMsg[ 413 ] = "Request Entity Too Large";
@@ -272,16 +273,17 @@ public:
 class   connection
 {
 private:
-    std::map<int, int>                                  clientsSock; // each client fd with the server fd that he connect with it in it's value
-    std::map<int, Request>                              Requests; // each client fd with it's data in the value
-    std::map<int, ParsedCGIOutput>                      Cgires; // each client fd with it's data in the value
-    std::map<int, response>                             Response;
-    std::map<int, informations>                         OverLoad; //Here You Will Find The Informations As A Values For The Fds Of The Sockets Servers
-    std::map<int, struct sockaddr_in>                   serversSock; // each server fd in key with a ready struct on it's value
-    std::vector<int>                                    responsetEnd, EndFd;
-    std::vector<std::map<int, int>::iterator>           exited;
-    std::vector<std::map<int, Request>::iterator>       requestEnd;
-    std::map<std::string, informations>                 notBindingServers;
+    std::map<int, int>                            clientsSock; // each client fd with the server fd that he connect with it in it's value
+    std::map<int, Request>                        Requests; // each client fd with it's data in the value
+    std::map<int, ParsedCGIOutput>                Cgires; // each client fd with it's data in the value
+    std::map<int, response>                       Response;
+    std::map<int, informations>                   OverLoad; //Here You Will Find The Informations As A Values For The Fds Of The Sockets Servers
+    std::map<int, struct sockaddr_in>             serversSock; // each server fd in key with a ready struct on it's value
+    std::vector<int>                              responsetEnd, EndFd;
+    std::vector<std::map<int, int>::iterator>     exited;
+    std::vector<std::map<int, Request>::iterator> requestEnd;
+    std::map<std::string, informations>           notBindingServers;
+    std::map<int, clock_t>                        clientTimer;
 public:
     connection();
     ~connection();

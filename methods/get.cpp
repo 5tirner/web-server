@@ -74,6 +74,7 @@ std::string mapUriToFilePath( std::string& uri,  location locConfig)
         fullPath += "/";
     fullPath += pathSuffix;
     std::string indexPath;
+    std::cout << "location: " + locPath << " Index: " << locConfig.index.at("index") << std::endl;
     if ((pathSuffix.empty() || pathSuffix[pathSuffix.length() - 1] == '/'))
     {
         std::istringstream iss(locConfig.index.at("index"));
@@ -475,7 +476,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             serveErrorPage(clientSocket, 403, serverConfig);
             return;
         }
-        // std::cerr << "fillllePath: " << filePath << std::endl;
+        std::cerr << "fillllePath: " << filePath << std::endl;
         if (filePath[filePath.length() - 1] == '/')
             filePath = filePath.substr(0, filePath.length() - 1);
         if (!access(filePath.c_str(), F_OK))
