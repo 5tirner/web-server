@@ -107,6 +107,7 @@ typedef struct codeStat
         statMsg[ 200 ] = "OK";
         statMsg[ 201 ] = "Created";
         statMsg[ 204 ] = "No Content";
+        statMsg[ 300 ] = "Multiple Choices";
         statMsg[ 301 ] = "Moved Permanently";
         statMsg[ 400 ] = "Bad Request";
         statMsg[ 403 ] = "Forbidden";

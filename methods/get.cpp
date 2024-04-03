@@ -74,6 +74,7 @@ std::string mapUriToFilePath( std::string& uri,  location locConfig)
         fullPath += "/";
     fullPath += pathSuffix;
     std::string indexPath;
+    std::cout << "location: " + locPath << " Index: " << locConfig.index.at("index") << std::endl;
     if ((pathSuffix.empty() || pathSuffix[pathSuffix.length() - 1] == '/'))
     {
         std::istringstream iss(locConfig.index.at("index"));
@@ -217,15 +218,12 @@ static void lowcase( std::string& str )
 }
 void cleanupResponseFiles(std::vector<std::string>& files)
 {
-    std::cout << "==============================++++++++++-______" << std::endl;
     for (size_t i = 0; i < files.size(); ++i)
     {
-        std::cout << "=======> files : " << files[i] << std::endl;
-        if (remove(files[i].c_str()) != 0) {
+        if (remove(files[i].c_str()) != 0)
             std::cerr << "Error removing file: " << files[i] << std::endl;
-        }
     }
-    files.clear(); // Clear the vector after removing files
+    files.clear();
 }
 
 bool setHeadet(std::string header)
@@ -470,6 +468,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
         } catch (...)
         {
             serveErrorPage(clientSocket, 403, serverConfig);
+            return;
         }
         std::string filePath = filePath2;
         if (filePath == "dkhal")
@@ -477,7 +476,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             serveErrorPage(clientSocket, 403, serverConfig);
             return;
         }
-        // std::cerr << "fillllePath: " << filePath << std::endl;
+        std::cerr << "fillllePath: " << filePath << std::endl;
         if (filePath[filePath.length() - 1] == '/')
             filePath = filePath.substr(0, filePath.length() - 1);
         if (!access(filePath.c_str(), F_OK))
@@ -517,16 +516,13 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
                 std::string cgiOutputFilePath = filePath;
                 std::cout << "----------->3: " << filePath << std::endl;
                 responseData.filePath = filePath;
-                // ParsedCGIOutput cgiOutput = responseData.parseCGIOutput(cgiOutputFilePath);
                 std::cout << "----------->4\n";
-                // cgiOutput.filepath = filePath;
                 request.storeHeader = true;
                 request.cgiGET = true;
                 responseData.waitCgi = true;
                 responseData.pid = request.cgiInfo.pid;
                 responseData.startTime = request.cgiInfo.startTime;
                 Response[clientSocket] = responseData;
-                // this->Cgires[clientSocket] = cgiOutput;
             }
             catch(const char *err)
             {

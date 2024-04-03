@@ -376,7 +376,7 @@ void connection::dropClient( int& fd, std::map<int, int>::iterator &it )
         {
             if ( this->Requests.at( fd ).bodyStream->is_open() )
                 this->Requests.at( fd ).bodyStream->close();
-            delete this->Requests.at( fd ).bodyStream;
+            // delete this->Requests.at( fd ).bodyStream;
         }
     }
     catch(...){}

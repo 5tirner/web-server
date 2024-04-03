@@ -41,7 +41,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "@ysabr ErrorPages has been work correctly"
+	@git commit -m "@ysabr evrething works good alhamdolilah"
 	@git push origin cgi-feature
 	@echo "Pushed to cgi-feature"
 
