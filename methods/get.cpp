@@ -515,16 +515,13 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
                 std::string cgiOutputFilePath = filePath;
                 std::cout << "----------->3: " << filePath << std::endl;
                 responseData.filePath = filePath;
-                // ParsedCGIOutput cgiOutput = responseData.parseCGIOutput(cgiOutputFilePath);
                 std::cout << "----------->4\n";
-                // cgiOutput.filepath = filePath;
                 request.storeHeader = true;
                 request.cgiGET = true;
                 responseData.waitCgi = true;
                 responseData.pid = request.cgiInfo.pid;
                 responseData.startTime = request.cgiInfo.startTime;
                 Response[clientSocket] = responseData;
-                // this->Cgires[clientSocket] = cgiOutput;
             }
             catch(const char *err)
             {

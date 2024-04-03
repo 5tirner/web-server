@@ -15,7 +15,7 @@ void connection::serveErrorPage(int clientSocket, int errorCode, const informati
             break;
         }
     }
-    if (!foundPath.empty()&& isRegularFile(foundPath))
+    if (!foundPath.empty()&& isRegularFile(foundPath) && !access(foundPath.c_str(), R_OK))
     {
         std::ifstream errorPageFile(foundPath.c_str(), std::ifstream::in);
         if (errorPageFile.is_open())
