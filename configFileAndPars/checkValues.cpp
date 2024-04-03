@@ -151,8 +151,11 @@ int redirection(int *status, std::string &val)
     if (!val.size())
         return (1);
     *status = std::atoi(save.c_str());
-    if (*status > 599)
+    if (*status < 300 || *status > 399)
+    {
+        std::cerr << "Cause Of Status Code, ";
         return (1);
+    }
     return (0);
 }
 
@@ -244,6 +247,9 @@ int errorPages(std::string &all, int *status)
         return (1);
     *status = std::atoi(save.c_str());
     if (*status > 599)
+    {
+        std::cerr << "Cause Of Status Code, ";
         return (1);
+    }
     return (0);
 }
