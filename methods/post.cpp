@@ -237,6 +237,7 @@ int connection::location_support_upload(Request& request, int serverId) {
 static size_t parseChunkHeader(Request& request, std::string& buffer)
 {
     // Remove leading CRLF if present
+	std::string chunkHeader;
     if (request.iscr)
 	{
         buffer.erase(0, 2);
@@ -250,15 +251,30 @@ static size_t parseChunkHeader(Request& request, std::string& buffer)
 
     size_t crlfPos = buffer.find("\r\n");
     if (crlfPos == std::string::npos)
-        return std::string::npos;
-
-    std::string chunkHeader = buffer.substr(0, crlfPos);
+	{
+		chunkHeader = buffer;
+		// std::cerr << "chunkHeader1: " << chunkHeader << std::endl;
+	}
+	else
+	{
+		if ( crlfPos == 0 )
+		{
+			buffer.erase( 0, 2 );
+			request.isChunkHeader = false;
+			// return std::;
+        	return std::string::npos;
+		}
+		else
+    		chunkHeader = buffer.substr(0, crlfPos);
+		// std::cerr << "chunkHeader2: " << chunkHeader << " | crlfPos: " << crlfPos << std::endl;
+	}
 
     char* endPtr;
-    long chunkSize = std::strtol(chunkHeader.c_str(), &endPtr, 16);
+    long chunkSize = std::strtol(chunkHeader.data(), &endPtr, 16);
 
-    if (endPtr == chunkHeader.c_str() || (*endPtr != '\0' && !std::isspace(*endPtr)))
+    if (endPtr == chunkHeader.data() || (*endPtr != '\0' && !std::isspace(*endPtr)))
 	{
+		std::cerr << "Chunk Hexa Header" << chunkHeader << std::endl;
         request.stat = 400;
         Logger::log() << "[ Error ] Invalid chunk size header" << std::endl;
         throw std::invalid_argument("Invalid chunk size header");
@@ -272,7 +288,10 @@ static size_t parseChunkHeader(Request& request, std::string& buffer)
     }
 
     request.currentChunkSize = static_cast<size_t>(chunkSize);
-    buffer.erase(0, crlfPos + 2);
+	if ( crlfPos != std::string::npos )
+    	buffer.erase(0, crlfPos + 2);
+	else
+		buffer.erase(0, chunkHeader.size());
 
     return request.currentChunkSize;
 }
@@ -282,7 +301,10 @@ static bool processingChunkHeader( Request& request, std::string& buffer, size_t
 	request.currentChunkSize = parseChunkHeader( request, buffer );
 
 	if ( request.currentChunkSize == std::string::npos )
+	{
+		bufferlength = buffer.size();
 		return false;
+	}
 
 	request.chunkSizeSum += request.currentChunkSize;
 	if ( request.chunkSizeSum > request.limitClientBodySize )
@@ -313,7 +335,7 @@ static bool chunkSizeSmallerThanBufferLength( Request& request, std::string&buff
 		buffer = buffer.substr( request.currentChunkSize + 2 );
 		bufferLength -= 2;
 	}
-	else
+	else if ( bufferLength == 1 )
 	{
 		buffer = buffer.substr( request.currentChunkSize + 1 );
 		request.islf = true;
@@ -333,8 +355,11 @@ static bool    chunkedComplete( Request& request,  std::string& buffer )
 		{
 			if ( processingChunkHeader( request, buffer, bufferLength ) )
 				return true;
-			if ( request.currentChunkSize == std::string::npos )
-				return false;
+			else
+			{
+				if ( bufferLength == 0 )
+					break ;
+			}
 		}
 		if ( request.currentChunkSize > buffer.length() )
 		{
@@ -356,6 +381,7 @@ static bool    chunkedComplete( Request& request,  std::string& buffer )
 		}
 		else if ( request.currentChunkSize == buffer.length() )
 		{
+			std::cerr << "BUFFER LENGTH == CHUNK LENGTH" << std::endl;
 			request.bodyStream->write( buffer.data(), request.currentChunkSize );
 			request.bodyStream->flush();
 			bufferLength -= request.currentChunkSize;
