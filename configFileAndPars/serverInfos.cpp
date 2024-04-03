@@ -58,8 +58,6 @@ void    initialLocation(location &save)
 
 void    etatInitial(informations &tmp)
 {
-    tmp.port["listen"] = "1024";
-    tmp.host["host"] = "127.0.0.1";
     tmp.serverName["server_name"] = "defualt";
     tmp.limitClientBody["limit_client_body"] = "100";
 }
@@ -249,34 +247,27 @@ int checkInformations(informations &tmp)
             int         status;
             if (errorPages(s, &status))
             { std::cerr << "Invalid error Pages syntax: " + s << std::endl; return (1); }
-            // try
-            // {
-            //     tmp.errorPages.at(s);
-            //     std::cerr
-            //     << "Error: Can't Add Multuple ErrorPage In The Same Server With Different Code Status."
-            //     << std::endl;
-            //     return (1);
-            // }
-            // catch(...)
-            // {
             struct stat metadata;
             if (stat(s.c_str(), &metadata))
             { std::cerr << "Invalid ErrorPage Path " + s << std::endl; return (1);}
             tmp.errorPages[status] = s;
-            //}
         }
         else
         { std::cerr << "Weird KeyWord " + key << std::endl; return (1); }
     }
     if (tmp.defaultRoot.empty())
     { std::cerr << "Error: Can't Find The DefaultRoot" << std::endl; return (1);}
+    if (tmp.port.empty())
+    { std::cerr << "Error: Can't Find The Port" << std::endl; return (1);}
+    if (tmp.host.empty())
+    { std::cerr << "Error: Can't Find The HostIp" << std::endl; return (1);}
     return (0);
 }
 
 int servers::serverInfos(int i)
 {
     informations tmp;
-    //etatInitial(tmp);
+    etatInitial(tmp);
     int          check = 0;
     std::string  save;
     std::stringstream input(this->server[i]);
