@@ -126,6 +126,36 @@ int isInteger(std::string &value, char c)
     return (0);
 }
 
+int redirection(int *status, std::string &val)
+{
+    if (justMakeItRight(val))
+        return (1);
+    std::string save;
+    size_t i = 0;
+    for (; i < val.size(); i++)
+    {
+        if (val[i] == ' ' || val[i] == '\t')
+            break;
+        else if (!std::isdigit(val[i]))
+            return (1);
+        save.push_back(val[i]);
+    }
+    if (save.size() != 3)
+        return (1);
+    for (; i < val.size(); i++)
+    {
+        if (val[i] != ' ' && val[i] != '\t')
+            break;
+    }
+    val = &val[i];
+    if (!val.size())
+        return (1);
+    *status = std::atoi(save.c_str());
+    if (*status > 599)
+        return (1);
+    return (0);
+}
+
 int isValidIp4(std::string &value)
 {
     std::string save;
@@ -184,34 +214,6 @@ int multiValues(std::string &key, std::string &values)
     return (0);
 }
 
-int redirection(int *status, std::string &val)
-{
-    if (justMakeItRight(val))
-        return (1);
-    std::string save;
-    size_t i = 0;
-    for (; i < val.size(); i++)
-    {
-        if (val[i] == ' ' || val[i] == '\t')
-            break;
-        else if (!std::isdigit(val[i]))
-            return (1);
-        save.push_back(val[i]);
-    }
-    if (save.size() != 3)
-        return (1);
-    for (; i < val.size(); i++)
-    {
-        if (val[i] != ' ' && val[i] != '\t')
-            break;
-    }
-    val = &val[i];
-    if (!val.size())
-        return (1);
-    *status = std::atoi(save.c_str());
-    return (0);
-}
-
 int errorPages(std::string &all, int *status)
 {
     if (justMakeItRight(all))
@@ -241,5 +243,7 @@ int errorPages(std::string &all, int *status)
     if (!all.size())
         return (1);
     *status = std::atoi(save.c_str());
+    if (*status > 599)
+        return (1);
     return (0);
 }
