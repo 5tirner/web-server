@@ -347,6 +347,6 @@ std::string resolveFilePath(std::string&);
 void        sendResponseFromCGI(int, ParsedCGIOutput&);
 /*-------------- ysabr code end ---------------*/
 /*CGI*/
-std::string GetExtentions(std::string &filename);
+std::string GetExtension(std::string &filename);
 void cgiFile(cgiInfo&);
 #endif

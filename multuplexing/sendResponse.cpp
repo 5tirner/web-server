@@ -204,7 +204,7 @@ std::string creatTemplate( const char* filepath, int& statcode, code& msgCode )
 
 void    sendResponse( int& fd, const std::string& response )
 {
-    int rc = write( fd, response.c_str(), response.length() );
+    int rc = write( fd, response.data(), response.length() );
     if ( rc < 0 )
         throw std::exception();
 }

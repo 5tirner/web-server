@@ -133,8 +133,8 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
 {
     if ((monitor.revents & POLLIN))
     {
-        std::cerr << "Client-Side, An event happend on socket number: " << monitor.fd << " Endpoint." << std::endl;
-        std::cerr << "Client with socket: " << monitor.fd << " is related to server Endpoint: " << it->second << std::endl;
+        // std::cerr << "Client-Side, An event happend on socket number: " << monitor.fd << " Endpoint." << std::endl;
+        // std::cerr << "Client with socket: " << monitor.fd << " is related to server Endpoint: " << it->second << std::endl;
         char buffer[2048];
         int rd = read(monitor.fd, buffer, 2047);
         if (rd == -1)
@@ -164,7 +164,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
             }
             catch ( ... )
             {
-                std::cerr << codeMsg.statMsg.at(this->Requests[monitor.fd].stat) << std::endl;
+                std::cerr << "\033[35m PROCESSING CLIENT REQUEST + BODY DONE WITH STAT:" << this->Requests.at(monitor.fd).stat << "\033[35m"  << "\033[0m" << std::endl;
                 this->Requests.at(monitor.fd).readyToSendRes = true;
             }
             /*-------------- yachaab code end -----------------*/
@@ -219,21 +219,8 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 /*-------------- yachaab code start -----------------*/
                 if ( this->Requests.at(monitor.fd).headers.at("method") == "post" )
                 {
-                    std::string newFile = "./src/page.html";
-                    std::string executer = GetExtentions(this->Requests.at(monitor.fd).scriptName);
-                    if (this->Requests.at(monitor.fd).cgi && executer != "NormalFile")
-                    {
-                        try
-                        {
-                            
-                        }
-                        catch ( ... )
-                        {
-                            
-                        }
-                    }
-                    std::cerr << "Filename: " << this->Requests.at(monitor.fd).filename << std::endl;
-                    std::string response = creatTemplate( newFile.c_str(), this->Requests.at(monitor.fd).stat, codeMsg );
+                    // * Handle the error page here.
+                    std::string response = creatTemplate( "./src/page.html", this->Requests.at(monitor.fd).stat, codeMsg );
                     sendResponse( monitor.fd, response );
                     Response.at(monitor.fd).status = response::Complete;
                     std::cerr << "POST RESPONSE SENT" << std::endl;
@@ -368,6 +355,12 @@ connection::connection(std::map<int, informations> &configData)
 /*-------------- yachaab edit start ---------------*/
 void connection::dropClient( int& fd, std::map<int, int>::iterator &it )
 {
+    if ( this->Requests.at( fd ).bodyStream != NULL )
+    {
+        if ( this->Requests.at( fd ).bodyStream->is_open() )
+            this->Requests.at( fd ).bodyStream->close();
+        delete this->Requests.at( fd ).bodyStream;
+    }
     if (std::find(this->EndFd.begin(), this->EndFd.end(), fd) != this->EndFd.end())
         return;
     this->EndFd.push_back(fd);
