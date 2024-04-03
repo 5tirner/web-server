@@ -1,6 +1,6 @@
 TARGET  = httpserver
 
-CC      = c++ -Wall -Wextra -Werror  -fsanitize=address -std=c++98 -g3
+CC      = c++ -Wall -Wextra -Werror -std=c++98 #-fsanitize=address  -g3
 
 OBJDIR  = obj
 
@@ -41,7 +41,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "@ysabr ErrorPages has been work correctly"
+	@git commit -m "@yachaab Error Page OK | Body stream double free @ysaber check lkhawa"
 	@git push origin cgi-feature
 	@echo "Pushed to cgi-feature"
 

@@ -160,13 +160,13 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 }
                 catch(...)
                 {
-                    this->Requests[monitor.fd] = Request();
+                    this->Requests.insert( std::make_pair( monitor.fd, Request() ) );
                 }
                 processingClientRequest( rd, buffer, this->Requests.at(monitor.fd), it->second );
             }
             catch ( ... )
             {
-                std::cerr << "\033[35m PROCESSING CLIENT REQUEST + BODY DONE WITH STAT:" << this->Requests.at(monitor.fd).stat << "\033[35m"  << "\033[0m" << std::endl;
+                std::cerr << "\033[35mPROCESSING CLIENT REQUEST + BODY DONE WITH STAT:" << this->Requests.at(monitor.fd).stat << "\033[0m" << std::endl;
                 this->Requests.at(monitor.fd).readyToSendRes = true;
             }
             /*-------------- yachaab code end -----------------*/
@@ -184,12 +184,13 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
     }
     try
     {
-        if ((monitor.revents & POLLOUT) && this->Requests.at(monitor.fd).readyToSendRes)
+        if ( (monitor.revents & POLLOUT) && this->Requests.at(monitor.fd).readyToSendRes )
         {
             try {
 
                 if (!this->Requests.at(monitor.fd).storeHeader)
                 {
+                    std::cout << "SEND RESPONSE 1" << std::endl;
                     try
                     {
                         try
@@ -203,6 +204,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                         }
                         catch(...)
                         {
+                            std::cout << "SEND RESPONSE 2" << std::endl;
                             if (this->Requests.at(monitor.fd).headers.at("method") == "get")
                                 handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
                             else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
@@ -211,21 +213,15 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                     }
                     catch( ... )
                     {
-                        std::string response = creatTemplate( "./src/page.html", this->Requests.at(monitor.fd).stat, codeMsg );
-                        sendResponse( monitor.fd, response);
-                        Response.at(monitor.fd).status = response::Complete;
-                        std::cerr << "RESPONSE SENT" << std::endl;
-                        throw ;
+                /*-------------- yachaab code start -----------------*/
+                        std::cout << "SEND RESPONSE 3" << std::endl;
+                        serveErrorPage(monitor.fd, this->Requests.at(monitor.fd).stat,  Response[monitor.fd].info);
                     }
                 }
-                /*-------------- yachaab code start -----------------*/
                 if ( this->Requests.at(monitor.fd).headers.at("method") == "post" )
                 {
-                    // * Handle the error page here.
-                    std::string response = creatTemplate( "./src/page.html", this->Requests.at(monitor.fd).stat, codeMsg );
-                    sendResponse( monitor.fd, response );
-                    Response.at(monitor.fd).status = response::Complete;
-                    std::cerr << "POST RESPONSE SENT" << std::endl;
+                    std::cout << "SEND RESPONSE 4" << std::endl;
+                    serveErrorPage(monitor.fd, this->Requests.at(monitor.fd).stat,  Response[monitor.fd].info);
                 }
                 /*-------------- yachaab code ended -----------------*/
                 else
@@ -243,7 +239,6 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                         }
                     }
                 }
-                // std::cout << "Response.at(monitor.fd).status: " << Response.at(monitor.fd).status << std::endl;
                 if (Response.at(monitor.fd).status == response::Complete)
                     throw std::exception();
             } 

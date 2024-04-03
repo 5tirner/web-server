@@ -6,16 +6,10 @@ void connection::serveErrorPage(int clientSocket, int errorCode, const informati
     std::string responseHeader;
     std::string responseBody;
     std::string foundPath;
-    std::map<std::string, int>::const_iterator it = serverConfig.errorPages.begin();
-    for (; it != serverConfig.errorPages.end(); ++it)
-    {
-        if (it->second == errorCode)
-        {
-            foundPath = it->first;
-            break;
-        }
-    }
-    if (!foundPath.empty()&& isRegularFile(foundPath))
+
+    if ( serverConfig.errorPages.find( errorCode )  != serverConfig.errorPages.end() )
+        foundPath = serverConfig.errorPages.at( errorCode );
+    if (!foundPath.empty() && isRegularFile(foundPath) && !access(foundPath.c_str(), R_OK) )
     {
         std::ifstream errorPageFile(foundPath.c_str(), std::ifstream::in);
         if (errorPageFile.is_open())
@@ -57,4 +51,5 @@ void connection::serveErrorPage(int clientSocket, int errorCode, const informati
 
     send(clientSocket, responseHeader.c_str(), responseHeader.size(), 0);
     send(clientSocket, responseBody.c_str(), responseBody.size(), 0);
+    this->Response[clientSocket].status = response::Complete;
 }

@@ -69,7 +69,7 @@ typedef struct routes
 typedef struct info
 {
     std::vector<location>               locationsInfo;
-    std::map<std::string, int>          errorPages;
+    std::map<int, std::string>          errorPages;
     std::map<std::string, std::string>  limitClientBody, port, host, serverName, defaultRoot;
     std::vector<std::string>            others, locations;
 }   informations;
@@ -107,6 +107,7 @@ typedef struct codeStat
         statMsg[ 200 ] = "OK";
         statMsg[ 201 ] = "Created";
         statMsg[ 204 ] = "No Content";
+        statMsg[ 300 ] = "Multiple Choices";
         statMsg[ 301 ] = "Moved Permanently";
         statMsg[ 400 ] = "Bad Request";
         statMsg[ 403 ] = "Forbidden";
@@ -159,38 +160,16 @@ typedef struct cgiresponse
 
 typedef struct clientRequest
 {
-    clientRequest()
-    {
-        fetchHeaderDone         = false;
-        processingHeaderDone    = false;
-        transferEncoding        = false;
-        contentLength           = false;
-        processingRequestDone   = false;
-        storeHeader             = false;
-        locationGotChecked      = false;
-        readyToSendRes          = false;
-        iscr                    = false;
-        islf                    = false;
-        cgi                     = false;
-        isChunkHeader           = true;
-        cgiGET                  = false;
-        content_length          = 0;
-        chunkSizeSum            = 0;
-        limitClientBodySize     = 0;
-        extension               = "";
-        bodyStream              = new std::ofstream;
-    }
-
-    std::map<std::string, std::string> headers, queries;
-    std::ofstream*  bodyStream;
+    std::map<std::string, std::string> headers;
+    std::ofstream*   bodyStream;
     std::string     fullRequest;
     std::string     remainingBody;
     std::string     filename;
     std::string     extension;
     std::string     scriptName;
 
-    size_t          content_length;
-    size_t          requestBodyLength;
+    size_t          bytesWrite;
+    size_t          contentlength;
     size_t          chunkSizeSum;
     size_t          currentChunkSize;
     size_t          limitClientBodySize;
@@ -202,7 +181,7 @@ typedef struct clientRequest
     bool            processingHeaderDone;
     bool            isChunkHeader;
     bool            transferEncoding;
-    bool            contentLength;
+    bool            isContentLength;
     bool            processingRequestDone;
     bool            storeHeader;
     bool            readyToSendRes;
@@ -212,6 +191,37 @@ typedef struct clientRequest
     bool            cgi;
     bool            cgiGET;
     cgiInfo         cgiInfo;
+
+    clientRequest()
+    {
+        bodyStream              = new std::ofstream;
+        fetchHeaderDone         = false;
+        processingHeaderDone    = false;
+        transferEncoding        = false;
+        isContentLength         = false;
+        processingRequestDone   = false;
+        storeHeader             = false;
+        locationGotChecked      = false;
+        readyToSendRes          = false;
+        iscr                    = false;
+        islf                    = false;
+        cgi                     = false;
+        isChunkHeader           = true;
+        cgiGET                  = false;
+        bytesWrite              = 0;
+        chunkSizeSum            = 0;
+        limitClientBodySize     = 0;
+        contentlength           = 0;
+        extension               = "";
+        stat                     = 0;
+        std::cout << "CONSTRUCTOR" << std::endl;
+    }
+    // clientRequest( const clientRequest& rhs )
+    // { 
+    //     std::cout << "COPY" << std::endl;
+    //     (void)rhs;
+    // }
+    // clientRequest& operator=( const clientRequest& rhs )//{ std::cout << "OPERATOR" << std::endl; (void)rhs; return ( *this ); }
 } Request;
 
 
@@ -234,7 +244,7 @@ typedef struct clientResponse
     } status;
     clientResponse();
     ~clientResponse();
-    clientResponse(const clientResponse& other);
+    clientResponse(const clientResponse&);
     clientResponse& operator=(const clientResponse&);
     void setResponseHeader(const std::string&);
     ParsedCGIOutput parseCGIOutput(std::string&);
@@ -300,6 +310,7 @@ public:
     void    processingBody( Request&, char*, int, int );
     int     location_support_upload( Request& , int );
     void    processingHeader( Request& );
+    // void    responseProcess( Request&, const int&, int );
     /*-------------- yachaab code end -----------------*/
     /*-------------- ysabr code start ---------------*/
     void    handleRequestGET(int, Request&, const informations&);
