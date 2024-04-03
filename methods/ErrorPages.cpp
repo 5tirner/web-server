@@ -55,4 +55,5 @@ void connection::serveErrorPage(int clientSocket, int errorCode, const informati
 
     send(clientSocket, responseHeader.c_str(), responseHeader.size(), 0);
     send(clientSocket, responseBody.c_str(), responseBody.size(), 0);
+    this->Response[clientSocket].status = response::Complete;
 }

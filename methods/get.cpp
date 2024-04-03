@@ -217,15 +217,12 @@ static void lowcase( std::string& str )
 }
 void cleanupResponseFiles(std::vector<std::string>& files)
 {
-    std::cout << "==============================++++++++++-______" << std::endl;
     for (size_t i = 0; i < files.size(); ++i)
     {
-        std::cout << "=======> files : " << files[i] << std::endl;
-        if (remove(files[i].c_str()) != 0) {
+        if (remove(files[i].c_str()) != 0)
             std::cerr << "Error removing file: " << files[i] << std::endl;
-        }
     }
-    files.clear(); // Clear the vector after removing files
+    files.clear();
 }
 
 bool setHeadet(std::string header)
@@ -470,6 +467,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
         } catch (...)
         {
             serveErrorPage(clientSocket, 403, serverConfig);
+            return;
         }
         std::string filePath = filePath2;
         if (filePath == "dkhal")
