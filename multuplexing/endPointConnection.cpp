@@ -160,7 +160,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                 }
                 catch(...)
                 {
-                    this->Requests[monitor.fd] = Request();
+                    this->Requests.insert( std::make_pair( monitor.fd, Request() ) );
                 }
                 processingClientRequest( rd, buffer, this->Requests.at(monitor.fd), it->second );
             }
@@ -215,15 +215,13 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                     {
                 /*-------------- yachaab code start -----------------*/
                         std::cout << "SEND RESPONSE 3" << std::endl;
-                        responseProcess( this->Requests.at( monitor.fd ), it->second, monitor.fd );
-                        Response.at(monitor.fd).status = response::Complete;
+                        serveErrorPage(monitor.fd, this->Requests.at(monitor.fd).stat,  Response[monitor.fd].info);
                     }
                 }
                 if ( this->Requests.at(monitor.fd).headers.at("method") == "post" )
                 {
                     std::cout << "SEND RESPONSE 4" << std::endl;
-                    responseProcess( this->Requests.at( monitor.fd ), it->second, monitor.fd );
-                    Response.at(monitor.fd).status = response::Complete;
+                    serveErrorPage(monitor.fd, this->Requests.at(monitor.fd).stat,  Response[monitor.fd].info);
                 }
                 /*-------------- yachaab code ended -----------------*/
                 else
@@ -376,7 +374,7 @@ void connection::dropClient( int& fd, std::map<int, int>::iterator &it )
         {
             if ( this->Requests.at( fd ).bodyStream->is_open() )
                 this->Requests.at( fd ).bodyStream->close();
-            // delete this->Requests.at( fd ).bodyStream;
+            delete this->Requests.at( fd ).bodyStream;
         }
     }
     catch(...){}

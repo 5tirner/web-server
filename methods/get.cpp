@@ -429,7 +429,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
     responseData.info = serverConfig;
     try
     {
-        routeConfig = findRouteConfig(request.headers["uri"], serverConfig);
+        routeConfig = findRouteConfig(request.headers.at("uri"), serverConfig);
     }
     catch(...)
     {
@@ -463,7 +463,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
         std::string filePath2;
         try
         {
-            filePath2 = mapUriToFilePath(request.headers["uri"], routeConfig);
+            filePath2 = mapUriToFilePath(request.headers.at("uri"), routeConfig);
         
         } catch (...)
         {
@@ -536,7 +536,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             if (isDirectory(filePath))
             {
                 std::vector<location>::const_iterator it = serverConfig.locationsInfo.begin();
-                std::string check = request.headers["uri"] + it->index.at("index");
+                std::string check = request.headers.at("uri") + it->index.at("index");
 
                 std::map<std::string, std::string>::iterator autoindexIt = routeConfig.autoindex.find("autoindex");
                 if (isRegularFile(check))
