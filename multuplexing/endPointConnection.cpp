@@ -135,8 +135,8 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
 {
     if ((monitor.revents & POLLIN))
     {
-        std::cerr << "Client-Side, An event happend on socket number: " << monitor.fd << " Endpoint." << std::endl;
-        std::cerr << "Client with socket: " << monitor.fd << " is related to server Endpoint: " << it->second << std::endl;
+        // std::cerr << "Client-Side, An event happend on socket number: " << monitor.fd << " Endpoint." << std::endl;
+        // std::cerr << "Client with socket: " << monitor.fd << " is related to server Endpoint: " << it->second << std::endl;
         char buffer[2048];
         int rd = read(monitor.fd, buffer, 2047);
         if (rd == -1)
@@ -375,6 +375,7 @@ void connection::dropClient( int& fd, std::map<int, int>::iterator &it )
             if ( this->Requests.at( fd ).bodyStream->is_open() )
                 this->Requests.at( fd ).bodyStream->close();
             delete this->Requests.at( fd ).bodyStream;
+            this->Requests.at( fd ).bodyStream = NULL;
         }
     }
     catch(...){}

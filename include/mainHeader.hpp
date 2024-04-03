@@ -161,40 +161,23 @@ typedef struct cgiresponse
 typedef struct clientRequest
 {
     std::map<std::string, std::string> headers;
-    std::ofstream*   bodyStream;
-    std::string     fullRequest;
-    std::string     remainingBody;
-    std::string     filename;
-    std::string     extension;
-    std::string     scriptName;
+    std::string     fullRequest, remainingBody;
+    std::string     filename, extension, scriptName;
 
-    size_t          bytesWrite;
-    size_t          contentlength;
-    size_t          chunkSizeSum;
-    size_t          currentChunkSize;
-    size_t          limitClientBodySize;
-    int             stat;
-    int             chunkHeaderStart;
-    int             rc;
+    size_t          bytesWrite, contentlength, chunkSizeSum, currentChunkSize, limitClientBodySize;
+    int             stat, chunkHeaderStart, rc;
 
-    bool            fetchHeaderDone;
-    bool            processingHeaderDone;
-    bool            isChunkHeader;
-    bool            transferEncoding;
-    bool            isContentLength;
-    bool            processingRequestDone;
-    bool            storeHeader;
-    bool            readyToSendRes;
-    bool            locationGotChecked;
-    bool            iscr;
-    bool            islf;
-    bool            cgi;
-    bool            cgiGET;
+    bool            fetchHeaderDone, processingHeaderDone, processingRequestDone;
+    bool            transferEncoding, isContentLength;
+    bool            isChunkHeader, locationGotChecked;
+    bool            storeHeader, readyToSendRes;
+    bool            cgi, cgiGET;
+    bool            iscr, islf;
     cgiInfo         cgiInfo;
+    std::ofstream*   bodyStream;
 
     clientRequest()
     {
-        bodyStream              = new std::ofstream;
         fetchHeaderDone         = false;
         processingHeaderDone    = false;
         transferEncoding        = false;
@@ -206,22 +189,17 @@ typedef struct clientRequest
         iscr                    = false;
         islf                    = false;
         cgi                     = false;
-        isChunkHeader           = true;
         cgiGET                  = false;
+        isChunkHeader           = true;
         bytesWrite              = 0;
         chunkSizeSum            = 0;
         limitClientBodySize     = 0;
         contentlength           = 0;
+        stat                    = 0;
         extension               = "";
-        stat                     = 0;
-        std::cout << "CONSTRUCTOR" << std::endl;
+        bodyStream              = new std::ofstream;
+        std::cout << "REQUEST STRUCT CONSTRUCTED" << std::endl;
     }
-    // clientRequest( const clientRequest& rhs )
-    // { 
-    //     std::cout << "COPY" << std::endl;
-    //     (void)rhs;
-    // }
-    // clientRequest& operator=( const clientRequest& rhs )//{ std::cout << "OPERATOR" << std::endl; (void)rhs; return ( *this ); }
 } Request;
 
 
