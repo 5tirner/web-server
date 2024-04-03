@@ -270,7 +270,8 @@ private:
     std::vector<std::map<int, int>::iterator>     exited;
     std::vector<std::map<int, Request>::iterator> requestEnd;
     std::map<std::string, informations>           notBindingServers;
-    std::map<int, clock_t>                        clientTimer;
+    std::map<int, clock_t>                        clientTimerToSendRequest;
+    std::map<int, clock_t>                        clientTimerToEndRequest;
 public:
     connection();
     ~connection();
