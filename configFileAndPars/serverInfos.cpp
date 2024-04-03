@@ -188,14 +188,32 @@ int checkInformations(informations &tmp)
         { std::cerr << "Can't Find `;` Here " + tmp.others[i] << std::endl;  return (1); }
         if (key == "listen")
         {
-            tmp.port[key] = &tmp.others[i][j];
+            try
+            {
+                tmp.port.at(key);
+                std::cerr << "Invalid `Port`: Listen Keyword Appears Multuple Time In The ConfigFile." << std::endl;
+                return (1);
+            }
+            catch(...)
+            {
+                tmp.port[key] = &tmp.others[i][j];
+            }
             std::map<std::string, std::string>::iterator it = tmp.port.begin(); 
             if (normalCheck(it->second) || isInteger(it->second, 'P'))
             { std::cerr << "Invalid `Port` Syntax: " + it->second << std::endl; return (1); }
         }
         else if (key == "host")
         {
-            tmp.host[key] = &tmp.others[i][j];
+            try
+            {
+                tmp.host.at(key);
+                std::cerr << "Invalid `Host`: Host Keyword Appears Multuple Time In The ConfigFile." << std::endl;
+                return (1);
+            }
+            catch(...)
+            {
+                tmp.host[key] = &tmp.others[i][j];
+            }
             std::map<std::string, std::string>::iterator it = tmp.host.begin(); 
             if (normalCheck(it->second) || isValidIp4(it->second))
             { std::cerr << "Invalid `Host` Syntax: " + it->second << std::endl; return (1); }
@@ -258,7 +276,7 @@ int checkInformations(informations &tmp)
 int servers::serverInfos(int i)
 {
     informations tmp;
-    etatInitial(tmp);
+    //etatInitial(tmp);
     int          check = 0;
     std::string  save;
     std::stringstream input(this->server[i]);
