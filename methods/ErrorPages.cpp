@@ -1,4 +1,5 @@
 #include "../include/mainHeader.hpp"
+#include <unistd.h>
 
 void connection::serveErrorPage(int clientSocket, int errorCode, const informations& serverConfig)
 {
@@ -14,13 +15,9 @@ void connection::serveErrorPage(int clientSocket, int errorCode, const informati
             break;
         }
     }
-    // Check if a custom error page is found and is not empty
-    // std::cout << "errorPagePath: ------>: " << errorPageEntry->second[0] << std::endl;
-    if (!foundPath.empty())
+    if (!foundPath.empty()&& isRegularFile(foundPath))
     {
-        std::cout << "==>:foundPath:  " <<foundPath << std::endl;
         std::ifstream errorPageFile(foundPath.c_str(), std::ifstream::in);
-        std::cout << "======>: errorPageFile: " << errorPageFile.is_open() << std::endl;
         if (errorPageFile.is_open())
         {
             responseBody.assign((std::istreambuf_iterator<char>(errorPageFile)), std::istreambuf_iterator<char>());
@@ -51,7 +48,6 @@ void connection::serveErrorPage(int clientSocket, int errorCode, const informati
                        "<p>The requested URL was not found on this server.</p>"
                        "</body></html>";
     }
-    // Prepare and send the response header
     responseHeader = "HTTP/1.1 " + to_string(errorCode) + " " + codeMsg.statMsg[errorCode] + "\r\n"
                      "Content-Type: text/html\r\n"
                      "Content-Length: " + to_string(responseBody.length()) + "\r\n"

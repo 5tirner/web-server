@@ -91,7 +91,6 @@ std::string mapUriToFilePath( std::string& uri,  location locConfig)
                 std::cout << "\n\n---->\n\n";
                 throw std::runtime_error("there is a problem");
             }
-            // resolvedPath = resolveFilePath(indexPath);
             if (!indexPath.empty() && fileExists(indexPath) && isPathWithinRoot(indexPath, rootPath))
                 return indexPath;
         }
@@ -100,10 +99,6 @@ std::string mapUriToFilePath( std::string& uri,  location locConfig)
     }
     else
     {
-        // If the pathSuffix is not empty and does not end with '/', directly append it to filePath.
-        // if (fullPath[fullPath.length() -1 ] != '/')
-        //     fullPath += "/";
-        // fullPath += pathSuffix;
         std::string tmp = fullPath;
         tmp = resolveFilePath(rootPath);
         if (tmp.empty())
@@ -113,17 +108,17 @@ std::string mapUriToFilePath( std::string& uri,  location locConfig)
             std::cout << "\n\n---->\n\n";
             throw std::runtime_error("there is a problem");
         }
-        // if (fileExists(fullPath))
         return fullPath;
-        // Handle file not found if necessary.
     }
-    // else if (!pathSuffix.empty())
-    // {
-    //     resolvedPath = resolveFilePath(fullPath);
-    //     std::cout << "===>: resolvePath: " << resolvedPath << std::endl;
-    //     if (!resolvedPath.empty() && fileExists(resolvedPath) && isPathWithinRoot(resolvedPath, rootPath))
-    //         return resolvedPath;
-    // }
+    std::string tmp = fullPath;
+    tmp = resolveFilePath(rootPath);
+    if (tmp.empty())
+        throw std::runtime_error("there is a problem");
+    if (!isPathWithinRoot(fullPath, rootPath))
+    {
+        std::cout << "\n\n---->\n\n";
+        throw std::runtime_error("there is a problem");
+    }
     return fullPath;
 }
 
