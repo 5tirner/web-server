@@ -369,7 +369,7 @@ void connection::dropClient( int& fd, std::map<int, int>::iterator &it )
 
     std::map<int, Request>::iterator toRemove = this->Requests.find(it->first);
     std::map<int, response>::iterator rm = this->Response.find(it->first);
-
+    cleanupResponseFiles(rm->second.removeFiles);
     if (rm != this->Response.end())
         this->responsetEnd.push_back(it->first);
     if (toRemove != this->Requests.end())
