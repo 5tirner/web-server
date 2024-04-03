@@ -55,28 +55,24 @@ void connection::handleRequestDELETE(int clientSocket, Request& request,const in
         serveErrorPage(clientSocket, 405, serverConfig);
         return;
     }
-    // if (filePath == "dkhal")
-    //     serveErrorPage(clientSocket, 403, serverConfig);
     struct stat path_stat;
     stat(filePath.c_str(), &path_stat);
 
-    // Check if the file/directory exists
     if (access(filePath.c_str(), F_OK) == -1)
     {
         serveErrorPage(clientSocket, 404, serverConfig);
         return;
     }
-    // Check for necessary permissions
     if (access(filePath.c_str(), W_OK) == -1)
     {
         serveErrorPage(clientSocket, 403, serverConfig);
         return;
     }
-    // Check if it's a directory and handle accordingly
     if (S_ISDIR(path_stat.st_mode))
     {
         if (!removeDirectory(filePath))
         {
+            
             serveErrorPage(clientSocket, 500, serverConfig);
             return;
         }

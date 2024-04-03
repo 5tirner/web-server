@@ -52,7 +52,6 @@ void cgiFile(cgiInfo& cgiInfo)
     int processDup1 = fork();
     if (!processDup1)
     {
-        std::cout << "\033[35mfdsfffsdf" << cgiInfo.output.c_str() << "\033[35m"  << "\033[0m" << std::endl;
         char *Env[] = {
             (char*)strdup(("REQUEST_METHOD=" + cgiInfo.method).c_str()),
             (char*)"REDIRECT_STATUS=200",

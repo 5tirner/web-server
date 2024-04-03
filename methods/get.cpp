@@ -74,7 +74,6 @@ std::string mapUriToFilePath( std::string& uri,  location locConfig)
         fullPath += "/";
     fullPath += pathSuffix;
     std::string indexPath;
-    std::cout << "location: " + locPath << " Index: " << locConfig.index.at("index") << std::endl;
     if ((pathSuffix.empty() || pathSuffix[pathSuffix.length() - 1] == '/'))
     {
         std::istringstream iss(locConfig.index.at("index"));
@@ -82,14 +81,12 @@ std::string mapUriToFilePath( std::string& uri,  location locConfig)
         while (std::getline(iss, indexFile, ' '))
         {
             indexPath = fullPath + indexFile;
-            // std::cout << "IndexPath: " << indexPath << std::endl; 
             std::string tmp = indexPath;
             tmp = resolveFilePath(rootPath);
             if (tmp.empty())
                 throw std::runtime_error("there is a problem");
             if (!isPathWithinRoot(indexPath, rootPath))
             {
-                std::cout << "\n\n---->\n\n";
                 throw std::runtime_error("there is a problem");
             }
             if (!indexPath.empty() && fileExists(indexPath) && isPathWithinRoot(indexPath, rootPath))
@@ -106,7 +103,7 @@ std::string mapUriToFilePath( std::string& uri,  location locConfig)
             throw std::runtime_error("there is a problem");
         if (!isPathWithinRoot(fullPath, rootPath))
         {
-            std::cout << "\n\n---->\n\n";
+            // std::cout << "\n\n---->\n\n";
             throw std::runtime_error("there is a problem");
         }
         return fullPath;
@@ -117,7 +114,6 @@ std::string mapUriToFilePath( std::string& uri,  location locConfig)
         throw std::runtime_error("there is a problem");
     if (!isPathWithinRoot(fullPath, rootPath))
     {
-        std::cout << "\n\n---->\n\n";
         throw std::runtime_error("there is a problem");
     }
     return fullPath;
@@ -395,12 +391,12 @@ int response::sendResponseFromCGI(int clientSocket, ParsedCGIOutput& cgiOutput, 
             std::map<std::string, std::string>::const_iterator iter = cgiOutput.headers.begin();
             for (; iter != cgiOutput.headers.end(); iter++)
             {
-                std::cout << "fisr: " << iter->first << std::endl;
+                // std::cout << "fisr: " << iter->first << std::endl;
                 responseHeaders << iter->first << ": " << iter->second << "\r\n";
             }
             responseHeaders << "\r\n";
             std::string headersStr = responseHeaders.str();
-            std::cout << "------>5: " << headersStr << std::endl;
+            // std::cout << "------>5: " << headersStr << std::endl;
             send(clientSocket, headersStr.c_str(), headersStr.length(), 0);
             cgiOutput.check = 1;
             res.status = response::InProgress;
@@ -471,12 +467,6 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             return;
         }
         std::string filePath = filePath2;
-        if (filePath == "dkhal")
-        {
-            serveErrorPage(clientSocket, 403, serverConfig);
-            return;
-        }
-        std::cerr << "fillllePath: " << filePath << std::endl;
         if (filePath[filePath.length() - 1] == '/')
             filePath = filePath.substr(0, filePath.length() - 1);
         if (!access(filePath.c_str(), F_OK))
@@ -500,13 +490,10 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
                 request.cgiInfo.script = filePath;
                 request.cgiInfo.cookies = request.headers["cookie"];
                 request.cgiInfo.binary = executer;
-                std::cout << "queris: " << request.cgiInfo.queries << std::endl;
-                std::cout << "----------->1\n";
                 cgiFile(request.cgiInfo);
                 
-                std::cout << "----------->2\n";
+                // std::cout << "----------->2\n";
                 filePath = request.cgiInfo.output;
-                std::cout << "=========>FILEPATH That must removed: " << request.cgiInfo.output << std::endl;
                 responseData.removeFiles.push_back(request.cgiInfo.output);
                 if (request.cgiInfo.pid == -1)
                 {
@@ -514,9 +501,9 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
                     return;
                 }
                 std::string cgiOutputFilePath = filePath;
-                std::cout << "----------->3: " << filePath << std::endl;
+                // std::cout << "----------->3: " << filePath << std::endl;
                 responseData.filePath = filePath;
-                std::cout << "----------->4\n";
+                // std::cout << "----------->4\n";
                 request.storeHeader = true;
                 request.cgiGET = true;
                 responseData.waitCgi = true;

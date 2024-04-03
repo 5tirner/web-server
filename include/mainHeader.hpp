@@ -214,7 +214,7 @@ typedef struct clientRequest
         contentlength           = 0;
         extension               = "";
         stat                     = 0;
-        std::cout << "CONSTRUCTOR" << std::endl;
+        // std::cout << "CONSTRUCTOR" << std::endl;
     }
     // clientRequest( const clientRequest& rhs )
     // { 
