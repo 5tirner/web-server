@@ -4,11 +4,13 @@
 #include <csignal>
 #include <cstdlib>
 #include <cstring>
+#include <ctime>
 #include <exception>
 #include <netdb.h>
 #include <stdexcept>
 #include <arpa/inet.h>
 #include <string>
+#include <unistd.h>
 #include <vector>
 
 connection::connection(void) {}
@@ -133,8 +135,8 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
 {
     if ((monitor.revents & POLLIN))
     {
-        // std::cerr << "Client-Side, An event happend on socket number: " << monitor.fd << " Endpoint." << std::endl;
-        // std::cerr << "Client with socket: " << monitor.fd << " is related to server Endpoint: " << it->second << std::endl;
+        std::cerr << "Client-Side, An event happend on socket number: " << monitor.fd << " Endpoint." << std::endl;
+        std::cerr << "Client with socket: " << monitor.fd << " is related to server Endpoint: " << it->second << std::endl;
         char buffer[2048];
         int rd = read(monitor.fd, buffer, 2047);
         if (rd == -1)
@@ -164,7 +166,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
             }
             catch ( ... )
             {
-                std::cerr << "\033[35mPROCESSING CLIENT REQUEST + BODY DONE WITH STAT:" << this->Requests.at(monitor.fd).stat << "\033[35m"  << "\033[0m" << std::endl;
+                std::cerr << "\033[35mPROCESSING CLIENT REQUEST + BODY DONE WITH STAT:" << this->Requests.at(monitor.fd).stat << "\033[0m" << std::endl;
                 this->Requests.at(monitor.fd).readyToSendRes = true;
             }
             /*-------------- yachaab code end -----------------*/
@@ -182,12 +184,13 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
     }
     try
     {
-        if ((monitor.revents & POLLOUT) && this->Requests.at(monitor.fd).readyToSendRes)
+        if ( (monitor.revents & POLLOUT) && this->Requests.at(monitor.fd).readyToSendRes )
         {
             try {
 
                 if (!this->Requests.at(monitor.fd).storeHeader)
                 {
+                    std::cout << "SEND RESPONSE 1" << std::endl;
                     try
                     {
                         try
@@ -201,6 +204,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                         }
                         catch(...)
                         {
+                            std::cout << "SEND RESPONSE 2" << std::endl;
                             if (this->Requests.at(monitor.fd).headers.at("method") == "get")
                                 handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
                             else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
@@ -209,21 +213,17 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                     }
                     catch( ... )
                     {
-                        std::string response = creatTemplate( "./src/page.html", this->Requests.at(monitor.fd).stat, codeMsg );
-                        sendResponse( monitor.fd, response);
+                /*-------------- yachaab code start -----------------*/
+                        std::cout << "SEND RESPONSE 3" << std::endl;
+                        responseProcess( this->Requests.at( monitor.fd ), it->second, monitor.fd );
                         Response.at(monitor.fd).status = response::Complete;
-                        std::cerr << "RESPONSE SENT" << std::endl;
-                        throw ;
                     }
                 }
-                /*-------------- yachaab code start -----------------*/
                 if ( this->Requests.at(monitor.fd).headers.at("method") == "post" )
                 {
-                    // * Handle the error page here.
-                    std::string response = creatTemplate( "./src/page.html", this->Requests.at(monitor.fd).stat, codeMsg );
-                    sendResponse( monitor.fd, response );
+                    std::cout << "SEND RESPONSE 4" << std::endl;
+                    responseProcess( this->Requests.at( monitor.fd ), it->second, monitor.fd );
                     Response.at(monitor.fd).status = response::Complete;
-                    std::cerr << "POST RESPONSE SENT" << std::endl;
                 }
                 /*-------------- yachaab code ended -----------------*/
                 else
@@ -232,7 +232,8 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                         sendResponseChunk(monitor.fd, Response.at(monitor.fd));
                     else
                     {
-                        int status = Response.at(monitor.fd).sendResponseFromCGI(monitor.fd, this->Cgires.at(monitor.fd), Response.at(monitor.fd));
+                        int status = Response.at(monitor.fd).sendResponseFromCGI(monitor.fd, 
+                            this->Cgires.at(monitor.fd), Response.at(monitor.fd));
                         if (status != 200)
                         {
                             serveErrorPage(monitor.fd, status,  Response[monitor.fd].info);
@@ -240,7 +241,6 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                         }
                     }
                 }
-                // std::cout << "Response.at(monitor.fd).status: " << Response.at(monitor.fd).status << std::endl;
                 if (Response.at(monitor.fd).status == response::Complete)
                     throw std::exception();
             } 
@@ -265,10 +265,11 @@ void    connection::checkServer(struct pollfd &monitor, std::map<int, struct soc
             std::cerr << "Error: Filed To Create New EndPoint With Socket " << monitor.fd << std::endl;
         else
         {
-            // std::cerr << "Clients Those Already Here :" << std::endl;
+            std::cerr << "Clients Those Already Here :" << std::endl;
             for (std::map<int, Request>::iterator it = this->Requests.begin(); it != this->Requests.end(); it++)
                 std::cerr << "Client Of Fd Number: " << it->first << std::endl;
             std::cerr << "New client number: " << newClient << " Added to server endpoint: " << monitor.fd << std::endl;
+            this->clientTimer[newClient] = clock();
             this->clientsSock[newClient] = monitor.fd;
             this->Response[newClient] = response();
             this->Cgires[newClient] = ParsedCGIOutput();
@@ -327,13 +328,27 @@ connection::connection(std::map<int, informations> &configData)
             while (it1 != this->clientsSock.end())
             {
                 this->checkClient(monitor[i], it1, OverLoad);
+                if ((clock() - this->clientTimer.at(it1->first)) / CLOCKS_PER_SEC >= 60)
+                {
+                    std::cerr << "Clinet Of The Fd Number: " << it1->first
+                    << " That Connected With Server Of The Fd Number " << it1->second
+                    << " Time Is End" << std::endl;
+                    this->dropClient(monitor[i].fd, it1);
+                }
+                // else
+                // {
+                //     std::cerr << "The Clinet That Have The FD: " << it1->first
+                //     << " `UP HERE For Just` "
+                //     << (clock() - this->clientTimer.at(it1->first)) / CLOCKS_PER_SEC
+                //     << " second."<< std::endl;
+                // }
                 it1++;
                 i++;
             }
             for (size_t k = 0; k < this->exited.size(); k++)
-                    this->clientsSock.erase(this->exited[k]);
+                this->clientsSock.erase(this->exited[k]);
             for (size_t k = 0; k < this->requestEnd.size(); k++)
-                    this->Requests.erase(this->requestEnd[k]);
+                this->Requests.erase(this->requestEnd[k]);
             while (!this->EndFd.empty())
             {
                 close(this->EndFd.back());
@@ -355,12 +370,16 @@ connection::connection(std::map<int, informations> &configData)
 /*-------------- yachaab edit start ---------------*/
 void connection::dropClient( int& fd, std::map<int, int>::iterator &it )
 {
-    if ( this->Requests.at( fd ).bodyStream != NULL )
+    try
     {
-        if ( this->Requests.at( fd ).bodyStream->is_open() )
-            this->Requests.at( fd ).bodyStream->close();
-        delete this->Requests.at( fd ).bodyStream;
+        if ( this->Requests.at( fd ).bodyStream != NULL )
+        {
+            if ( this->Requests.at( fd ).bodyStream->is_open() )
+                this->Requests.at( fd ).bodyStream->close();
+            delete this->Requests.at( fd ).bodyStream;
+        }
     }
+    catch(...){}
     if (std::find(this->EndFd.begin(), this->EndFd.end(), fd) != this->EndFd.end())
         return;
     this->EndFd.push_back(fd);

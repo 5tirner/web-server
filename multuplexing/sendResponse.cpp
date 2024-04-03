@@ -160,8 +160,10 @@ void sendResponseChunk(int clientSocket, response& respData)
 static std::string readHtmlFile( const char* filepath )
 {
     std::ifstream file( filepath );
+
     if ( !file.is_open() )
-        std::exception();
+        return "<!DOCTYPE html><html><head><title>Document</title></head><body><h2></h2></body></html>";
+
     std::string content( ( std::istreambuf_iterator<char>( file )  ), ( std::istreambuf_iterator<char>() ) );
     file.close();
     return ( content );
@@ -209,4 +211,26 @@ void    sendResponse( int& fd, const std::string& response )
     int rc = write( fd, response.data(), response.length() );
     if ( rc < 0 )
         throw std::exception();
+}
+void connection::responseProcess( Request& request, const int& serverId, int fd )
+{
+    std::string errorPagePath( "./src/page.html" );
+                        
+    std::string host = request.headers.at("host");
+    std::map<std::string, informations>::iterator iter = notBindingServers.find( host );
+    if ( iter != notBindingServers.end() )
+    {
+        int status = request.stat;
+        if ( iter->second.errorPages.find( status ) != iter->second.errorPages.end() )
+            errorPagePath = iter->second.errorPages.at( status );
+    }
+    else
+    {
+        int status = request.stat;
+        if ( OverLoad.at( serverId ).errorPages.find( status )  != OverLoad.at( serverId ).errorPages.end() )
+            errorPagePath = OverLoad.at( serverId ).errorPages.at( status );
+    }
+    std::string response = creatTemplate( errorPagePath.c_str(), request.stat, codeMsg );
+    sendResponse( fd, response );
+    std::cerr << "POST RESPONSE SENT" << std::endl;
 }

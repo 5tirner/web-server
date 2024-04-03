@@ -38,9 +38,9 @@ void    showInfo(informations &tmp)
     std::cerr << "LimitClient: " << it->first << " - " << "|"+it->second+"|" << std::endl;
     it = tmp.defaultRoot.begin();
     std::cerr << "DefaultRoot " << it->first << " - " << "|"+it->second+"|" << std::endl;
-    std::map<std::string, int>::iterator it1 = tmp.errorPages.begin();
+    std::map<int, std::string>::iterator it1 = tmp.errorPages.begin();
     while (it1 != tmp.errorPages.end())
-        std::cerr << "Error Page: " + it1->first << " With Status Code=" << it1->second << std::endl, it1++; 
+        std::cerr << "Error Page: " << it1->second << " With Status Code=" << it1->first << std::endl, it1++; 
 }
 
 void    initialLocation(location &save)
@@ -231,21 +231,21 @@ int checkInformations(informations &tmp)
             int         status;
             if (errorPages(s, &status))
             { std::cerr << "Invalid error Pages syntax: " + s << std::endl; return (1); }
-            try
-            {
-                tmp.errorPages.at(s);
-                std::cerr
-                << "Error: Can't Add Multuple ErrorPage In The Same Server With Different Code Status."
-                << std::endl;
-                return (1);
-            }
-            catch(...)
-            {
-                struct stat metadata;
-                if (stat(s.c_str(), &metadata))//fassssssssssss
-                { std::cerr << "Invalid ErrorPage Path " + s << std::endl; return (1);}
-                tmp.errorPages[s] = status;
-            }
+            // try
+            // {
+            //     tmp.errorPages.at(s);
+            //     std::cerr
+            //     << "Error: Can't Add Multuple ErrorPage In The Same Server With Different Code Status."
+            //     << std::endl;
+            //     return (1);
+            // }
+            // catch(...)
+            // {
+            struct stat metadata;
+            if (stat(s.c_str(), &metadata))
+            { std::cerr << "Invalid ErrorPage Path " + s << std::endl; return (1);}
+            tmp.errorPages[status] = s;
+            //}
         }
         else
         { std::cerr << "Weird KeyWord " + key << std::endl; return (1); }

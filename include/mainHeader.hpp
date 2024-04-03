@@ -69,7 +69,7 @@ typedef struct routes
 typedef struct info
 {
     std::vector<location>               locationsInfo;
-    std::map<std::string, int>          errorPages;
+    std::map<int, std::string>          errorPages;
     std::map<std::string, std::string>  limitClientBody, port, host, serverName, defaultRoot;
     std::vector<std::string>            others, locations;
 }   informations;
@@ -112,6 +112,7 @@ typedef struct codeStat
         statMsg[ 403 ] = "Forbidden";
         statMsg[ 404 ] = "Not Found";
         statMsg[ 405 ] = "Method Not Allowed";
+        statMsg[ 408 ] = "Request Timeout";
         statMsg[ 409 ] = "Conflict";
         statMsg[ 411 ] = "Length Required";
         statMsg[ 413 ] = "Request Entity Too Large";
@@ -163,7 +164,7 @@ typedef struct clientRequest
         fetchHeaderDone         = false;
         processingHeaderDone    = false;
         transferEncoding        = false;
-        isContentLength           = false;
+        isContentLength         = false;
         processingRequestDone   = false;
         storeHeader             = false;
         locationGotChecked      = false;
@@ -272,16 +273,17 @@ public:
 class   connection
 {
 private:
-    std::map<int, int>                                  clientsSock; // each client fd with the server fd that he connect with it in it's value
-    std::map<int, Request>                              Requests; // each client fd with it's data in the value
-    std::map<int, ParsedCGIOutput>                      Cgires; // each client fd with it's data in the value
-    std::map<int, response>                             Response;
-    std::map<int, informations>                         OverLoad; //Here You Will Find The Informations As A Values For The Fds Of The Sockets Servers
-    std::map<int, struct sockaddr_in>                   serversSock; // each server fd in key with a ready struct on it's value
-    std::vector<int>                                    responsetEnd, EndFd;
-    std::vector<std::map<int, int>::iterator>           exited;
-    std::vector<std::map<int, Request>::iterator>       requestEnd;
-    std::map<std::string, informations>                 notBindingServers;
+    std::map<int, int>                            clientsSock; // each client fd with the server fd that he connect with it in it's value
+    std::map<int, Request>                        Requests; // each client fd with it's data in the value
+    std::map<int, ParsedCGIOutput>                Cgires; // each client fd with it's data in the value
+    std::map<int, response>                       Response;
+    std::map<int, informations>                   OverLoad; //Here You Will Find The Informations As A Values For The Fds Of The Sockets Servers
+    std::map<int, struct sockaddr_in>             serversSock; // each server fd in key with a ready struct on it's value
+    std::vector<int>                              responsetEnd, EndFd;
+    std::vector<std::map<int, int>::iterator>     exited;
+    std::vector<std::map<int, Request>::iterator> requestEnd;
+    std::map<std::string, informations>           notBindingServers;
+    std::map<int, clock_t>                        clientTimer;
 public:
     connection();
     ~connection();
@@ -299,6 +301,7 @@ public:
     void    processingBody( Request&, char*, int, int );
     int     location_support_upload( Request& , int );
     void    processingHeader( Request& );
+    void    responseProcess( Request&, const int&, int );
     /*-------------- yachaab code end -----------------*/
     /*-------------- ysabr code start ---------------*/
     void    handleRequestGET(int, Request&, const informations&);
@@ -347,7 +350,7 @@ std::string decodeURI(const std::string&);
 bool        isPathWithinRoot(std::string&, std::string&);
 std::string resolveFilePath(std::string&);
 void        sendResponseFromCGI(int, ParsedCGIOutput&);
-void cleanupResponseFiles(std::vector<std::string>&);
+void        cleanupResponseFiles(std::vector<std::string>&);
 /*-------------- ysabr code end ---------------*/
 /*CGI*/
 std::string GetExtension(std::string &filename);
