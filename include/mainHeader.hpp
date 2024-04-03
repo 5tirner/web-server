@@ -163,7 +163,7 @@ typedef struct clientRequest
         fetchHeaderDone         = false;
         processingHeaderDone    = false;
         transferEncoding        = false;
-        contentLength           = false;
+        isContentLength           = false;
         processingRequestDone   = false;
         storeHeader             = false;
         locationGotChecked      = false;
@@ -173,9 +173,10 @@ typedef struct clientRequest
         cgi                     = false;
         isChunkHeader           = true;
         cgiGET                  = false;
-        content_length          = 0;
+        bytesWrite              = 0;
         chunkSizeSum            = 0;
         limitClientBodySize     = 0;
+        contentlength           = 0;
         extension               = "";
         bodyStream              = new std::ofstream;
     }
@@ -188,8 +189,8 @@ typedef struct clientRequest
     std::string     extension;
     std::string     scriptName;
 
-    size_t          content_length;
-    size_t          requestBodyLength;
+    size_t          bytesWrite;
+    size_t          contentlength;
     size_t          chunkSizeSum;
     size_t          currentChunkSize;
     size_t          limitClientBodySize;
@@ -201,7 +202,7 @@ typedef struct clientRequest
     bool            processingHeaderDone;
     bool            isChunkHeader;
     bool            transferEncoding;
-    bool            contentLength;
+    bool            isContentLength;
     bool            processingRequestDone;
     bool            storeHeader;
     bool            readyToSendRes;

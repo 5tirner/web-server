@@ -234,48 +234,6 @@ int connection::location_support_upload(Request& request, int serverId) {
     return request.stat = 404, -1;
 }
 
-// static size_t	parseChunkHeader( Request& rq, std::string& buffer )
-// {
-// 	std::string	chunkHead;
-// 	long		size;
-// 	size_t 		crlfPos = 0;
-
-// 	if ( rq.iscr == true )
-// 	{
-// 		buffer = buffer.substr( 2 );
-// 		rq.iscr = false;
-// 	}
-// 	else if ( rq.islf == true )
-// 	{
-// 		buffer = buffer.substr( 1 );
-// 		rq.islf = false;
-// 	}
-
-// 	crlfPos = buffer.find( "\r\n" );
-	
-// 	if ( crlfPos == std::string::npos )
-// 		return std::string::npos;
-// 	chunkHead = buffer.substr( 0, crlfPos );
-// 	if ( !chunkHead.empty() )
-// 		size = std::strtol( chunkHead.c_str(), NULL, 16 );
-// 	else
-// 	{
-// 		rq.stat = 400;
-// 		Logger::log() << "[ Error ] Invalid chunk size header" << std::endl;
-// 		throw std::exception();
-// 	}
-// 	if ( size == LONG_MAX || size == LONG_MIN )
-// 	{
-// 		rq.stat = 400;
-// 		Logger::log() << "[ Error ] Invalid chunk size header" << std::endl;
-// 		throw std::exception();
-// 	}
-// 	else
-// 		rq.currentChunkSize = size;
-// 	buffer = buffer.substr( chunkHead.length() + 2 );
-// 	return ( rq.currentChunkSize );
-// }
-
 static size_t parseChunkHeader(Request& request, std::string& buffer)
 {
     // Remove leading CRLF if present
@@ -319,79 +277,97 @@ static size_t parseChunkHeader(Request& request, std::string& buffer)
     return request.currentChunkSize;
 }
 
-static bool    chunkedComplete( Request& rq,  std::string& buffer )
+static bool processingChunkHeader( Request& request, std::string& buffer, size_t& bufferlength )
 {
-	size_t	bufflen ( buffer.length() );
-	while ( bufflen != 0 )
+	request.currentChunkSize = parseChunkHeader( request, buffer );
+
+	if ( request.currentChunkSize == std::string::npos )
+		return false;
+
+	request.chunkSizeSum += request.currentChunkSize;
+	if ( request.chunkSizeSum > request.limitClientBodySize )
 	{
-		if ( rq.isChunkHeader == true )
+		request.stat = 413;
+		throw std::exception();
+	}
+
+	bufferlength = buffer.size();
+
+	if ( request.currentChunkSize == 0 )
+		return true;
+
+	return false;
+}
+
+static bool chunkSizeSmallerThanBufferLength( Request& request, std::string&buffer, size_t& bufferLength )
+{
+	request.bodyStream->write( buffer.data(), request.currentChunkSize );
+	if ( !request.bodyStream->good() )
+		return request.stat = 500, false;
+
+	request.bodyStream->flush();
+
+	bufferLength -= request.currentChunkSize;
+	if ( bufferLength > 1 )
+	{
+		buffer = buffer.substr( request.currentChunkSize + 2 );
+		bufferLength -= 2;
+	}
+	else
+	{
+		buffer = buffer.substr( request.currentChunkSize + 1 );
+		request.islf = true;
+		bufferLength -= 1;
+	}
+	request.isChunkHeader = true;
+	return true;
+}
+
+static bool    chunkedComplete( Request& request,  std::string& buffer )
+{
+	size_t	bufferLength ( buffer.length() );
+
+	while ( bufferLength != 0 )
+	{
+		if ( request.isChunkHeader == true )
 		{
-			rq.currentChunkSize = parseChunkHeader( rq, buffer );
-			if ( rq.currentChunkSize == std::string::npos )
-				return false;
-			rq.chunkSizeSum += rq.currentChunkSize;
-			if ( rq.chunkSizeSum > rq.limitClientBodySize )
-			{
-				rq.stat = 413;
-				Logger::log() << "[ Error ] Client bosy size greater than body size limit" << std::endl;
-				throw std::exception();
-			}
-			if ( rq.currentChunkSize == 0 )
+			if ( processingChunkHeader( request, buffer, bufferLength ) )
 				return true;
-			bufflen = buffer.length();
+			if ( request.currentChunkSize == std::string::npos )
+				return false;
 		}
-		if ( rq.currentChunkSize > buffer.length() )
+		if ( request.currentChunkSize > buffer.length() )
 		{
-			rq.bodyStream->write( buffer.data(),  buffer.length() );
-			if ( !rq.bodyStream->good() )
+			request.bodyStream->write( buffer.data(),  buffer.length() );
+			if ( !request.bodyStream->good() )
 			{
-				rq.stat = 500;
-				Logger::log() << "[ Error ] write body stream failed" << std::endl;
+				request.stat = 500;
 				throw std::exception();
 			}
-			rq.bodyStream->flush();
-			rq.currentChunkSize -= buffer.length();
-			rq.isChunkHeader = false;
+			request.bodyStream->flush();
+			request.currentChunkSize -= buffer.length();
+			request.isChunkHeader = false;
 			return ( false );
 		}
-		else if ( rq.currentChunkSize < buffer.length() )
+		else if ( request.currentChunkSize < buffer.length() )
 		{
-			rq.bodyStream->write( buffer.data(), rq.currentChunkSize );
-			if ( !rq.bodyStream->good() )
-			{
-				rq.stat = 500;
-				Logger::log() << "[ Error ] write body stream failed" << std::endl;
+			if ( !chunkSizeSmallerThanBufferLength( request, buffer, bufferLength ) )
 				throw std::exception();
-			}
-			rq.bodyStream->flush();
-			bufflen -= rq.currentChunkSize;
-			if ( bufflen > 1 )
-			{
-				buffer = buffer.substr( rq.currentChunkSize + 2 );
-				bufflen -= 2;
-			}
-			else
-			{
-				buffer = buffer.substr( rq.currentChunkSize + 1 );
-				rq.islf = true;
-				bufflen -= 1;
-			}
-			rq.isChunkHeader = true;
 		}
-		else if ( rq.currentChunkSize == buffer.length() )
+		else if ( request.currentChunkSize == buffer.length() )
 		{
-			rq.bodyStream->write( buffer.data(), rq.currentChunkSize );
-			rq.bodyStream->flush();
-			bufflen -= rq.currentChunkSize;
-			rq.iscr = true;
-			rq.isChunkHeader = true;
+			request.bodyStream->write( buffer.data(), request.currentChunkSize );
+			request.bodyStream->flush();
+			bufferLength -= request.currentChunkSize;
+			request.iscr = true;
+			request.isChunkHeader = true;
 			return false;
 		}
 	}
 	return false;
 }
 
-static void	processChunkedRequestBody( Request& rq, char* buffer, int& rc, bool& sendRes)
+static void	processChunkedRequestBody( Request& rq, char* buffer, int& rc )
 {
     if ( !rq.remainingBody.empty() )
     {
@@ -407,8 +383,7 @@ static void	processChunkedRequestBody( Request& rq, char* buffer, int& rc, bool&
 				rq.cgiInfo.input = rq.filename;
 				rq.headers.at("method") = "get";
 			}
-			sendRes = true;
-			Logger::log() << "[ sucess ] body file created" << std::endl;
+			rq.readyToSendRes = true;
 			throw std::exception();
 		}
         rq.remainingBody.clear();
@@ -428,54 +403,53 @@ static void	processChunkedRequestBody( Request& rq, char* buffer, int& rc, bool&
 				rq.cgiInfo.input = rq.filename;
 				rq.headers.at("method") = "get";
 			}
-			sendRes = true;
-			Logger::log() << "[ sucess ] body file created" << std::endl;
+			rq.readyToSendRes = true;
 			throw std::exception();
 		}
     }
 }
 
-static void	processRegularRequestBody( Request& rq, char* buffer, int& rc, bool& sendRes )
+static void processRegularRequestBody( Request& request, char* buffer, int& bytesRead )
 {
-	if ( !rq.remainingBody.empty() )
+	if ( !request.remainingBody.empty() )
 	{
-		rq.bodyStream->write( rq.remainingBody.data(),  rq.remainingBody.length() );
-		rq.bodyStream->flush();
-		rq.content_length += rq.remainingBody.length();
-		rq.remainingBody.clear();
+		size_t size( request.remainingBody.size() );
+		request.bodyStream->write(request.remainingBody.data(), size);
+		request.bodyStream->flush();
+		request.bytesWrite += size;
+		request.remainingBody.clear();
 	}
-	else if ( rc ){
-		rq.bodyStream->write( buffer,  rc );
-		rq.bodyStream->flush();
-		rq.content_length += rc;
-	}
-	if ( !rq.bodyStream->good() )
+	else if ( bytesRead > 0 )
 	{
-		rq.stat = 500;
-		Logger::log() << "[ Error ] write body stream failed" << std::endl;
-		throw std::exception();
+		request.bodyStream->write(buffer, bytesRead);
+		request.bodyStream->flush();
+		request.bytesWrite += bytesRead;
 	}
-	if ( rq.content_length == rq.requestBodyLength )
+
+	if ( !request.bodyStream->good() ) {
+		request.stat = 500;
+		throw std::runtime_error("Failed to write to body stream");
+	}
+
+	if ( request.bytesWrite == request.contentlength )
 	{
-		if (!rq.cgi)
-			rq.stat = 201;
+		if ( !request.cgi )
+			request.stat = 201; // Created
 		else
 		{
-			rq.cgiInfo.contentLength = rq.headers["content-length"];
-			rq.cgiInfo.contentType = rq.headers["content-type"];
-			rq.cgiInfo.method = "POST";
-			rq.cgiInfo.input = rq.filename;
-			rq.headers.at("method") = "get";
+			request.cgiInfo.contentLength = request.headers["content-length"];
+			request.cgiInfo.contentType = request.headers["content-type"];
+			request.cgiInfo.method = "POST";
+			request.cgiInfo.input = request.filename;
+			request.headers.at("method") = "get"; // Change the method to GET for CGI
 		}
-		sendRes = true;
-		Logger::log() << "[ sucess ] body file created" << std::endl;
+		request.readyToSendRes = true;
 		throw std::exception();
 	}
-	else if ( rq.content_length > rq.requestBodyLength )
+	else if (request.bytesWrite > request.contentlength)
 	{
-		rq.stat = 413;
-		Logger::log() << "[ Error ] Request Entity Too Large" << std::endl;
-		throw std::exception();
+		request.stat = 413;
+		throw std::length_error("Request body exceeds declared length");
 	}
 }
 
@@ -488,16 +462,15 @@ void	connection::processingBody( Request& rq, char* buffer, int rc, int serverID
 		if ( rq.locationGotChecked == false && location_support_upload( rq, serverID ) == -1 )
 			throw std::exception();
 		else if ( rq.transferEncoding == true )
-			processChunkedRequestBody( rq, buffer, rc, rq.readyToSendRes );
-		else if ( rq.contentLength == true )
+			processChunkedRequestBody( rq, buffer, rc );
+		else if ( rq.isContentLength == true )
 		{
-			if ( rq.contentLength <= rq.limitClientBodySize )		
-				processRegularRequestBody( rq, buffer , rc, rq.readyToSendRes );
+			if ( rq.contentlength <= rq.limitClientBodySize )
+				processRegularRequestBody( rq, buffer , rc );
 			else
 			{
 				rq.stat = 413;
-				Logger::log() << "[ Error ] Request Entity Too Large" << std::endl;
-				throw std::exception();
+				throw std::length_error("Request body exceeds declared limit client length");
 			}
 		}
     }

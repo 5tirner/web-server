@@ -164,7 +164,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
             }
             catch ( ... )
             {
-                std::cerr << "\033[35m PROCESSING CLIENT REQUEST + BODY DONE WITH STAT:" << this->Requests.at(monitor.fd).stat << "\033[35m"  << "\033[0m" << std::endl;
+                std::cerr << "\033[35mPROCESSING CLIENT REQUEST + BODY DONE WITH STAT:" << this->Requests.at(monitor.fd).stat << "\033[35m"  << "\033[0m" << std::endl;
                 this->Requests.at(monitor.fd).readyToSendRes = true;
             }
             /*-------------- yachaab code end -----------------*/
