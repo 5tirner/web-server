@@ -592,7 +592,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             {
                 std::cerr << err << std::endl;
             }
-            std::cerr << "The File Geted By CGI Is: " + filePath << std::endl;
+            //std::cerr << "The File Geted By CGI Is: " + filePath << std::endl;
         }
         else
         {
