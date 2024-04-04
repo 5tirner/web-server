@@ -117,11 +117,12 @@ void sendResponseChunk(int clientSocket, response& respData)
     // Send the response header if needed
     if (respData.status == response::Pending)
     {
+        std::cout << "RESPONSE HEADERS" << std::endl;
         if (respData.fileStream)
             respData.fileStream.close();
         if (!respData.filePath.empty())
             openFile(respData ,respData.filePath);
-        if (!respData.responseHeader.empty())
+        if (!respData.responseHeader.empty() && !isDirectory(respData.filePath))
             respData.responseHeader += "Content-Length: " + to_string(respData.totalSize) + "\r\n\r\n";
         int k = send(clientSocket, respData.responseHeader.c_str(), respData.responseHeader.size(), 0);
         if (k < 0)
@@ -136,6 +137,8 @@ void sendResponseChunk(int clientSocket, response& respData)
     }
     else if (respData.status == response::InProgress)
     {
+        std::cout << "RESPONSE BODY" << std::endl;
+
         std::string chunk = getNextChunk(respData, 2048); 
         if (!chunk.empty())
         {
@@ -157,79 +160,3 @@ void sendResponseChunk(int clientSocket, response& respData)
     }
 }
 
-// static std::string readHtmlFile( const char* filepath )
-// {
-//     std::ifstream file( filepath );
-
-//     if ( !file.is_open() )
-//         return "<!DOCTYPE html><html><head><title>Document</title></head><body><h2></h2></body></html>";
-
-//     std::string content( ( std::istreambuf_iterator<char>( file )  ), ( std::istreambuf_iterator<char>() ) );
-//     file.close();
-//     return ( content );
-// }
-
-// static std::string replacePlaceholder( const std::string& html, const std::string& msgPlaceholder ,
-//                                 const std::string& codePlaceholder, const std::string& msgReplace,
-//                                 const std::string& codeReplace )
-// {
-//     std::string result  = html;
-//     size_t msgPlhPos    = result.find( msgPlaceholder );
-//     size_t codePlhPos   = result.find( codePlaceholder );
-
-//     if ( msgPlhPos != std::string::npos && codePlhPos != std::string::npos )
-//     {
-//         result.replace( codePlhPos, codePlaceholder.length(), codeReplace );
-//         result.replace( msgPlhPos, msgPlaceholder.length(), msgReplace );
-//     }
-//     return ( result );
-// }
-
-// std::string creatTemplate( const char* filepath, int& statcode, code& msgCode )
-// {
-//     try
-//     {
-//         std::string version( "HTTP/1.1" );
-//         std::string htmlTemplate( readHtmlFile( filepath ) );
-//         std::string modifiedHtml( replacePlaceholder( htmlTemplate, "{msg}", "{code}",
-//                                   msgCode.statMsg.at(statcode) , to_string( statcode ) ) ); //! check to_string stander
-//         std::string httpResponse    = version + " " + to_string( statcode ) + " " + msgCode.statMsg.at(statcode) + "\r\n"; //! check to_string stander
-//         httpResponse                += "Content-Type: text/html\r\n";
-//         httpResponse                += "Content-Length: " + to_string(modifiedHtml.length()) + "\r\n\r\n";
-//         httpResponse                += modifiedHtml;
-//         return ( httpResponse );
-//     }
-//     catch(const std::exception& e)
-//     {
-//         std::cerr << e.what() << std::endl;
-//     }
-//     return ("");
-// }
-
-// void    sendResponse( int& fd, const std::string& response )
-// {
-//     int rc = write( fd, response.data(), response.length() );
-//     if ( rc < 0 )
-//         throw std::exception();
-// }
-// informations connection::responseProcess( Request& request, const int& serverId, int fd )
-// {
-                        
-//     std::string host = request.headers.at("host");
-//     std::map<std::string, informations>::iterator iter = notBindingServers.find( host );
-//     if ( iter != notBindingServers.end() )
-//     {
-//         int status = request.stat;
-//         if ( iter->second.errorPages.find( status ) != iter->second.errorPages.end() )
-//             errorPagePath = iter->second.errorPages.at( status );
-//     }
-//     else
-//     {
-//         int status = request.stat;
-//         if ( OverLoad.at( serverId ).errorPages.find( status )  != OverLoad.at( serverId ).errorPages.end() )
-//             errorPagePath = OverLoad.at( serverId ).errorPages.at( status );
-//     }
-//     // std::string response = creatTemplate( errorPagePath.c_str(), request.stat, codeMsg );
-//     // sendResponse( fd, response );
-//     std::cerr << "POST RESPONSE SENT" << std::endl;
-// }

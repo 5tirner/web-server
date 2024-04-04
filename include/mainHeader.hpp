@@ -200,18 +200,6 @@ typedef struct clientRequest
         bodyStream              = new std::ofstream;
         std::cout << "REQUEST STRUCT CONSTRUCTED" << std::endl;
     }
-    // clientRequest(const clientRequest& src)
-    // {
-    //     cgiInfo = src.cgiInfo;
-    // }
-    // clientRequest& operator=(const clientRequest& src)
-    // {
-    //     if (this != &src)
-    //     {
-    //         cgiInfo = src.cgiInfo;
-
-    //     }
-    // }
 } Request;
 
 
@@ -335,7 +323,7 @@ std::string creatTemplate( const char*, int& , code&  );
 std::string to_string(int);
 std::string getMimeType(std::string&);
 std::string getNextChunk(response&,size_t);
-std::string mapUriToFilePath(std::string&, location, Request&);
+std::string mapUriToFilePath(std::string&, location);
 std::string generateDirectoryListing(const std::string&);
 bool        hasNextChunk(response&);
 bool        fileExists(std::string&);
