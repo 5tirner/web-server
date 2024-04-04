@@ -117,7 +117,6 @@ void sendResponseChunk(int clientSocket, response& respData)
     // Send the response header if needed
     if (respData.status == response::Pending)
     {
-        std::cout << "RESPONSE HEADERS" << std::endl;
         if (respData.fileStream)
             respData.fileStream.close();
         if (!respData.filePath.empty())
@@ -137,7 +136,6 @@ void sendResponseChunk(int clientSocket, response& respData)
     }
     else if (respData.status == response::InProgress)
     {
-        std::cout << "RESPONSE BODY" << std::endl;
 
         std::string chunk = getNextChunk(respData, 2048); 
         if (!chunk.empty())

@@ -548,7 +548,6 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             filePath = filePath2.substr(0,np);
             filePath += filePath2.substr(np + 1);
         }
-        std::cout << "===>: FILEPATH: " << filePath << std::endl;
         if (!access(filePath.c_str(), F_OK))
         {
             if (access(filePath.c_str(), R_OK))
@@ -618,14 +617,12 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
                 }
                 else if (autoindexIt != routeConfig.autoindex.end() && autoindexIt->second == "on")
                 {
-                    std::cout << "LIST DIrectoey" << std::endl;
                     std::string directoryContent = generateDirectoryListing(filePath);
                     responseD = "HTTP/1.1 200 OK\r\n";
                     responseD += "Content-Type: text/html\r\n";
                     responseD += "Content-Length: " + to_string(directoryContent.length()) + "\r\n";
                     responseD += "\r\n";
                     responseD += directoryContent;
-                    std::cout << responseD << std::endl;
                 }
                 else
                     serveErrorPage(clientSocket, 403, serverConfig);
