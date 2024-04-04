@@ -55,9 +55,13 @@ void connection::handleRequestDELETE(int clientSocket, Request& request,const in
         serveErrorPage(clientSocket, 405, serverConfig);
         return;
     }
+    if (filePath == routeConfig.root.at("root"))
+    {
+        serveErrorPage(clientSocket, 403, serverConfig);
+        return;
+    }
     struct stat path_stat;
     stat(filePath.c_str(), &path_stat);
-
     if (access(filePath.c_str(), F_OK) == -1)
     {
         serveErrorPage(clientSocket, 404, serverConfig);

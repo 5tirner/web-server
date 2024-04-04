@@ -199,7 +199,7 @@ int isValidIp4(std::string &value)
 
 int multiValues(std::string &key, std::string &values)
 {
-    if (key == "index" || key == "server_name")
+    if (key == "index")
     {
         if (justMakeItRight(values))
             return (1);

@@ -5,6 +5,7 @@
 #include <exception>
 #include <fcntl.h>
 #include <fstream>
+#include <linux/limits.h>
 #include <stdexcept>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -47,18 +48,23 @@ bool fileExists(std::string& filePath)
 std::string resolveFilePath(std::string& path)
 {
     char *realPath = realpath(path.c_str(), NULL);
+    
+    if (realPath == NULL)
+    {
+        return "";
+    }
     std::string resolvedPath;
     if (realPath)
     {
-        resolvedPath = std::string(realPath);
-        free(realPath); 
+        resolvedPath = std::string(realPath); 
+        free(realPath);
     }
     return resolvedPath;
 }
 
-bool isPathWithinRoot(std::string& resolvedPath, std::string& rootPath)
+bool isPathWithinRoot(std::string& fullPath, std::string& rootPath)
 {
-    if (resolvedPath.find(rootPath) != 0)
+    if (fullPath.find(rootPath) != 0)
         return false;
     return true;
 }
@@ -73,6 +79,17 @@ std::string mapUriToFilePath( std::string& uri,  location locConfig)
     if (pathSuffix.empty() || pathSuffix[0] != '/')
         fullPath += "/";
     fullPath += pathSuffix;
+    // if (isDirectory(fullPath) && fullPath[fullPath.length() - 1] != '/'){
+    //     return fullPath;
+    // }
+    // fullPath = resolveFilePath(fullPath);
+    // std::cout << "FULLPATH: " << fullPath << std::endl;
+    // if (fullPath.empty())
+    //     throw std::runtime_error("there is a problem");
+    // if (!isPathWithinRoot(fullPath, rootPath))
+    // {
+    //     throw std::runtime_error("there is a problem");
+    // }
     std::string indexPath;
     if ((pathSuffix.empty() || pathSuffix[pathSuffix.length() - 1] == '/'))
     {
@@ -81,40 +98,9 @@ std::string mapUriToFilePath( std::string& uri,  location locConfig)
         while (std::getline(iss, indexFile, ' '))
         {
             indexPath = fullPath + indexFile;
-            std::string tmp = indexPath;
-            tmp = resolveFilePath(rootPath);
-            if (tmp.empty())
-                throw std::runtime_error("there is a problem");
-            if (!isPathWithinRoot(indexPath, rootPath))
-            {
-                throw std::runtime_error("there is a problem");
-            }
             if (!indexPath.empty() && fileExists(indexPath) && isPathWithinRoot(indexPath, rootPath))
                 return indexPath;
         }
-        if (indexPath.empty() || !isPathWithinRoot(indexPath, rootPath))
-            throw std::runtime_error("there is a problem");
-    }
-    else
-    {
-        std::string tmp = fullPath;
-        tmp = resolveFilePath(rootPath);
-        if (tmp.empty())
-            throw std::runtime_error("there is a problem");
-        if (!isPathWithinRoot(fullPath, rootPath))
-        {
-            // std::cout << "\n\n---->\n\n";
-            throw std::runtime_error("there is a problem");
-        }
-        return fullPath;
-    }
-    std::string tmp = fullPath;
-    tmp = resolveFilePath(rootPath);
-    if (tmp.empty())
-        throw std::runtime_error("there is a problem");
-    if (!isPathWithinRoot(fullPath, rootPath))
-    {
-        throw std::runtime_error("there is a problem");
     }
     return fullPath;
 }
@@ -316,7 +302,7 @@ ParsedCGIOutput response::parseCGIOutput(std::string& filePath)
         if (key == "status")
             output.status = std::atoi(value.c_str());
         else
-            output.headers[key] = value;
+            output.headers.insert((std::make_pair(key, value)));
     }
     int count  = 1;
     while (std::getline(fileStream, line))
@@ -331,7 +317,7 @@ ParsedCGIOutput response::parseCGIOutput(std::string& filePath)
         if (key == "status")
             output.status = std::atoi(value.c_str());
         else
-            output.headers[key] = value;
+            output.headers.insert((std::make_pair(key, value)));
         if (count == 500)
         {
             fileStream.seekg(0);
@@ -374,7 +360,7 @@ int response::sendResponseFromCGI(int clientSocket, ParsedCGIOutput& cgiOutput, 
                 kill(res.pid, SIGKILL);
                 waitpid(res.pid,&status, 0);
                 res.pid = 0;
-                return 404;
+                return 408;
             }
         }
     }
@@ -391,12 +377,10 @@ int response::sendResponseFromCGI(int clientSocket, ParsedCGIOutput& cgiOutput, 
             std::map<std::string, std::string>::const_iterator iter = cgiOutput.headers.begin();
             for (; iter != cgiOutput.headers.end(); iter++)
             {
-                // std::cout << "fisr: " << iter->first << std::endl;
-                responseHeaders << iter->first << ": " << iter->second << "\r\n";
+                responseHeaders << iter->first << ": " << iter->second << "\n";
             }
             responseHeaders << "\r\n";
             std::string headersStr = responseHeaders.str();
-            // std::cout << "------>5: " << headersStr << std::endl;
             send(clientSocket, headersStr.c_str(), headersStr.length(), 0);
             cgiOutput.check = 1;
             res.status = response::InProgress;
@@ -463,12 +447,11 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
         
         } catch (...)
         {
+            std::cout << "he go inside forbiden" << std::endl;
             serveErrorPage(clientSocket, 403, serverConfig);
             return;
         }
         std::string filePath = filePath2;
-        if (filePath[filePath.length() - 1] == '/')
-            filePath = filePath.substr(0, filePath.length() - 1);
         if (!access(filePath.c_str(), F_OK))
         {
             if (access(filePath.c_str(), R_OK))
@@ -492,7 +475,6 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
                 request.cgiInfo.binary = executer;
                 cgiFile(request.cgiInfo);
                 
-                // std::cout << "----------->2\n";
                 filePath = request.cgiInfo.output;
                 responseData.removeFiles.push_back(request.cgiInfo.output);
                 if (request.cgiInfo.pid == -1)
@@ -501,9 +483,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
                     return;
                 }
                 std::string cgiOutputFilePath = filePath;
-                // std::cout << "----------->3: " << filePath << std::endl;
                 responseData.filePath = filePath;
-                // std::cout << "----------->4\n";
                 request.storeHeader = true;
                 request.cgiGET = true;
                 responseData.waitCgi = true;
@@ -526,7 +506,12 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
                 std::string check = request.headers.at("uri") + it->index.at("index");
 
                 std::map<std::string, std::string>::iterator autoindexIt = routeConfig.autoindex.find("autoindex");
-                if (isRegularFile(check))
+                if (filePath[filePath.length() - 1] != '/')
+                {
+                    responseD = "HTTP/1.1 301 OK\r\n";
+                    responseD += "Location: " + request.headers.at("uri") + "/" + " \r\n";
+                }
+                else if (isRegularFile(check))
                 {
                     responseD = "HTTP/1.1 301 OK\r\n";
                     responseD += "Location: " + check + " \r\n";

@@ -138,6 +138,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         // std::cerr << "Client-Side, An event happend on socket number: " << monitor.fd << " Endpoint." << std::endl;
         // std::cerr << "Client with socket: " << monitor.fd << " is related to server Endpoint: " << it->second << std::endl;
         char buffer[2048];
+        this->clientTimerToSendRequest.at(monitor.fd) = clock();
         int rd = read(monitor.fd, buffer, 2047);
         if (rd == -1)
         {
@@ -263,11 +264,12 @@ void    connection::checkServer(struct pollfd &monitor, std::map<int, struct soc
             std::cerr << "Error: Filed To Create New EndPoint With Socket " << monitor.fd << std::endl;
         else
         {
-            // std::cerr << "Clients Those Already Here :" << std::endl;
-            // for (std::map<int, Request>::iterator it = this->Requests.begin(); it != this->Requests.end(); it++)
-            //     std::cerr << "Client Of Fd Number: " << it->first << std::endl;
-            // std::cerr << "New client number: " << newClient << " Added to server endpoint: " << monitor.fd << std::endl;
-            this->clientTimer[newClient] = clock();
+            std::cerr << "Clients Those Already Here :" << std::endl;
+            for (std::map<int, Request>::iterator it = this->Requests.begin(); it != this->Requests.end(); it++)
+                std::cerr << "Client Of Fd Number: " << it->first << std::endl;
+            std::cerr << "New client number: " << newClient << " Added to server endpoint: " << monitor.fd << std::endl;
+            this->clientTimerToSendRequest[newClient] = clock();
+            this->clientTimerToEndRequest[newClient] = clock();
             this->clientsSock[newClient] = monitor.fd;
             this->Response[newClient] = response();
             this->Cgires[newClient] = ParsedCGIOutput();
@@ -318,10 +320,7 @@ connection::connection(std::map<int, informations> &configData)
         }
         int eventChecker = poll(monitor, this->clientsSock.size() + this->serversSock.size(), -1);
         if (eventChecker == -1)
-        {
-            std::cerr << "Error: Poll Failed To When It's Looking For An Event." << std::endl;
-            exit(EXIT_FAILURE);
-        }
+            std::cerr << "Error: Poll Failed When It's Looking For An Event." << std::endl;
         else if (eventChecker)
         {
             i = 0;
@@ -329,20 +328,20 @@ connection::connection(std::map<int, informations> &configData)
             while (it1 != this->clientsSock.end())
             {
                 this->checkClient(monitor[i], it1, OverLoad);
-                if ((clock() - this->clientTimer.at(it1->first)) / CLOCKS_PER_SEC >= 60)
+                if ((clock() - this->clientTimerToSendRequest.at(it1->first)) / CLOCKS_PER_SEC >= 30)
                 {
-                    // std::cerr << "Clinet Of The Fd Number: " << it1->first
-                    // << " That Connected With Server Of The Fd Number " << it1->second
-                    // << " Time Is End" << std::endl;
+                    std::cerr << "Clinet Of Fd Number: " << it1->first
+                    << " Ralated With Server Of Fd Number " << it1->second
+                    << " Spend Much Time Without New Request " << std::endl;
                     this->dropClient(monitor[i].fd, it1);
                 }
-                // else
-                // {
-                //     std::cerr << "The Clinet That Have The FD: " << it1->first
-                //     << " `UP HERE For Just` "
-                //     << (clock() - this->clientTimer.at(it1->first)) / CLOCKS_PER_SEC
-                //     << " second."<< std::endl;
-                // }
+                else if ((clock() - this->clientTimerToEndRequest.at(it1->first)) / CLOCKS_PER_SEC >= 90)
+                {
+                    std::cerr << "Clinet Of Fd Number: " << it1->first
+                    << " Ralated With Server Of Fd Number " << it1->second
+                    << " Spend Much Time To End His Request " << std::endl;
+                    this->dropClient(monitor[i].fd, it1);
+                }
                 it1++;
                 i++;
             }
