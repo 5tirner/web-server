@@ -243,6 +243,8 @@ static bool chunkedComplete(Request& request, std::string& buffer)
 			if (request.chunkSizeSum > request.limitClientBodySize)
 			{
 				request.stat = 413;
+				request.bodyStream->close();
+				std::remove( request.filename.data() );
 				throw std::runtime_error("Request body size limit exceeded");
 			}
 
@@ -290,43 +292,45 @@ static bool chunkedComplete(Request& request, std::string& buffer)
     return false;
 }
 
-static void	processChunkedRequestBody( Request& rq, char* buffer, int& rc )
+static void	processChunkedRequestBody( Request& request, char* buffer, int& rc )
 {
-    if ( !rq.remainingBody.empty() )
+    if ( !request.remainingBody.empty() )
     {
-        if ( chunkedComplete( rq, rq.remainingBody ) )
+        if ( chunkedComplete( request, request.remainingBody ) )
         {
-			if (!rq.cgi)
-				rq.stat = 201;
+			if (!request.cgi)
+				request.stat = 201;
 			else
 			{
-				rq.cgiInfo.contentLength = rq.headers["content-length"];
-				rq.cgiInfo.contentType = rq.headers["content-type"];
-				rq.cgiInfo.method = "POST";
-				rq.cgiInfo.input = rq.filename;
-				rq.headers.at("method") = "get";
+				request.cgiInfo.contentLength = request.headers["content-length"];
+				request.cgiInfo.contentType = request.headers["content-type"];
+				request.cgiInfo.method = "POST";
+				request.cgiInfo.input = request.filename;
+				request.headers.at("method") = "get";
 			}
-			rq.readyToSendRes = true;
+			request.readyToSendRes = true;
+			request.bodyStream->close();
 			throw std::exception();
 		}
-        rq.remainingBody.clear();
+        request.remainingBody.clear();
     }
     else
     {
         std::string receivedData( buffer, rc );
-        if ( chunkedComplete( rq, receivedData ) )
+        if ( chunkedComplete( request, receivedData ) )
         {
-			if (!rq.cgi)
-				rq.stat = 201;
+			if (!request.cgi)
+				request.stat = 201;
 			else
 			{
-				rq.cgiInfo.contentLength = rq.headers["content-length"];
-				rq.cgiInfo.contentType = rq.headers["content-type"];
-				rq.cgiInfo.method = "POST";
-				rq.cgiInfo.input = rq.filename;
-				rq.headers.at("method") = "get";
+				request.cgiInfo.contentLength = request.headers["content-length"];
+				request.cgiInfo.contentType = request.headers["content-type"];
+				request.cgiInfo.method = "POST";
+				request.cgiInfo.input = request.filename;
+				request.headers.at("method") = "get";
 			}
-			rq.readyToSendRes = true;
+			request.readyToSendRes = true;
+			request.bodyStream->close();
 			throw std::exception();
 		}
     }
@@ -349,8 +353,10 @@ static void processRegularRequestBody( Request& request, char* buffer, int& byte
 		request.bytesWrite += bytesRead;
 	}
 
-	if ( !request.bodyStream->good() ) {
+	if ( !request.bodyStream->good() )
+	{
 		request.stat = 500;
+		request.bodyStream->close();
 		throw std::runtime_error("Failed to write to body stream");
 	}
 
@@ -367,32 +373,37 @@ static void processRegularRequestBody( Request& request, char* buffer, int& byte
 			request.headers.at("method") = "get"; // Change the method to GET for CGI
 		}
 		request.readyToSendRes = true;
+		request.bodyStream->close();
 		throw std::exception();
 	}
 	else if (request.bytesWrite > request.contentlength)
 	{
 		request.stat = 413;
+		request.bodyStream->close();
+		std::remove( request.filename.data() );
 		throw std::length_error("Request body exceeds declared length");
 	}
 }
 
-void	connection::processingBody( Request& rq, char* buffer, int rc, int serverID )
+void	connection::processingBody( Request& request, char* buffer, int rc, int serverID )
 {
-	if ( rq.headers.at( "method" ) == "get" || rq.headers.at( "method" ) == "delete" )
-		rq.readyToSendRes = true;
-	else if ( rq.headers.at( "method" ) == "post" )
+	if ( request.headers.at( "method" ) == "get" || request.headers.at( "method" ) == "delete" )
+		request.readyToSendRes = true;
+	else if ( request.headers.at( "method" ) == "post" )
     {
-		if ( rq.locationGotChecked == false && location_support_upload( rq, serverID ) == -1 )
+		if ( request.locationGotChecked == false && location_support_upload( request, serverID ) == -1 )
 			throw std::exception();
-		else if ( rq.transferEncoding == true )
-			processChunkedRequestBody( rq, buffer, rc );
-		else if ( rq.isContentLength == true )
+		else if ( request.transferEncoding == true )
+			processChunkedRequestBody( request, buffer, rc );
+		else if ( request.isContentLength == true )
 		{
-			if ( rq.contentlength <= rq.limitClientBodySize )
-				processRegularRequestBody( rq, buffer , rc );
+			if ( request.contentlength <= request.limitClientBodySize )
+				processRegularRequestBody( request, buffer , rc );
 			else
 			{
-				rq.stat = 413;
+				request.stat = 413;
+				request.bodyStream->close();
+				std::remove( request.filename.data() );
 				throw std::length_error("Request body exceeds declared limit client length");
 			}
 		}
