@@ -44,7 +44,7 @@ void connection::handleRequestDELETE(int clientSocket, Request& request,const in
     std::string filePath;
     try
     {
-        filePath = mapUriToFilePath(request.headers["uri"], routeConfig, request);
+        filePath = mapUriToFilePath(request.headers["uri"], routeConfig);
     
     } catch (...)
     {
