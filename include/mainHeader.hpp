@@ -235,7 +235,7 @@ typedef struct clientRequest
         extension               = "";
         // partialChunkHeader      = "";
         bodyStream              = new std::ofstream;
-        std::cout << "REQUEST STRUCT CONSTRUCTED" << std::endl;
+        //std::cout << "REQUEST STRUCT CONSTRUCTED" << std::endl;
 
     }
 } Request;
