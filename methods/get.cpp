@@ -561,12 +561,10 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
         {
             try
             {
-                std::cout << "scripte name: "<< request.cgiInfo.script << std::endl;
-                // std::string locPath = routeConfig.directory.at("location");
-                // std::string uri = request.headers.at("uri");
-                // std::string pathSuffix = uri.substr(locPath.length());
-                // std::cout << "PATHSUFFIX: " << pathSuffix << std::endl;
                 request.cgiInfo.script = filePath;
+                size_t pos = request.cgiInfo.script.rfind("/");
+                request.cgiInfo.script = request.cgiInfo.script.substr(pos + 1);
+                std::cout << "scripte name: "<< request.cgiInfo.script << std::endl;
                 request.cgiInfo.pathInfo = filePath;
                 std::cout << "pathinfo: "<< request.cgiInfo.pathInfo << std::endl;
                 request.cgiInfo.cookies = request.headers["cookie"];
@@ -575,6 +573,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
                 filePath = request.cgiInfo.output;
 
                 responseData.removeFiles.push_back(request.cgiInfo.output);
+                responseData.removeFiles.push_back( request.filename );
                 if (request.cgiInfo.pid == -1)
                 {
                     serveErrorPage(clientSocket, 500, serverConfig);
