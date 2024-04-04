@@ -562,6 +562,11 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             try
             {
                 std::cout << "scripte name: "<< request.cgiInfo.script << std::endl;
+                // std::string locPath = routeConfig.directory.at("location");
+                // std::string uri = request.headers.at("uri");
+                // std::string pathSuffix = uri.substr(locPath.length());
+                // std::cout << "PATHSUFFIX: " << pathSuffix << std::endl;
+                request.cgiInfo.script = filePath;
                 request.cgiInfo.pathInfo = filePath;
                 std::cout << "pathinfo: "<< request.cgiInfo.pathInfo << std::endl;
                 request.cgiInfo.cookies = request.headers["cookie"];
