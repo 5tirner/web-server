@@ -88,6 +88,38 @@ int connection::location_support_upload(Request& request, int serverId)
                     }
                 }
             }
+			if ( !request.cgi )
+			{
+				std::string second = request.headers.at("content-type");
+				if ( second.empty() )
+				{
+					Logger::log() << "[ Error ] Content type is required" << std::endl;
+					return ( request.stat = 400, -1 );
+				}
+				std::string s1, s2;
+				size_t		slash( second.find_first_of( '/' ) );
+				if ( slash == std::string::npos )
+				{
+					Logger::log() << "[ Error ] Content type mal formed" << std::endl;
+					return ( request.stat = 400, -1 );
+				}
+				
+				s1 = second.substr( 0 , slash );
+				s2 = second.substr( slash + 1 );
+
+				if ( s1.empty() || s2.empty() )
+				{
+					Logger::log() << "[ Error ] Content type mal formed" << std::endl;
+					return ( request.stat = 400, -1 );
+				}
+				if ( s1 == "multipart" )
+				{
+					Logger::log() << "[ Error ] Content type multipart should be processed by cgi" << std::endl;
+					return ( request.stat = 501, -1 );
+				}
+				else
+					request.extension = getMimeTypeForPost(second);
+			}
 
 			std::string allowedMethods = serverInfo.locationsInfo.at(i).allowed_methodes.at("allowed_methodes");
 			std::string uploadDirectory = serverInfo.locationsInfo.at(i).upload.at("upload");
@@ -112,7 +144,7 @@ int connection::location_support_upload(Request& request, int serverId)
 					return request.stat = 404, -1;
 				}
 
-				request.limitClientBodySize = std::atol(serverInfo.limitClientBody.at("limit_client_body").c_str()) * 100000000; //! what???
+				request.limitClientBodySize = std::atol(serverInfo.limitClientBody.at("limit_client_body").c_str()) * 1000000; //! what???
 				if (request.limitClientBodySize == 0)
 				{
 					Logger::log() << "[ Error ]: Client body size limit is 0" << std::endl;
@@ -186,14 +218,20 @@ static size_t parseChunkHeader( Request& request, std::string& buffer )
     request.currentChunkSize = static_cast<size_t>( chunkSize );
     buffer.erase( 0, crlfPos + 2 );
 	request.isChunkHeader = false;
-    return 0;
+    return request.currentChunkSize;
 }
 
 static bool chunkedComplete(Request& request, std::string& buffer)
 {
     size_t bufferLength = buffer.size();
-
-    while ( bufferLength != 0 )
+	
+	if ( request.once && buffer.compare( 0, 5, "0\r\n\r\n" ) == 0 )
+	{
+		std::remove( request.filename.data() );
+		request.once = false;
+		return true;
+	}
+     while ( bufferLength != 0 )
 	{
         if ( request.isChunkHeader )
 		{

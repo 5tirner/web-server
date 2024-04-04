@@ -134,6 +134,7 @@ typedef struct codeStat
     {
         statMsg[ 200 ] = "OK";
         statMsg[ 201 ] = "Created";
+        statMsg[ 202 ] = "Accepted";
         statMsg[ 204 ] = "No Content";
         statMsg[ 300 ] = "Multiple Choices";
         statMsg[ 301 ] = "Moved Permanently";
@@ -203,7 +204,7 @@ typedef struct clientRequest
 
     bool            fetchHeaderDone, processingHeaderDone, processingRequestDone;
     bool            transferEncoding, isContentLength, isChunkHeader, locationGotChecked;
-    bool            storeHeader, readyToSendRes, cgi, cgiGET ,expectCRLF;
+    bool            storeHeader, readyToSendRes, cgi, cgiGET ,expectCRLF, once;
     cgiInfo         cgiInfo;
     std::ofstream*   bodyStream;
 
@@ -221,6 +222,7 @@ typedef struct clientRequest
         cgi                     = false;
         cgiGET                  = false;
         expectCRLF              = false;
+        once                    = true;
         isChunkHeader           = true;
         bytesWrite              = 0;
         chunkSizeSum            = 0;
@@ -345,8 +347,7 @@ std::string removeWhiteSpaces(std::string &s);
 int         redirection(int *status, std::string &val);
 int         errorPages(std::string &all, int *status);
 /*-------------- yachaab code start ---------------*/
-// void        sendResponse( int&, const std::string& );
-// std::string creatTemplate( const char*, int& , code&  );
+std::string getMimeTypeForPost( std::string& );
 /*-------------- yachaab code end -----------------*/
 /*-------------- ysabr code start ---------------*/
 std::string to_string(int);
