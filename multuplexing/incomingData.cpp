@@ -147,37 +147,37 @@ static void strTrim( std::string& str )
 std::string getMimeTypeForPost(std::string& type)
 {
     std::map<std::string, std::string> mimeTypes;
-	mimeTypes["text/html"] = ".html";
-	mimeTypes["text/css"] = ".css";
-	mimeTypes["text/javascript"] = ".js";
-	mimeTypes["application/json"] = ".json";
-	mimeTypes["image/png"] = ".png";
-	mimeTypes["image/jpeg"] = ".jpg";
-	mimeTypes["image/jpeg"] = ".jpeg";
-	mimeTypes["image/gif"] = ".gif";
-	mimeTypes["image/svg+xml"] = ".svg";
-	mimeTypes["application/xml"] = ".xml";
-	mimeTypes["application/pdf"] = ".pdf";
-	mimeTypes["text/plain"] = ".txt";
-	mimeTypes["audio/mpeg"] = ".mp3";
-	mimeTypes["video/mp4"] = ".mp4";
-	mimeTypes["application/octet-stream"] = ".bin";
-	mimeTypes["video/webm"] = ".webm";
-	mimeTypes["audio/webm"] = ".webm";
-	mimeTypes["audio/ogg"] = ".ogg";
-	mimeTypes["video/ogg"] = ".ogv";
-	mimeTypes["audio/wav"] = ".wav";
-	mimeTypes["font/woff"] = ".woff";
-	mimeTypes["font/woff2"] = ".woff2";
-	mimeTypes["font/ttf"] = ".ttf";
-	mimeTypes["font/otf"] = ".otf";
-	mimeTypes["application/zip"] = ".zip";
-	mimeTypes["application/gzip"] = ".gz";
-	mimeTypes["multipart/form-data"] = ".multipart";
-	mimeTypes["message/http"] = ".http";
-	// mimeTypes["application/x-httpd-php"] = ".php";
-	mimeTypes["application/x-python-code"] = ".py";
-	mimeTypes["text/x-python"] = ".py";
+	mimeTypes["text/css"] 					= ".css";
+	mimeTypes["font/ttf"] 					= ".ttf";
+	mimeTypes["font/otf"] 					= ".otf";
+	mimeTypes["text/html"]					= ".html";
+	mimeTypes["image/png"] 					= ".png";
+	mimeTypes["video/mp4"] 					= ".mp4";
+	mimeTypes["video/ogg"] 					= ".ogv";
+	mimeTypes["audio/ogg"] 					= ".ogg";
+	mimeTypes["font/woff"] 					= ".woff";
+	mimeTypes["audio/wav"] 					= ".wav";
+	mimeTypes["image/gif"] 					= ".gif";
+	mimeTypes["text/plain"] 				= ".txt";
+	mimeTypes["image/jpeg"] 				= ".jpg";
+	mimeTypes["image/jpeg"] 				= ".jpeg";
+	mimeTypes["audio/mpeg"] 				= ".mp3";
+	mimeTypes["video/webm"] 				= ".webm";
+	mimeTypes["audio/webm"] 				= ".webm";
+	mimeTypes["font/woff2"] 				= ".woff2";
+	mimeTypes["message/http"] 				= ".http";
+	mimeTypes["image/svg+xml"] 				= ".svg";
+	mimeTypes["text/x-python"] 				= ".py";
+	mimeTypes["text/javascript"] 			= ".js";
+	mimeTypes["application/xml"] 			= ".xml";
+	mimeTypes["application/pdf"] 			= ".pdf";
+	mimeTypes["application/zip"] 			= ".zip";
+	mimeTypes["application/json"] 			= ".json";
+	mimeTypes["application/gzip"] 			= ".gz";
+	mimeTypes["multipart/form-data"] 		= ".multipart";
+	mimeTypes["application/x-httpd-php"] 	= ".php";
+	mimeTypes["application/octet-stream"] 	= ".bin";
+	mimeTypes["application/x-python-code"]	= ".py";
 	
 	try
 	{
@@ -277,7 +277,6 @@ static int	extractHttpHeaders( Request& rq )
 			second	=	it->substr( it->find_first_of( ':' ) + 1 );
 			
 			lowcase( first );
-			// lowcase( second );
 			strTrim( second );
 
 			if ( !examinHeaders( rq, first, second ) )
@@ -333,7 +332,7 @@ static int	validateHeadersProcess( Request& rq )
 	return ( true );
 }
 
-void	fetchRequestHeader( Request& rq, char* buffer, int rc )
+void	connection::fetchRequestHeader( Request& rq, char* buffer, int rc )
 {
     rq.fullRequest.append( buffer, rc );
 	size_t	lfp = rq.fullRequest.find( "\n\n" );
