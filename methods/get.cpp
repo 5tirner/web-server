@@ -562,9 +562,9 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             try
             {
                 request.cgiInfo.script = filePath;
-                size_t pos = request.cgiInfo.script.rfind("/");
-                request.cgiInfo.script = request.cgiInfo.script.substr(pos + 1);
-                std::cout << "scripte name: "<< request.cgiInfo.script << std::endl;
+                // size_t pos = request.cgiInfo.script.rfind("/");
+                // request.cgiInfo.script = request.cgiInfo.script.substr(pos + 1);
+                // std::cout << "scripte name: "<< request.cgiInfo.script << std::endl;
                 request.cgiInfo.pathInfo = filePath;
                 std::cout << "pathinfo: "<< request.cgiInfo.pathInfo << std::endl;
                 request.cgiInfo.cookies = request.headers["cookie"];
