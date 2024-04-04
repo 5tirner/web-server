@@ -9,6 +9,7 @@ logging
 src
 commonGateway/files
 commonGateway/vv.php
+cgi-cookies
 # kkk.cpp
 # vv.php
 # text.txt
