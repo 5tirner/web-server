@@ -1,0 +1,1 @@
+curl https://fr.y8.com/games/amogus_io

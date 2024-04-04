@@ -14,10 +14,10 @@ void connection::serveErrorPage(int clientSocket, int errorCode, const informati
         std::ifstream errorPageFile(foundPath.c_str(), std::ifstream::in);
         if (errorPageFile.is_open())
         {
-            std::cerr << "Reach The Expected THROW" << std::endl;
+            // std::cerr << "Reach The Expected THROW" << std::endl;
             responseBody.assign((std::istreambuf_iterator<char>(errorPageFile)), std::istreambuf_iterator<char>());
             errorPageFile.close();
-            std::cerr << "SKIP IT" << std::endl;
+            // std::cerr << "SKIP IT" << std::endl;
         }
         else
         {
@@ -27,7 +27,7 @@ void connection::serveErrorPage(int clientSocket, int errorCode, const informati
                            "h1 { font-size: 55px; font-weight: 500; }"
                            "p { font-size: 29px; }"
                            "</style></head><body>"
-                           "<h1>Error " + to_string(errorCode) + " - " + codeMsg.statMsg[errorCode] + "</h1>"
+                           "<h1> " + to_string(errorCode) + " - " + codeMsg.statMsg[errorCode] + "</h1>"
                            "<p>The requested URL was not found on this server.</p>"
                            "</body></html>";
         }
@@ -40,7 +40,7 @@ void connection::serveErrorPage(int clientSocket, int errorCode, const informati
                        "h1 { font-size: 55px; font-weight: 500; }"
                        "p { font-size: 29px; }"
                        "</style></head><body>"
-                       "<h1>Error " + to_string(errorCode) + " - " + codeMsg.statMsg[errorCode] + "</h1>"
+                       "<h1> " + to_string(errorCode) + " - " + codeMsg.statMsg[errorCode] + "</h1>"
                        "<p>The requested URL was not found on this server.</p>"
                        "</body></html>";
     }

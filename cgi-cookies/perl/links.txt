@@ -1,0 +1,17 @@
+Francais	http://www.alianwebserver.com/informatique/internet/cgi/default.htm	Aide sur les CGIs
+Francais	http://www.perl-gratuit.com	Scripts CGI Perl gratuits
+Francais	http://www.lecgi.net	Aide à l'utilisation des CGIs
+Francais	http://www.scripts-fr.com	Toutes sortes de CGIs par thème
+Francais	http://www.webdeveloppeur.com	Des outils web utiles
+Francais	http://guide.ungi.net	Des cours sympas sur les technos Web en français
+Francais	http://www.enstimac.fr/Perl/DocFr/perl.html	Docs du Perl en Français
+Francais	news:fr.comp.lang.perl	News
+Anglais	http://www.perl.org	Le site officiel du Perl
+Anglais	http://www.perl.com	Perl.com The Source for Perl -- perl development, perl conferences
+Anglais	http://stein.cshl.org/WWW/software/CGI	CGI.pm	Le site sur le package
+Anglais	http://www.papillion.ne.us/~sthomas/cgi_in_c.html	CGI en C
+Anglais	http://perl.oreilly.com	About Perl
+Anglais	http://cgi-lib.berkeley.edu	Le site de la librairie cgi-lib.pl
+Anglais	http://hoohoo.ncsa.uiuc.edu/cgi	The Common Gateway Interface
+Anglais	http://www.freecode	Des tonnes de bibliothèques vraiment utiles
+Anglais	news:comp.lang.perl.misc	News
