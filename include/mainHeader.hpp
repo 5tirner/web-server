@@ -127,14 +127,14 @@ typedef struct codeStat
 /*-------------- ysabr code start ---------------*/
 struct ParsedCGIOutput
 {
-    std::map<std::string, std::string> headers;
+    std::multimap<std::string, std::string> headers;
     std::string body;
     std::string filepath;
     int status;
     int check;
 
     ParsedCGIOutput() : status(200), check(0) {
-        headers["content-type"] = "text/html";
+        headers.insert(std::make_pair("content-type", "text/html"));
     }
 };
 /*-------------- ysabr code end ---------------*/

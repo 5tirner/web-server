@@ -42,7 +42,7 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
     checkDupHost.reserve(info.size());
     while (it != info.end())
     {
-        std::cerr << "Server Number: " << it->first << std::flush;
+        // std::cerr << "Server Number: " << it->first << std::flush;
         std::vector<std::string> tmp;
         tmp.reserve(2);
         tmp.push_back(it->second.port.at("listen")), tmp.push_back(it->second.host.at("host"));
@@ -53,14 +53,14 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
                 if (std::find(checkTheSameServer.begin(),
                 checkTheSameServer.end(), it->second.serverName.at("server_name")) != checkTheSameServer.end())
                 {
-                    std::cerr << "The Same Host And ServerName Appears More Than Once:" << std::endl
-                    << "The Port: " + tmp[0] + ", The HostIP: " + tmp[1]
-                    << ", ServerName: " + it->second.serverName.at("server_name") << std::endl;
+                    // std::cerr << "The Same Host And ServerName Appears More Than Once:" << std::endl
+                    // << "The Port: " + tmp[0] + ", The HostIP: " + tmp[1]
+                    // << ", ServerName: " + it->second.serverName.at("server_name") << std::endl;
                     throw std::runtime_error("Bad Server");
                 }
                 // std::cerr << "The Same Host Appears More Than Once:" << std::endl
                 // << "The Port: " + tmp[0] + ", The HostIP: " + tmp[1] << std::endl;
-                std::cerr << " Server Not bound" << std::endl;
+                // std::cerr << " Server Not bound" << std::endl;
                 this->notBindingServers[it->second.serverName.at("server_name")] = it->second;
                 checkTheSameServer.push_back(it->second.serverName.at("server_name"));
                 it++; continue;
@@ -98,21 +98,21 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
             it++; continue;
         }
         this->serversSock[fd] = sockInfo; this->OverLoad[fd] = it->second;
-        std::cerr << " Socket Descriptor: " << fd << " Listen On Port Number: "
-        << it->second.port.at("listen") << std::endl;
+        // std::cerr << " Socket Descriptor: " << fd << " Listen On Port Number: "
+        // << it->second.port.at("listen") << std::endl;
         it++;
     }
-    std::cerr << "<------------ Unbinded Servers Start ------------>" << std::endl;
+    // std::cerr << "<------------ Unbinded Servers Start ------------>" << std::endl;
     std::map<std::string, informations>::iterator NotBind = this->notBindingServers.begin();
     int R = 1;
     while (NotBind != this->notBindingServers.end())
     {
-        std::cerr << "Server Number: " << R << std::endl;
+        // std::cerr << "Server Number: " << R << std::endl;
         showInfo(NotBind->second);
         R++;
         NotBind++;
     }
-    std::cerr << "<------------------------ ---------------------->" << std::endl;
+    // std::cerr << "<------------------------ ---------------------->" << std::endl;
 }
 
 void    initializeMonitor(struct pollfd &monitor, int fd)
@@ -167,7 +167,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
             }
             catch ( ... )
             {
-                std::cerr << "\033[35mPROCESSING CLIENT REQUEST + BODY DONE WITH STAT:" << this->Requests.at(monitor.fd).stat << "\033[0m" << std::endl;
+                // std::cerr << "\033[35mPROCESSING CLIENT REQUEST + BODY DONE WITH STAT:" << this->Requests.at(monitor.fd).stat << "\033[0m" << std::endl;
                 this->Requests.at(monitor.fd).readyToSendRes = true;
             }
             /*-------------- yachaab code end -----------------*/
@@ -191,7 +191,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
 
                 if (!this->Requests.at(monitor.fd).storeHeader)
                 {
-                    std::cout << "SEND RESPONSE 1" << std::endl;
+                    // std::cout << "SEND RESPONSE 1" << std::endl;
                     try
                     {
                         try
@@ -205,7 +205,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                         }
                         catch(...)
                         {
-                            std::cout << "SEND RESPONSE 2" << std::endl;
+                            // std::cout << "SEND RESPONSE 2" << std::endl;
                             if (this->Requests.at(monitor.fd).headers.at("method") == "get")
                                 handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
                             else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
@@ -215,13 +215,13 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                     catch( ... )
                     {
                 /*-------------- yachaab code start -----------------*/
-                        std::cout << "SEND RESPONSE 3" << std::endl;
+                        // std::cout << "SEND RESPONSE 3" << std::endl;
                         serveErrorPage(monitor.fd, this->Requests.at(monitor.fd).stat,  Response[monitor.fd].info);
                     }
                 }
                 if ( this->Requests.at(monitor.fd).headers.at("method") == "post" )
                 {
-                    std::cout << "SEND RESPONSE 4" << std::endl;
+                    // std::cout << "SEND RESPONSE 4" << std::endl;
                     serveErrorPage(monitor.fd, this->Requests.at(monitor.fd).stat,  Response[monitor.fd].info);
                 }
                 /*-------------- yachaab code ended -----------------*/
@@ -257,7 +257,7 @@ void    connection::checkServer(struct pollfd &monitor, std::map<int, struct soc
 {
     if ((monitor.revents & POLLIN))
     {
-        std::cerr << "Server-Side, An event happend on server socket number: " << monitor.fd << std::endl;
+        // std::cerr << "Server-Side, An event happend on server socket number: " << monitor.fd << std::endl;
         socklen_t   addLen = sizeof(it->second);
         int newClient = accept(monitor.fd, (struct sockaddr *)&it->second, &addLen);
         if (newClient == -1)
@@ -271,7 +271,7 @@ void    connection::checkServer(struct pollfd &monitor, std::map<int, struct soc
             this->Response[newClient] = response();
             this->Cgires[newClient] = ParsedCGIOutput();
         }
-        std::cerr << "Number Of Client Now Is: " << this->clientsSock.size() << std::endl;
+        // std::cerr << "Number Of Client Now Is: " << this->clientsSock.size() << std::endl;
     }
     else if (monitor.revents & POLLHUP)
         std::cerr << "Error: Server-Side, Connection Destroyed For " << monitor.fd << " Endpoint." << std::endl;
@@ -383,7 +383,6 @@ void connection::dropClient( int& fd, std::map<int, int>::iterator &it )
     this->EndFd.push_back(fd);
     std::cerr << "-> Fd Closed." << std::endl;
     std::cerr << "Search For Data..." << std::endl;
-
     std::map<int, Request>::iterator toRemove = this->Requests.find(it->first);
     std::map<int, response>::iterator rm = this->Response.find(it->first);
     cleanupResponseFiles(rm->second.removeFiles);

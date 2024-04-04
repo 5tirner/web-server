@@ -70,21 +70,21 @@ std::string decodeURI(const std::string& uri)
     std::string result;
     for (std::size_t i = 0; i < uri.size(); ++i)
     {
-		if ( uri[i] == '/' )
-		{
-			size_t j = i + 1;
-			for ( ; j <= i + 2 && uri[j] == '.'; ++j );
-			if ( j > i + 1 && j == uri.size() )
-			{
-				std::cerr << "????????????????????????" << std::endl;
-				return "";
-			}
-			if ( j != i + 1 && uri[ j ] == '/' )
-			{
-				std::cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
-				return "";
-			}
-		}
+		// if ( uri[i] == '/' )
+		// {
+		// 	size_t j = i + 1;
+		// 	for ( ; j <= i + 2 && uri[j] == '.'; ++j );
+		// 	if ( j > i + 1 && j == uri.size() )
+		// 	{
+		// 		std::cerr << "????????????????????????" << std::endl;
+		// 		return "";
+		// 	}
+		// 	if ( j != i + 1 && uri[ j ] == '/' )
+		// 	{
+		// 		std::cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+		// 		return "";
+		// 	}
+		// }
         if (uri[i] == '%' && i + 2 < uri.length())
         {
             std::string hex = uri.substr(i + 1, 2);

@@ -64,7 +64,7 @@ void    etatInitial(informations &tmp)
 
 int checkLocations(informations &tmp)
 {
-    std::cerr << "I will Check The Location Info" << std::endl;
+    // std::cerr << "I will Check The Location Info" << std::endl;
     for (size_t i = 0; i < tmp.locations.size(); i++)
     {
         std::stringstream input(tmp.locations[i]);
@@ -167,7 +167,7 @@ int checkLocations(informations &tmp)
 
 int checkInformations(informations &tmp)
 {
-    std::cerr << "I will Check The info" << std::endl;
+    // std::cerr << "I will Check The info" << std::endl;
     for (size_t i = 0; i < tmp.others.size(); i++)
     {
         std::string key; size_t j = 0;

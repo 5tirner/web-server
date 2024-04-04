@@ -5,6 +5,7 @@
 #include <ctime>
 #include <exception>
 #include <fcntl.h>
+#include <filesystem>
 #include <fstream>
 #include <ostream>
 #include <stdexcept>
@@ -49,14 +50,14 @@ void cgiFile(cgiInfo& cgiInfo)
     std::srand(std::time(NULL));
     str << ".cgi_file" << std::rand() << std::endl; 
     str >> cgiInfo.output;
+    std::cerr << "Script Form CGIINFO is: " +  cgiInfo.script << std::endl;
     int processDup1 = fork();
     if (!processDup1)
     {
-        std::cout << "\033[35mfdsfffsdf" << cgiInfo.output.c_str() << "\033[35m"  << "\033[0m" << std::endl;
         char *Env[] = {
             (char*)strdup(("REQUEST_METHOD=" + cgiInfo.method).c_str()),
             (char*)"REDIRECT_STATUS=200",
-            (char*)strdup(("SCRIPT_FILENAME=" + cgiInfo.script).c_str()),
+            (char*)strdup(("SCRIPT_FILENAME=" + cgiInfo.script).c_str()), //filename only
             (char*)strdup(("QUERY_STRING=" + cgiInfo.queries).c_str()),
             (char*)strdup(("PATH_INFO=" + cgiInfo.pathInfo).c_str()),
             (char*)strdup(("HTTP_COOKIE=" + cgiInfo.cookies).c_str()),
@@ -66,7 +67,6 @@ void cgiFile(cgiInfo& cgiInfo)
         };
         if (!freopen(cgiInfo.output.c_str(), "w", stdout))
             exit(150);
-        
         if (cgiInfo.method == "POST")
         {
             Env[6] = (char*)strdup(("CONTENT_LENGTH=" + cgiInfo.contentLength).c_str());
@@ -74,10 +74,6 @@ void cgiFile(cgiInfo& cgiInfo)
             if (!freopen(cgiInfo.input.c_str(), "r", stdin))
                 exit(150);
         }
-
-
-       // change the path to the path info chdri();
-
 
         execve(cgiInfo.binary.c_str(), args, Env);
         exit(150);
