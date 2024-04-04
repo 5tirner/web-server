@@ -381,9 +381,8 @@ void connection::dropClient( int& fd, std::map<int, int>::iterator &it )
     if (std::find(this->EndFd.begin(), this->EndFd.end(), fd) != this->EndFd.end())
         return;
     this->EndFd.push_back(fd);
-    // std::cerr << "-> Fd Closed." << std::endl;
-    // std::cerr << "Search For Data..." << std::endl;
-
+    std::cerr << "-> Fd Closed." << std::endl;
+    std::cerr << "Search For Data..." << std::endl;
     std::map<int, Request>::iterator toRemove = this->Requests.find(it->first);
     std::map<int, response>::iterator rm = this->Response.find(it->first);
     cleanupResponseFiles(rm->second.removeFiles);
@@ -391,13 +390,13 @@ void connection::dropClient( int& fd, std::map<int, int>::iterator &it )
         this->responsetEnd.push_back(it->first);
     if (toRemove != this->Requests.end())
     {
-        // std::cerr << "Found Some Data For: " << toRemove->first << std::endl;
+        std::cerr << "Found Some Data For: " << toRemove->first << std::endl;
         this->requestEnd.push_back(toRemove);
-        // std::cerr << "Data Deleted." << std::endl;
+        std::cerr << "Data Deleted." << std::endl;
     }
-    // std::cerr << "Client " << it->first << " Related With Server "
-    // << it->second << " Exited." << std::endl;
+    std::cerr << "Client " << it->first << " Related With Server "
+    << it->second << " Exited." << std::endl;
     this->exited.push_back(it);
-    // std::cerr << "Number Of Client Left: " << this->clientsSock.size() - 1 << std::endl;
+    std::cerr << "Number Of Client Left: " << this->clientsSock.size() - 1 << std::endl;
 }
 /*-------------- yachaab edit start ---------------*/

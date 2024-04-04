@@ -5,9 +5,11 @@
 #include <ctime>
 #include <exception>
 #include <fcntl.h>
+#include <filesystem>
 #include <fstream>
 #include <ostream>
 #include <stdexcept>
+#include <string>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -37,6 +39,19 @@ std::string GetExtension(std::string &filename)
     return (executer);
 }
 
+void    fillScriptFileName(std::string &scriptName, std::string &all)
+{
+    size_t i = all.size() - 1;
+    while (i > 0)
+    {
+        if (i - 1 > 0 && all[i - 1] == '/')
+            break;
+        i--;
+    }
+    scriptName = &all[i];
+    all.erase(i);
+}
+
 void cgiFile(cgiInfo& cgiInfo)
 {
     // std::cerr << "1- FileName: " << cgiInfo.script << std::endl;
@@ -52,15 +67,20 @@ void cgiFile(cgiInfo& cgiInfo)
     std::cout  << ".PATH INFO:" << cgiInfo.pathInfo << std::endl; 
     str << ".cgi_file" << std::rand() << std::endl; 
     str >> cgiInfo.output;
+    std::cerr << "Script Form CGIINFO is: " +  cgiInfo.script << std::endl;
     int processDup1 = fork();
     if (!processDup1)
     {
+        std::string SCRIPT_FILENAME, SCRIP_DIR = cgiInfo.script;
+        fillScriptFileName(SCRIPT_FILENAME, SCRIP_DIR);
+        std::cout << "SCRIPT NEW NAME: " + SCRIPT_FILENAME << std::endl;
+        std::cout << "PATHINFO FOR CGI: " + SCRIP_DIR << std::endl;
         char *Env[] = {
             (char*)strdup(("REQUEST_METHOD=" + cgiInfo.method).c_str()),
             (char*)"REDIRECT_STATUS=200",
-            (char*)strdup(("SCRIPT_FILENAME=" + cgiInfo.script).c_str()),
+            (char*)strdup(("SCRIPT_FILENAME=" + SCRIPT_FILENAME).c_str()), //filename only
             (char*)strdup(("QUERY_STRING=" + cgiInfo.queries).c_str()),
-            (char*)strdup(("PATH_INFO=" + cgiInfo.pathInfo).c_str()),
+            (char*)strdup(("PATH_INFO=" + cgiInfo.script).c_str()),
             (char*)strdup(("HTTP_COOKIE=" + cgiInfo.cookies).c_str()),
             NULL,
             NULL,
@@ -68,13 +88,17 @@ void cgiFile(cgiInfo& cgiInfo)
         };
         if (!freopen(cgiInfo.output.c_str(), "w", stdout))
             exit(150);
-        
         if (cgiInfo.method == "POST")
         {
             Env[6] = (char*)strdup(("CONTENT_LENGTH=" + cgiInfo.contentLength).c_str());
             Env[7] = (char*)strdup(("CONTENT_TYPE=" + cgiInfo.contentType).c_str());
             if (!freopen(cgiInfo.input.c_str(), "r", stdin))
                 exit(150);
+        }
+        if (chdir(SCRIP_DIR.c_str()) == -1)
+        {
+            std::cerr << "Error: Failed To Change Dir Into The File Dir" << std::endl;
+            exit(1);
         }
         execve(cgiInfo.binary.c_str(), args, Env);
         exit(150);
