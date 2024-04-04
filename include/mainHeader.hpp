@@ -156,6 +156,28 @@ typedef struct cgiresponse
 
     cgiresponse():startTime(0), method( "GET" ) {}
 
+    cgiresponse(const cgiresponse& other)
+    {
+        *this = other;
+    }
+    cgiresponse& operator=(const cgiresponse& src)
+    {
+        if (this != &src)
+        {
+            startTime = src.startTime;
+            queries = src.queries;
+            cookies = src.cookies;
+            method = src.method;
+            contentLength = src.contentLength;
+            contentType = src.contentType;
+            input = src.input;
+            output = src.output;
+            script = src.script;
+            binary = src.binary;
+            pathInfo = src.pathInfo;
+        }
+        return *this;
+    }
 }cgiInfo;
 
 typedef struct clientRequest
