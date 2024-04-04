@@ -23,7 +23,10 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <signal.h>
+#include <cerrno>
+#include <csignal>
+#include <netdb.h>
+#include <arpa/inet.h>
 
 class   configFile
 {
@@ -235,6 +238,18 @@ typedef struct clientRequest
         std::cout << "REQUEST STRUCT CONSTRUCTED" << std::endl;
 
     }
+    // clientRequest(const clientRequest& src)
+    // {
+    //     cgiInfo = src.cgiInfo;
+    // }
+    // clientRequest& operator=(const clientRequest& src)
+    // {
+    //     if (this != &src)
+    //     {
+    //         cgiInfo = src.cgiInfo;
+
+    //     }
+    // }
 } Request;
 /*-------------- yachaab code end ---------------*/
 
@@ -353,7 +368,7 @@ std::string getMimeTypeForPost( std::string& );
 std::string to_string(int);
 std::string getMimeType(std::string&);
 std::string getNextChunk(response&,size_t);
-std::string mapUriToFilePath(std::string&, location);
+std::string mapUriToFilePath(std::string&, location, Request&);
 std::string generateDirectoryListing(const std::string&);
 bool        hasNextChunk(response&);
 bool        fileExists(std::string&);
