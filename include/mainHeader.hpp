@@ -176,6 +176,9 @@ typedef struct clientRequest
     cgiInfo         cgiInfo;
     std::ofstream*   bodyStream;
 
+    bool            expectCRLF; //tmp
+    std::string     partialChunkHeader;
+
     clientRequest()
     {
         fetchHeaderDone         = false;
@@ -199,6 +202,9 @@ typedef struct clientRequest
         extension               = "";
         bodyStream              = new std::ofstream;
         std::cout << "REQUEST STRUCT CONSTRUCTED" << std::endl;
+
+        expectCRLF = false;
+        partialChunkHeader = "";
     }
 } Request;
 
