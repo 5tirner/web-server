@@ -325,13 +325,6 @@ ParsedCGIOutput response::parseCGIOutput(std::string& filePath)
         }
         count++;
     }
-
-    // while (std::getline(file, line))
-    // {
-    //     if (!line.empty() && line[line.length() - 1] == '\r')
-    //         line.erase(line.size() - 1);
-    //     output.body += line + "\n";
-    // }
     return output;
 }
 

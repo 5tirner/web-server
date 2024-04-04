@@ -264,9 +264,6 @@ void    connection::checkServer(struct pollfd &monitor, std::map<int, struct soc
             std::cerr << "Error: Filed To Create New EndPoint With Socket " << monitor.fd << std::endl;
         else
         {
-            std::cerr << "Clients Those Already Here :" << std::endl;
-            for (std::map<int, Request>::iterator it = this->Requests.begin(); it != this->Requests.end(); it++)
-                std::cerr << "Client Of Fd Number: " << it->first << std::endl;
             std::cerr << "New client number: " << newClient << " Added to server endpoint: " << monitor.fd << std::endl;
             this->clientTimerToSendRequest[newClient] = clock();
             this->clientTimerToEndRequest[newClient] = clock();
