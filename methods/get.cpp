@@ -548,7 +548,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             filePath = filePath2.substr(0,np);
             filePath += filePath2.substr(np + 1);
         }
-        std::cout << "===>: FILEPATH: " << filePath << std::endl;
+        //std::cout << "===>: FILEPATH: " << filePath << std::endl;
         if (!access(filePath.c_str(), F_OK))
         {
             if (access(filePath.c_str(), R_OK))

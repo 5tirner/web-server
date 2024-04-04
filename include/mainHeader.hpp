@@ -1,35 +1,32 @@
 #ifndef MAINHEADER_HPP
 #define MAINHEADER_HPP
-#include <cstddef>
-#include <iostream>
-#include <exception>
-#include <fstream>
-#include <vector>
-#include <string>
-#include <map>
-#include <cstring>
-#include <cstdlib>
-#include <sstream>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <netinet/in.h>
-#include <exception>
-#include <stdexcept>
-#include <cstdio>
-#include <netinet/in.h>
-#include <string>
-#include <sys/poll.h>
 #include <map>
 #include <ctime>
-// #include <asm-generic/socket.h>
-#include <netinet/in.h>
-#include <sys/stat.h>
-#include <algorithm>
-#include <dirent.h>
-#include <csignal>
-#include <fcntl.h>
-#include <sys/types.h>
+#include <string>
+#include <vector>
+#include <cstdio>
+#include <cstddef>
 #include <climits>
+#include <fstream>
+#include <cstring>
+#include <cstdlib>
+#include <fcntl.h>
+#include <sstream>
+#include <dirent.h>
+#include <iostream>
+#include <unistd.h>
+#include <exception>
+#include <algorithm>
+#include <stdexcept>
+#include <sys/poll.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <cerrno>
+#include <csignal>
+#include <netdb.h>
+#include <arpa/inet.h>
 
 class   configFile
 {
@@ -99,6 +96,40 @@ class   servers
         int                         isolateServers(std::string &s);
 };
 
+
+/*-------------- ysabr code start ---------------*/
+struct ParsedCGIOutput
+{
+    std::map<std::string, std::string> headers;
+    std::string body;
+    std::string filepath;
+    int status;
+    int check;
+
+    ParsedCGIOutput() : status(200), check(0) {
+        headers["content-type"] = "text/html";
+    }
+};
+
+
+
+typedef struct cgiresponse
+{
+    int     pid;
+    std::clock_t    startTime;
+    std::string     queries;
+    std::string     cookies;
+    std::string     method;
+    std::string     contentLength, contentType;
+    std::string     input, output;
+    std::string     script, binary;
+    std::string     pathInfo;
+
+    cgiresponse():startTime(0), method( "GET" ) {}
+
+}cgiInfo;
+/*-------------- ysabr code end ---------------*/
+
 /*-------------- yachaab code start ---------------*/
 typedef struct codeStat
 {
@@ -106,6 +137,7 @@ typedef struct codeStat
     {
         statMsg[ 200 ] = "OK";
         statMsg[ 201 ] = "Created";
+        statMsg[ 202 ] = "Accepted";
         statMsg[ 204 ] = "No Content";
         statMsg[ 300 ] = "Multiple Choices";
         statMsg[ 301 ] = "Moved Permanently";
@@ -125,56 +157,60 @@ typedef struct codeStat
 } code;
 
 /*-------------- ysabr code start ---------------*/
-struct ParsedCGIOutput
-{
-    std::multimap<std::string, std::string> headers;
-    std::string body;
-    std::string filepath;
-    int status;
-    int check;
+// struct ParsedCGIOutput
+// {
+//     std::multimap<std::string, std::string> headers;
+//     std::string body;
+//     std::string filepath;
+//     int status;
+//     int check;
 
-    ParsedCGIOutput() : status(200), check(0) {
-        headers.insert(std::make_pair("content-type", "text/html"));
-    }
-};
+//     ParsedCGIOutput() : status(200), check(0) {
+//         headers.insert(std::make_pair("content-type", "text/html"));
+//     }
+// };
 /*-------------- ysabr code end ---------------*/
 
 /*-------------- yachaab code start ---------------*/
 
 
-typedef struct cgiresponse
-{
-    int     pid;
-    std::clock_t    startTime;
-    std::string     queries;
-    std::string     cookies;
-    std::string     method;
-    std::string     contentLength, contentType;
-    std::string     input, output;
-    std::string     script, binary;
-    std::string     pathInfo;
+// typedef struct cgiresponse
+// {
+//     int     pid;
+//     std::clock_t    startTime;
+//     std::string     queries;
+//     std::string     cookies;
+//     std::string     method;
+//     std::string     contentLength, contentType;
+//     std::string     input, output;
+//     std::string     script, binary;
+//     std::string     pathInfo;
 
-    cgiresponse():startTime(0), method( "GET" ) {}
+//     cgiresponse():startTime(0), method( "GET" ) {}
 
-}cgiInfo;
+// }cgiInfo;
 
 typedef struct clientRequest
 {
     std::map<std::string, std::string> headers;
-    std::string     fullRequest, remainingBody;
-    std::string     filename, extension, scriptName;
+    std::string     fullRequest;
+    std::string     remainingBody;
+    std::string     extension;
+    std::string     partialChunkHeader;
+    std::string     filename;
+    std::string     scriptName;
 
-    size_t          bytesWrite, contentlength, chunkSizeSum, currentChunkSize, limitClientBodySize;
-    int             stat, chunkHeaderStart, rc;
+    size_t          bytesWrite, contentlength;
+    size_t          chunkSizeSum, currentChunkSize;
+    size_t          limitClientBodySize;
+    int             stat, chunkHeaderStart;
 
     bool            fetchHeaderDone, processingHeaderDone, processingRequestDone;
-    bool            transferEncoding, isContentLength;
-    bool            isChunkHeader, locationGotChecked;
-    bool            storeHeader, readyToSendRes;
-    bool            cgi, cgiGET;
-    bool            iscr, islf;
+    bool            transferEncoding, isContentLength, isChunkHeader, locationGotChecked;
+    bool            storeHeader, readyToSendRes, cgi, cgiGET ,expectCRLF, once;
     cgiInfo         cgiInfo;
     std::ofstream*   bodyStream;
+
 
     clientRequest()
     {
@@ -186,10 +222,10 @@ typedef struct clientRequest
         storeHeader             = false;
         locationGotChecked      = false;
         readyToSendRes          = false;
-        iscr                    = false;
-        islf                    = false;
         cgi                     = false;
         cgiGET                  = false;
+        expectCRLF              = false;
+        once                    = true;
         isChunkHeader           = true;
         bytesWrite              = 0;
         chunkSizeSum            = 0;
@@ -197,11 +233,13 @@ typedef struct clientRequest
         contentlength           = 0;
         stat                    = 0;
         extension               = "";
+        // partialChunkHeader      = "";
         bodyStream              = new std::ofstream;
-        std::cout << "REQUEST STRUCT CONSTRUCTED" << std::endl;
+        //std::cout << "REQUEST STRUCT CONSTRUCTED" << std::endl;
+
     }
 } Request;
-
+/*-------------- yachaab code end ---------------*/
 
 typedef struct clientResponse
 {
@@ -284,18 +322,15 @@ public:
     void    checkClient(struct pollfd &monitor, std::map<int, int>::iterator &it, const std::map<int, informations>& );
     void    dropClient( int&, std::map<int, int>::iterator & );
     // void    closeTheExitClients(void);
-    /*-------------- yachaab code start ---------------*/
     void    processingClientRequest( int, char*, Request&, int );
     void    processingBody( Request&, char*, int, int );
     int     location_support_upload( Request& , int );
     void    processingHeader( Request& );
-    // void    responseProcess( Request&, const int&, int );
-    /*-------------- yachaab code end -----------------*/
-    /*-------------- ysabr code start ---------------*/
+    void    fetchRequestHeader( Request&, char *, int );
+
     void    handleRequestGET(int, Request&, const informations&);
     void    handleRequestDELETE(int, Request&, const informations&);
     void        serveErrorPage(int, int, const informations&);
-    /*-------------- ysabr code end -----------------*/
 };
 //pars functions
 int         isValidIp4(std::string &value);
@@ -315,9 +350,7 @@ std::string removeWhiteSpaces(std::string &s);
 int         redirection(int *status, std::string &val);
 int         errorPages(std::string &all, int *status);
 /*-------------- yachaab code start ---------------*/
-void        sendResponse( int&, const std::string& );
-void        fetchRequestHeader( Request&, char *, int );
-std::string creatTemplate( const char*, int& , code&  );
+std::string getMimeTypeForPost( std::string& );
 /*-------------- yachaab code end -----------------*/
 /*-------------- ysabr code start ---------------*/
 std::string to_string(int);

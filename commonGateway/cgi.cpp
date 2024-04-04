@@ -32,7 +32,7 @@ std::string GetExtension(std::string &filename)
     try
     {
         executer = types.at(&filename[i]);
-        std::cerr << "- Matched With " + executer << std::endl;
+        //std::cerr << "- Matched With " + executer << std::endl;
     }
     catch (...)
     { executer = "NormalFile"; }
@@ -63,11 +63,11 @@ void cgiFile(cgiInfo& cgiInfo)
     std::stringstream str;
     std::srand(std::time(NULL));
     str << ".cgi_file" << std::rand() << std::endl; 
-    std::cout << ".SCRIPTE NAME:" << cgiInfo.script << std::endl; 
-    std::cout  << ".PATH INFO:" << cgiInfo.pathInfo << std::endl; 
+    // std::cout << ".SCRIPTE NAME:" << cgiInfo.script << std::endl; 
+    // std::cout  << ".PATH INFO:" << cgiInfo.pathInfo << std::endl; 
     str << ".cgi_file" << std::rand() << std::endl; 
     str >> cgiInfo.output;
-    std::cerr << "Script Form CGIINFO is: " +  cgiInfo.script << std::endl;
+    //std::cerr << "Script Form CGIINFO is: " +  cgiInfo.script << std::endl;
     int processDup1 = fork();
     if (!processDup1)
     {
