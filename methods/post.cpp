@@ -152,7 +152,7 @@ int connection::location_support_upload(Request& request, int serverId) {
 //     if (crlfPos == std::string::npos)
 // 	{
 // 		chunkHeader = buffer;
-// 		// std::cerr << "chunkHeader1: " << chunkHeader << std::endl;
+// 		//// // std::cerr << "chunkHeader1: " << chunkHeader << std::endl;
 // 	}
 // 	else
 // 	{
@@ -164,7 +164,7 @@ int connection::location_support_upload(Request& request, int serverId) {
 // 		}
 // 		else
 //     		chunkHeader = buffer.substr(0, crlfPos);
-// 		// std::cerr << "chunkHeader2: " << chunkHeader << " | crlfPos: " << crlfPos << std::endl;
+// 		//// // std::cerr << "chunkHeader2: " << chunkHeader << " | crlfPos: " << crlfPos << std::endl;
 // 	}
 
 //     char* endPtr;
@@ -172,7 +172,7 @@ int connection::location_support_upload(Request& request, int serverId) {
 
 //     if (endPtr == chunkHeader.data() || (*endPtr != '\0' && !std::isspace(*endPtr)))
 // 	{
-// 		std::cerr << "Chunk Hexa Header" << chunkHeader << std::endl;
+// 		// std::cerr << "Chunk Hexa Header" << chunkHeader << std::endl;
 //         request.stat = 400;
 //         Logger::log() << "[ Error ] Invalid chunk size header" << std::endl;
 //         throw std::invalid_argument("Invalid chunk size header");
@@ -280,7 +280,7 @@ int connection::location_support_upload(Request& request, int serverId) {
 // 		}
 // 		else if ( request.currentChunkSize == buffer.length() )
 // 		{
-// 			std::cerr << "BUFFER LENGTH == CHUNK LENGTH" << std::endl;
+// 			// std::cerr << "BUFFER LENGTH == CHUNK LENGTH" << std::endl;
 // 			request.bodyStream->write( buffer.data(), request.currentChunkSize );
 // 			request.bodyStream->flush();
 // 			bufferLength -= request.currentChunkSize;
@@ -297,7 +297,7 @@ static size_t parseChunkHeader(Request& request, std::string& buffer)
 {
     if (buffer.empty())
 	{
-		// std::cerr << "1" << std::endl;
+		// std::cerr << "NONE" << std::endl;
         return std::string::npos;
 	}
 
@@ -306,18 +306,22 @@ static size_t parseChunkHeader(Request& request, std::string& buffer)
 	{
         if (buffer.size() >= 2 && buffer.substr(0, 2) == "\r\n")
 		{
-			// std::cerr << "CRLF FOUND IN PARSE: " << std::endl;
+			// std::cerr << "CRLF" << std::endl;
             buffer.erase(0, 2);
 		}
 		else
 		{
 			if ( buffer[0] == '\r' )
 			{
+				// std::cerr << "CR" << std::endl;
 				buffer.erase( 0, 1 );
             	return std::string::npos;
 			}
 			else if ( buffer[0] == '\n' )
+			{
+				// std::cerr << "LF" << std::endl;
 				buffer.erase( 0, 1 );
+			}
 		}
 
         request.expectCRLF = false;
@@ -328,7 +332,7 @@ static size_t parseChunkHeader(Request& request, std::string& buffer)
     request.partialChunkHeader.clear();
 
     size_t crlfPos = buffer.find("\r\n");
-    if (crlfPos == std::string::npos)
+    if ( crlfPos == std::string::npos )
 	{
         request.partialChunkHeader = buffer;
 		// std::cerr << "3" << std::endl;
@@ -336,19 +340,20 @@ static size_t parseChunkHeader(Request& request, std::string& buffer)
     }
 
     std::string chunkHeader = buffer.substr(0, crlfPos);
-	std::cerr << "CHUNK HEAD STRING: " << chunkHeader << std::endl;
+	//// // std::cerr << "CHUNK HEAD STRING: " << chunkHeader << std::endl;
+	// std::cout << "HEAD: "<< chunkHeader << std::endl;
     char* endPtr = NULL;
     long chunkSize = std::strtol(chunkHeader.c_str(), &endPtr, 16);
     if (endPtr == chunkHeader.data() || (*endPtr != '\0' && !std::isspace(*endPtr)))
 	{
 		request.stat = 500;
-		// std::cerr << "chunkHeader: " << chunkHeader << std::endl;
+		//// // std::cerr << "chunkHeader: " << chunkHeader << std::endl;
         throw std::invalid_argument("Invalid chunk size header");
     }
     if (chunkSize == LONG_MAX || chunkSize == LONG_MIN)
 	{
 		request.stat = 500;
-		// std::cerr << "chunkHeader2: " << chunkHeader << std::endl;
+		//// // std::cerr << "chunkHeader2: " << chunkHeader << std::endl;
         throw std::overflow_error("Chunk size overflow/underflow");
     }
 
@@ -409,7 +414,7 @@ static bool chunkedComplete(Request& request, std::string& buffer)
 			size_t chunkSize = parseChunkHeader(request, buffer);
 			if ( chunkSize == std::string::npos )
 			{
-				// std::cerr << "HETE" << std::endl;
+				//// // std::cerr << "HETE" << std::endl;
 				return false; // Header incomplete, wait for more data
 			}
 
@@ -420,7 +425,8 @@ static bool chunkedComplete(Request& request, std::string& buffer)
 
 			bufferLength = buffer.size();
 			// std::cerr << "buffer Length 1: " << bufferLength << std::endl;
-			return request.currentChunkSize == 0;
+			if ( request.currentChunkSize == 0 )
+				return true;
         }
 		if( request.currentChunkSize <= bufferLength )
 		{
@@ -435,31 +441,24 @@ static bool chunkedComplete(Request& request, std::string& buffer)
 			bufferLength = buffer.size();
 			if ( buffer.substr( 0, 2 ) == "\r\n" || bufferLength == 0 )
 			{
-				// std::cerr << "CRLF FOUND" << std::endl;
+				//// // std::cerr << "CRLF FOUND" << std::endl;
 				request.expectCRLF = true;
 			}
 			if ( bufferLength == 1 )
 			{
-				// std::cerr << "CR ONLY FOUND" << std::endl;
+				//// // std::cerr << "CR ONLY FOUND" << std::endl;
 				request.expectCRLF = true;
 			}
 			request.isChunkHeader = true; // Ready for next chunk header
 		}
 		else
 		{
+			// Chunk size larger than buffer, process partial chunk
 			// std::cerr << ">" << std::endl;
 			// std::cerr << "buffer Length 2: " << bufferLength << std::endl;
-			// Chunk size larger than buffer, process partial chunk
-			
 			request.bodyStream->write(buffer.data(), bufferLength);
-			// if ( buffer.find( "\r\n" ) != std::string::npos )
-			// {
-			// 	std::cerr << "chunk size " << request.currentChunkSize << std::endl;
-			// 	std::cerr << "INDEX: " << buffer.find( "\r\n" ) << std::endl;
-			// 	request.expectCRLF = true;
-			// }
 			request.currentChunkSize -= bufferLength;
-			buffer.clear();
+			// buffer.clear();
 			request.isChunkHeader = false;
 			return false; // Need more data to complete chunk
 		}
