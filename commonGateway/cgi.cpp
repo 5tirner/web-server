@@ -39,7 +39,7 @@ std::string GetExtension(std::string &filename)
 
 void cgiFile(cgiInfo& cgiInfo)
 {
-    std::cerr << "1- FileName: " << cgiInfo.script << std::endl;
+    // std::cerr << "1- FileName: " << cgiInfo.script << std::endl;
     char *args[3] = {
         (char *)cgiInfo.binary.c_str(),
         (char *)cgiInfo.script.c_str(),
@@ -47,6 +47,9 @@ void cgiFile(cgiInfo& cgiInfo)
         };
     std::stringstream str;
     std::srand(std::time(NULL));
+    str << ".cgi_file" << std::rand() << std::endl; 
+    std::cout << ".SCRIPTE NAME:" << cgiInfo.script << std::endl; 
+    std::cout  << ".PATH INFO:" << cgiInfo.pathInfo << std::endl; 
     str << ".cgi_file" << std::rand() << std::endl; 
     str >> cgiInfo.output;
     int processDup1 = fork();
@@ -73,11 +76,6 @@ void cgiFile(cgiInfo& cgiInfo)
             if (!freopen(cgiInfo.input.c_str(), "r", stdin))
                 exit(150);
         }
-
-
-       // change the path to the path info chdri();
-
-
         execve(cgiInfo.binary.c_str(), args, Env);
         exit(150);
     }

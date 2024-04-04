@@ -172,7 +172,7 @@ bool isPathWithinRoot(std::string& fullPath, std::string& rootPath)
     return true;
 }
 
-std::string mapUriToFilePath( std::string& uri,  location locConfig)
+std::string mapUriToFilePath( std::string& uri,  location locConfig, Request& request)
 {
     std::string rootPath = locConfig.root.at("root");
     std::string locPath = locConfig.directory.at("location");
@@ -182,6 +182,7 @@ std::string mapUriToFilePath( std::string& uri,  location locConfig)
     if (pathSuffix.empty() || pathSuffix[0] != '/')
         fullPath += "/";
     fullPath += pathSuffix;
+    request.cgiInfo.script = pathSuffix;
     if (pathSuffix.find("../") != std::string::npos)
     {
         fullPath = resolveFilePath(fullPath);
@@ -534,7 +535,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
         std::string filePath2;
         try
         {
-            filePath2 = mapUriToFilePath(request.headers.at("uri"), routeConfig);
+            filePath2 = mapUriToFilePath(request.headers.at("uri"), routeConfig, request);
         
         } catch (...)
         {
@@ -560,12 +561,14 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
         {
             try
             {
-                request.cgiInfo.script = filePath;
+                std::cout << "scripte name: "<< request.cgiInfo.script << std::endl;
+                request.cgiInfo.pathInfo = filePath;
+                std::cout << "pathinfo: "<< request.cgiInfo.pathInfo << std::endl;
                 request.cgiInfo.cookies = request.headers["cookie"];
                 request.cgiInfo.binary = executer;
                 cgiFile(request.cgiInfo);
-                
                 filePath = request.cgiInfo.output;
+
                 responseData.removeFiles.push_back(request.cgiInfo.output);
                 if (request.cgiInfo.pid == -1)
                 {
