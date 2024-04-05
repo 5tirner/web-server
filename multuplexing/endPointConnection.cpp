@@ -218,8 +218,6 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                    {
                      std::cout << "SEND RESPONSE UNKOWN" << std::endl;
                      informations info;
-                     if ( this->Requests.at(monitor.fd).headers.at("method") == "head" )
-                        this->Requests.at(monitor.fd).stat = -1;
                      serveErrorPage(monitor.fd, this->Requests.at(monitor.fd).stat, info );
                    }
                    

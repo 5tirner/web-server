@@ -27,7 +27,7 @@ void connection::serveErrorPage(int clientSocket, int errorCode, const informati
                            "h1 { font-size: 55px; font-weight: 500; }"
                            "p { font-size: 29px; }"
                            "</style></head><body>"
-                           "<h1> " + to_string(errorCode == -1 ? 501 : errorCode) + " - " + codeMsg.statMsg[errorCode == -1 ? 501 : errorCode] + "</h1>"
+                           "<h1> " + to_string(errorCode) + " - " + codeMsg.statMsg[errorCode] + "</h1>"
                            "<p>The requested URL was not found on this server.</p>"
                            "</body></html>";
         }
@@ -49,7 +49,6 @@ void connection::serveErrorPage(int clientSocket, int errorCode, const informati
                      "Content-Length: " + to_string(responseBody.length()) + "\r\n"
                      "\r\n";
     send(clientSocket, responseHeader.c_str(), responseHeader.size(), 0);
-    if ( errorCode != -1 )
-        send(clientSocket, responseBody.c_str(), responseBody.size(), 0);
+    send(clientSocket, responseBody.c_str(), responseBody.size(), 0);
     this->Response[clientSocket].status = response::Complete;
 }

@@ -41,7 +41,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "@yachaab fix empty body"
+	@git commit -m "@yachaab send response OK -> testing"
 	@git push origin cgi-feature
 	@echo "Pushed to cgi-feature"
 
