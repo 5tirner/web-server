@@ -191,19 +191,40 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                     {
                         try
                         {
+                            std::string allMethods = "get delete post put patch head options"
+                            , myMethod = this->Requests.at(monitor.fd).headers.at("method");
                             std::string host = this->Requests.at(monitor.fd).headers.at("host");
-                            notBindingServers.at(host);
-                            if (this->Requests.at(monitor.fd).headers.at("method") == "get")
-                                handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), notBindingServers.at(host));
-                            else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
-                                handleRequestDELETE(monitor.fd, this->Requests.at(monitor.fd), notBindingServers.at(host));
+                            if (allMethods.find(myMethod) == std::string::npos)
+                                serveErrorPage(monitor.fd, 400, Response[monitor.fd].info);
+                            else if (myMethod != "get" && myMethod != "delete" && myMethod != "post")
+                                serveErrorPage(monitor.fd, 501, Response[monitor.fd].info);
+                            else
+                            {
+                                notBindingServers.at(host);
+                                if (this->Requests.at(monitor.fd).headers.at("method") == "get")
+                                    handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), notBindingServers.at(host));
+                                else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
+                                    handleRequestDELETE(monitor.fd, this->Requests.at(monitor.fd), notBindingServers.at(host));
+                            }
                         }
                         catch(...)
                         {
-                            if (this->Requests.at(monitor.fd).headers.at("method") == "get")
-                                handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
-                            else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
-                                handleRequestDELETE(monitor.fd, this->Requests.at(monitor.fd),infoMap.at(it->second));
+                            std::string allMethods = "get delete post put patch head options"
+                            , myMethod = this->Requests.at(monitor.fd).headers.at("method");
+                            // std::cerr << "The Method In URI: " + myMethod<< std::endl;
+                            // std::string host = this->Requests.at(monitor.fd).headers.at("host");
+                            // std::cerr << "GRRR" << std::endl;
+                            if (allMethods.find(myMethod) == std::string::npos)
+                                serveErrorPage(monitor.fd, 400, Response[monitor.fd].info);
+                            else if (myMethod != "get" && myMethod != "delete" && myMethod != "post")
+                                serveErrorPage(monitor.fd, 501, Response[monitor.fd].info);
+                            else
+                            {
+                                if (this->Requests.at(monitor.fd).headers.at("method") == "get")
+                                    handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
+                                else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
+                                    handleRequestDELETE(monitor.fd, this->Requests.at(monitor.fd),infoMap.at(it->second));
+                            }
                         }
                     }
                     catch( ... )
