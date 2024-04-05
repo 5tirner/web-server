@@ -209,10 +209,12 @@ typedef struct clientRequest
     bool            storeHeader, readyToSendRes, cgi, cgiGET ,expectCRLF, once;
     cgiInfo         cgiInfo;
     std::ofstream*   bodyStream;
+    bool             unseporsetMethod;
 
 
     clientRequest()
     {
+        unseporsetMethod        = false;
         fetchHeaderDone         = false;
         processingHeaderDone    = false;
         transferEncoding        = false;

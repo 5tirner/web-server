@@ -40,7 +40,10 @@ static bool	extractMethodAndUri( Request& rq )
 		if ( rq.headers.at("version") != "http/1.1" )
 			throw std::exception();
 		if ( rq.headers.at("method") != "get" && rq.headers.at("method") != "post" && rq.headers.at("method") != "delete" )
-			throw std::exception();
+		{
+			rq.unseporsetMethod = true;
+			// throw std::exception();
+		}
 	}
 	catch( ... )
 	{
@@ -269,7 +272,8 @@ static int	validateHeadersProcess( Request& rq )
 		size_t	separator ( rq.headers.at( "host" ).find_first_of(':') );
 		if ( separator != std::string::npos )
 			rq.headers.at( "host" ).resize( separator );
-			
+		if ( rq.unseporsetMethod )
+			return rq.stat = 501, false;
 		if ( rq.headers.at("method") == "post" )
 		{
 			if ( rq.headers.find( "content-type" ) == rq.headers.end() )
