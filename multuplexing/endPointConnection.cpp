@@ -30,7 +30,7 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
     checkDupHost.reserve(info.size());
     while (it != info.end())
     {
-        // std::cerr << "Server Number: " << it->first << std::flush;
+        //std::cerr << "Server Number: " << it->first << std::endl;
         std::vector<std::string> tmp;
         tmp.reserve(2);
         tmp.push_back(it->second.port.at("listen")), tmp.push_back(it->second.host.at("host"));
@@ -38,22 +38,29 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
         {
             if (std::find(checkDupHost.begin(), checkDupHost.end(), tmp) != checkDupHost.end())
             {
+                // std::cout << it->second.serverName.at("server_name") + ": " << std::endl
+                // << "To Compare With : " << std::endl;
+                // for (size_t o = 0; o < checkTheSameServer.size(); o++)
+                //     std::cout << "`" + checkTheSameServer[o] + "`" << std::endl;
                 if (std::find(checkTheSameServer.begin(),
                 checkTheSameServer.end(), it->second.serverName.at("server_name")) != checkTheSameServer.end())
                 {
-                    // std::cerr << "The Same Host And ServerName Appears More Than Once:" << std::endl
-                    // << "The Port: " + tmp[0] + ", The HostIP: " + tmp[1]
-                    // << ", ServerName: " + it->second.serverName.at("server_name") << std::endl;
+                    std::cerr << "The Same Host And ServerName Appears More Than Once:" << std::endl
+                    << "The Port: " + tmp[0] + ", The HostIP: " + tmp[1]
+                    << ", ServerName: " + it->second.serverName.at("server_name") 
+                    << " In Server Number: " << it->first << std::endl;
                     throw std::runtime_error("Bad Server");
                 }
-                // std::cerr << "The Same Host Appears More Than Once:" << std::endl
-                // << "The Port: " + tmp[0] + ", The HostIP: " + tmp[1] << std::endl;
-                // std::cerr << " Server Not bound" << std::endl;
+                std::cerr << "The Same Host Appears More Than Once:" << std::endl
+                << "The Port: " + tmp[0] + ", The HostIP: " + tmp[1] << " Server NUmber: "
+                <<it->first << std::endl;
+                std::cerr << " Server Not bound" << std::endl;
                 this->notBindingServers[it->second.serverName.at("server_name")] = it->second;
                 checkTheSameServer.push_back(it->second.serverName.at("server_name"));
                 it++; continue;
             }
         }
+        checkTheSameServer.push_back(it->second.serverName.at("server_name"));
         checkDupHost.push_back(tmp);
         int fd = socket(AF_INET, SOCK_STREAM, 0);
         if (fd == -1)
@@ -91,15 +98,15 @@ void    connection::serversEndPoint(std::map<int, informations> &info)
         it++;
     }
     // std::cerr << "<------------ Unbinded Servers Start ------------>" << std::endl;
-    std::map<std::string, informations>::iterator NotBind = this->notBindingServers.begin();
-    int R = 1;
-    while (NotBind != this->notBindingServers.end())
-    {
-        // std::cerr << "Server Number: " << R << std::endl;
-        showInfo(NotBind->second);
-        R++;
-        NotBind++;
-    }
+    // std::map<std::string, informations>::iterator NotBind = this->notBindingServers.begin();
+    // int R = 1;
+    // while (NotBind != this->notBindingServers.end())
+    // {
+    //     // std::cerr << "Server Number: " << R << std::endl;
+    //     showInfo(NotBind->second);
+    //     R++;
+    //     NotBind++;
+    // }
     // std::cerr << "<------------------------ ---------------------->" << std::endl;
 }
 

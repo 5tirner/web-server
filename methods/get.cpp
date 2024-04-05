@@ -543,6 +543,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             serveErrorPage(clientSocket, 403, serverConfig);
             return;
         }
+        std::cout << "filepath: " << filePath2 << std::endl;
         std::string filePath = filePath2;
         size_t np = filePath2.find("//");
         if (np != std::string::npos)
