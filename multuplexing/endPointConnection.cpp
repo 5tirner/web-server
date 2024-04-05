@@ -393,6 +393,8 @@ connection::connection(std::map<int, informations> &configData)
                     std::cerr << "Clinet Of Fd Number: " << it1->first
                     << " Ralated With Server Of Fd Number " << it1->second
                     << " Spend Much Time Without New Request " << std::endl;
+                    if (!this->Requests.at(monitor[i].fd).filename.empty())
+                        std::remove(this->Requests.at(monitor[i].fd).filename.c_str());
                     this->dropClient(monitor[i].fd, it1);
                 }
                 else if ((clock() - this->clientTimerToEndRequest.at(it1->first)) / CLOCKS_PER_SEC >= 60)
@@ -400,6 +402,8 @@ connection::connection(std::map<int, informations> &configData)
                     std::cerr << "Clinet Of Fd Number: " << it1->first
                     << " Ralated With Server Of Fd Number " << it1->second
                     << " Spend Much Time To End His Request " << std::endl;
+                    if (!this->Requests.at(monitor[i].fd).filename.empty())
+                        std::remove(this->Requests.at(monitor[i].fd).filename.c_str());
                     this->dropClient(monitor[i].fd, it1);
                 }
                 it1++;
