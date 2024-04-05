@@ -155,40 +155,6 @@ typedef struct codeStat
     std::map<int, std::string> statMsg;
 } code;
 
-/*-------------- ysabr code start ---------------*/
-// struct ParsedCGIOutput
-// {
-//     std::multimap<std::string, std::string> headers;
-//     std::string body;
-//     std::string filepath;
-//     int status;
-//     int check;
-
-//     ParsedCGIOutput() : status(200), check(0) {
-//         headers.insert(std::make_pair("content-type", "text/html"));
-//     }
-// };
-/*-------------- ysabr code end ---------------*/
-
-/*-------------- yachaab code start ---------------*/
-
-
-// typedef struct cgiresponse
-// {
-//     int     pid;
-//     std::clock_t    startTime;
-//     std::string     queries;
-//     std::string     cookies;
-//     std::string     method;
-//     std::string     contentLength, contentType;
-//     std::string     input, output;
-//     std::string     script, binary;
-//     std::string     pathInfo;
-
-//     cgiresponse():startTime(0), method( "GET" ) {}
-
-// }cgiInfo;
-
 typedef struct clientRequest
 {
     std::map<std::string, std::string> headers;
@@ -233,10 +199,7 @@ typedef struct clientRequest
         contentlength           = 0;
         stat                    = 0;
         extension               = "";
-        // partialChunkHeader      = "";
         bodyStream              = new std::ofstream;
-        //std::cout << "REQUEST STRUCT CONSTRUCTED" << std::endl;
-
     }
 } Request;
 /*-------------- yachaab code end ---------------*/
