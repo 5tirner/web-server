@@ -180,6 +180,52 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
 
                 if (!this->Requests.at(monitor.fd).storeHeader)
                 {
+                //    try
+                //    {
+                //         std::string host = this->Requests.at(monitor.fd).headers.at("host");
+                //         informations info;
+                //         std::map<std::string, informations>::iterator iter = notBindingServers.find( host );
+                //         if ( iter != notBindingServers.end() )
+                //             info = iter->second;
+                //         else
+                //             info = infoMap.at(it->second);
+                        
+                //         if (this->Requests.at(monitor.fd).headers.at("method") == "get")
+                //         {
+                //             std::cout << "SEND RESPONSE GET" << std::endl;
+                //             handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), info);
+                //         }
+                //         else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
+                //         {
+                //             std::cout << "SEND RESPONSE DELETE" << std::endl;
+                //             handleRequestDELETE(monitor.fd, this->Requests.at(monitor.fd), info);
+                //         }
+                //         else if ( this->Requests.at(monitor.fd).headers.at("method") == "post" )
+                //         {
+                //             std::cout << "SEND RESPONSE POST" << std::endl;
+                //             serveErrorPage(monitor.fd, this->Requests.at(monitor.fd).stat,  info);
+                //         }
+                //         else
+                //             throw;
+                //    }
+                //    catch ( ... )
+                //    {
+                //      std::cout << "SEND RESPONSE UNKOWN" << std::endl;
+                //      serveErrorPage(monitor.fd, this->Requests.at(monitor.fd).stat,  Response[monitor.fd].info);
+                //    }
+                   
+                    // if (!this->Requests.at(monitor.fd).cgiGET)
+                    //     sendResponseChunk(monitor.fd, Response.at(monitor.fd));
+                    // else
+                    // {
+                    //     int status = Response.at(monitor.fd).sendResponseFromCGI(monitor.fd, 
+                    //         this->Cgires.at(monitor.fd), Response.at(monitor.fd));
+                    //     if (status == 408 || status == 500)
+                    //     {400 - Bad Request
+                    //         serveErrorPage(monitor.fd, status,  Response[monitor.fd].info);
+                    //         Response.at(monitor.fd).status = response::Complete;
+                    //     }
+                    // }
                     try
                     {
                         try
@@ -190,6 +236,8 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                                 handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), notBindingServers.at(host));
                             else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
                                 handleRequestDELETE(monitor.fd, this->Requests.at(monitor.fd), notBindingServers.at(host));
+                            else
+                                throw std::exception();
                         }
                         catch(...)
                         {
@@ -197,20 +245,22 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                                 handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
                             else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
                                 handleRequestDELETE(monitor.fd, this->Requests.at(monitor.fd),infoMap.at(it->second));
+                            else
+                                throw std::exception();
                         }
                     }
                     catch( ... )
                     {
-                /*-------------- yachaab code start -----------------*/
                         std::cout << "SEND RESPONSE 3" << std::endl;
                         serveErrorPage(monitor.fd, this->Requests.at(monitor.fd).stat,  Response[monitor.fd].info);
                     }
                 }
-                if ( this->Requests.at(monitor.fd).headers.at("method") == "post" )
-                {
-                    std::cout << "SEND RESPONSE 4" << std::endl;
-                    serveErrorPage(monitor.fd, this->Requests.at(monitor.fd).stat,  Response[monitor.fd].info);
-                }
+                /*-------------- yachaab code start -----------------*/
+                // if ( this->Requests.at(monitor.fd).headers.at("method") == "post" )
+                // {
+                //     std::cout << "SEND RESPONSE 4" << std::endl;
+                //     // serveErrorPage(monitor.fd, this->Requests.at(monitor.fd).stat,  Response[monitor.fd].info);
+                // }
                 /*-------------- yachaab code ended -----------------*/
                 else
                 {

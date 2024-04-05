@@ -203,14 +203,14 @@ static bool	examinHeaders( Request& rq, std::string& first, std::string& second 
 	}
 	if ( rq.transferEncoding == true && rq.isContentLength == true )
 		rq.isContentLength = false;
-	if ( rq.transferEncoding == false && rq.isContentLength == true )
-	{
-		if ( rq.contentlength == 0 )
-		{
-			Logger::log() << "[ Error ] content length is 0" << std::endl;
-			return ( rq.stat = 400, false );
-		}
-	}
+	// if ( rq.transferEncoding == false && rq.isContentLength == true )
+	// {
+	// 	if ( rq.contentlength == 0 )
+	// 	{
+	// 		Logger::log() << "[ Error ] content length is 0" << std::endl;
+	// 		return ( rq.stat = 400, false );
+	// 	}
+	// }
 	if ( first == "host" )
 	{
 		if ( second.empty() )
@@ -283,6 +283,11 @@ static int	validateHeadersProcess( Request& rq )
 				{
 					Logger::log() << "[ Error ] Content-Length is required" << std::endl;
 					return ( rq.stat = 411, false );
+				}
+				else
+				{
+					if ( rq.contentlength == 0 )
+						return rq.stat = 411, false;
 				}
 			}
 			else
