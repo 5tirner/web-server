@@ -300,7 +300,8 @@ void cleanupResponseFiles(std::vector<std::string>& files)
 {
     for (size_t i = 0; i < files.size(); ++i)
     {
-        if (remove(files[i].c_str()) != 0)
+        
+        if (std::remove(files[i].c_str()) != 0)
             std::cerr << "Error removing file: " << files[i] << std::endl;
     }
     files.clear();
@@ -472,7 +473,12 @@ int response::sendResponseFromCGI(int clientSocket, ParsedCGIOutput& cgiOutput, 
             }
             responseHeaders << "\r\n";
             std::string headersStr = responseHeaders.str();
-            send(clientSocket, headersStr.c_str(), headersStr.length(), 0);
+            int k = send(clientSocket, headersStr.c_str(), headersStr.length(), 0);
+            if (k < 0)
+            {
+                res.status = response::Complete;
+                return 900;
+            }
             cgiOutput.check = 1;
             res.status = response::InProgress;
         }
@@ -548,6 +554,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             filePath = filePath2.substr(0,np);
             filePath += filePath2.substr(np + 1);
         }
+        //std::cout << "===>: FILEPATH: " << filePath << std::endl;
         if (!access(filePath.c_str(), F_OK))
         {
             if (access(filePath.c_str(), R_OK))
@@ -593,7 +600,7 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
             {
                 std::cerr << err << std::endl;
             }
-            std::cerr << "The File Geted By CGI Is: " + filePath << std::endl;
+            //std::cerr << "The File Geted By CGI Is: " + filePath << std::endl;
         }
         else
         {

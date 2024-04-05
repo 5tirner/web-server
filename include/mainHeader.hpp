@@ -23,7 +23,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <cerrno>
 #include <csignal>
 #include <netdb.h>
 #include <arpa/inet.h>
@@ -235,6 +234,8 @@ typedef struct clientRequest
         extension               = "";
         // partialChunkHeader      = "";
         bodyStream              = new std::ofstream;
+        //std::cout << "REQUEST STRUCT CONSTRUCTED" << std::endl;
+
     }
 } Request;
 /*-------------- yachaab code end ---------------*/

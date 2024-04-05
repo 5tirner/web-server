@@ -62,7 +62,6 @@ int connection::location_support_upload(Request& request, int serverId)
 		{
             bool isDir = false;
             size_t i = longestMatchingIndex;
-
             if ( serverInfo.locationsInfo.at(i).cgi.at("cgi") == "on" )
 			{
                 request.scriptName = serverInfo.locationsInfo.at(i).root.at("root") + uri.substr( longestMatchingLocation.length() );
@@ -225,11 +224,14 @@ static bool chunkedComplete(Request& request, std::string& buffer)
 {
     size_t bufferLength = buffer.size();
 	
-	if ( request.once && buffer.compare( 0, 5, "0\r\n\r\n" ) == 0 )
-	{
-		std::remove( request.filename.data() );
+	if ( request.once )
+	{	
+		if ( buffer.compare( 0, 5, "0\r\n\r\n" ) == 0 )
+		{
+			std::remove( request.filename.data() );
+			return true;
+		}
 		request.once = false;
-		return true;
 	}
      while ( bufferLength != 0 )
 	{

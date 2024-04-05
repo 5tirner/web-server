@@ -1,4 +1,5 @@
 #include "../include/mainHeader.hpp"
+#include <stdexcept>
 
 connection::connection(void) {}
 
@@ -220,7 +221,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                     {
                         int status = Response.at(monitor.fd).sendResponseFromCGI(monitor.fd, 
                             this->Cgires.at(monitor.fd), Response.at(monitor.fd));
-                        if (status != 200)
+                        if (status == 408 || status == 500)
                         {
                             serveErrorPage(monitor.fd, status,  Response[monitor.fd].info);
                             Response.at(monitor.fd).status = response::Complete;
@@ -304,7 +305,10 @@ connection::connection(std::map<int, informations> &configData)
         }
         int eventChecker = poll(monitor, this->clientsSock.size() + this->serversSock.size(), -1);
         if (eventChecker == -1)
+        {
             std::cerr << "Error: Poll Failed When It's Looking For An Event." << std::endl;
+            throw std::runtime_error("The Main Function Failed");
+        }
         else if (eventChecker)
         {
             i = 0;
@@ -377,13 +381,13 @@ void connection::dropClient( int& fd, std::map<int, int>::iterator &it )
         this->responsetEnd.push_back(it->first);
     if (toRemove != this->Requests.end())
     {
-        // std::cerr << "Found Some Data For: " << toRemove->first << std::endl;
+        //std::cerr << "Found Some Data For: " << toRemove->first << std::endl;
         this->requestEnd.push_back(toRemove);
-        // std::cerr << "Data Deleted." << std::endl;
+        //std::cerr << "Data Deleted." << std::endl;
     }
-    // std::cerr << "Client " << it->first << " Related With Server "
-    // << it->second << " Exited." << std::endl;
+   // std::cerr << "Client " << it->first << " Related With Server "
+    //<< it->second << " Exited." << std::endl;
     this->exited.push_back(it);
-    // std::cerr << "Number Of Client Left: " << this->clientsSock.size() - 1 << std::endl;
+    //std::cerr << "Number Of Client Left: " << this->clientsSock.size() - 1 << std::endl;
 }
 /*-------------- yachaab edit start ---------------*/
