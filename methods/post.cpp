@@ -334,12 +334,18 @@ static void processRegularRequestBody( Request& request, char* buffer, int& byte
 	if ( !request.remainingBody.empty() )
 	{
 		size_t size( request.remainingBody.size() );
-		request.bodyStream->write(request.remainingBody.data(), size);
-		request.bodyStream->flush();
 		request.bytesWrite += size;
+		if ( size >= request.contentlength )
+		{
+			request.bytesWrite = request.contentlength;
+			request.bodyStream->write(request.remainingBody.data(), request.contentlength );
+		}
+		else
+			request.bodyStream->write(request.remainingBody.data(), size);
+		request.bodyStream->flush();
 		request.remainingBody.clear();
 	}
-	else if ( bytesRead > 0 )
+	else if ( request.bytesWrite != request.contentlength ) // bytesRead > 0
 	{
 		request.bodyStream->write(buffer, bytesRead);
 		request.bodyStream->flush();
@@ -369,11 +375,11 @@ static void processRegularRequestBody( Request& request, char* buffer, int& byte
 		request.bodyStream->close();
 		throw std::exception();
 	}
-	else if (request.bytesWrite > request.contentlength)
+	else if ( request.bytesWrite > request.contentlength )
 	{
 		request.stat = 413;
 		request.bodyStream->close();
-		std::remove( request.filename.data() );
+		// std::remove( request.filename.data() );
 		throw std::length_error("Request body exceeds declared length");
 	}
 }

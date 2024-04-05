@@ -41,7 +41,7 @@ re: fclean $(TARGET)
 
 git: fclean
 	@git add .
-	@git commit -m "@yachaab remove check for empty uploaded file"
+	@git commit -m "@yachaab regular post handled"
 	@git push origin cgi-feature
 	@echo "Pushed to cgi-feature"
 
