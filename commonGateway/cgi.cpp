@@ -73,8 +73,8 @@ void cgiFile(cgiInfo& cgiInfo)
     {
         std::string SCRIPT_FILENAME, SCRIP_DIR = cgiInfo.script;
         fillScriptFileName(SCRIPT_FILENAME, SCRIP_DIR);
-        std::cout << "SCRIPT NEW NAME: " + SCRIPT_FILENAME << std::endl;
-        std::cout << "PATHINFO FOR CGI: " + SCRIP_DIR << std::endl;
+        // std::cout << "SCRIPT NEW NAME: " + SCRIPT_FILENAME << std::endl;
+        // std::cout << "PATHINFO FOR CGI: " + SCRIP_DIR << std::endl;
         char *Env[] = {
             (char*)strdup(("REQUEST_METHOD=" + cgiInfo.method).c_str()),
             (char*)"REDIRECT_STATUS=200",

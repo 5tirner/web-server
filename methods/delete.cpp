@@ -1,11 +1,11 @@
 #include "../include/mainHeader.hpp"
+#include <unistd.h>
 
 bool removeDirectory(const std::string& path)
 {
     DIR* dir = opendir(path.c_str());
-    if (dir == NULL) {
+    if (dir == NULL)
         return false;
-    }
 
     dirent* entry;
     while ((entry = readdir(dir)) != NULL)
@@ -26,10 +26,13 @@ bool removeDirectory(const std::string& path)
         }
         else
         {
-            if (std::remove(fullPath.c_str()) != 0)
+            if (!access(fullPath.c_str(), W_OK))
             {
-                closedir(dir);
-                return false;
+                if (std::remove(fullPath.c_str()) != 0)
+                {
+                    closedir(dir);
+                    return false;
+                }
             }
         }
     }
@@ -76,7 +79,6 @@ void connection::handleRequestDELETE(int clientSocket, Request& request,const in
     {
         if (!removeDirectory(filePath))
         {
-            
             serveErrorPage(clientSocket, 500, serverConfig);
             return;
         }

@@ -300,7 +300,6 @@ void cleanupResponseFiles(std::vector<std::string>& files)
 {
     for (size_t i = 0; i < files.size(); ++i)
     {
-        
         if (std::remove(files[i].c_str()) != 0)
             std::cerr << "Error removing file: " << files[i] << std::endl;
     }
@@ -437,10 +436,7 @@ int response::sendResponseFromCGI(int clientSocket, ParsedCGIOutput& cgiOutput, 
         {
             res.pid = 0;
             if (WEXITSTATUS(status) == 150)
-            {
-                // serveErrorPage(clientSocket, 500, res.info);
                 return 500;
-            }
             res.waitCgi = false;
         }
         else
@@ -458,7 +454,7 @@ int response::sendResponseFromCGI(int clientSocket, ParsedCGIOutput& cgiOutput, 
     }
     if (!res.waitCgi)
     {
-        std::cerr << "file " << filePath << " is open : " << res.fileStream.is_open() << std::endl;
+        // std::cerr << "file " << filePath << " is open : " << res.fileStream.is_open() << std::endl;
         // std::cerr << "i'm sending cgi: " << cgiOutput.check << std::endl;
         if(!cgiOutput.check)
         {
@@ -581,7 +577,8 @@ void connection::handleRequestGET(int clientSocket, Request& request,const infor
                 filePath = request.cgiInfo.output;
 
                 responseData.removeFiles.push_back(request.cgiInfo.output);
-                responseData.removeFiles.push_back( request.filename );
+                if ( !request.filename.empty() )
+                    responseData.removeFiles.push_back( request.filename );
                 if (request.cgiInfo.pid == -1)
                 {
                     serveErrorPage(clientSocket, 500, serverConfig);

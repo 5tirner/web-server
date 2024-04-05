@@ -141,6 +141,7 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
         else if (rd)
         {
             buffer[rd] = '\0';
+            // std::cerr << "buffer: " << buffer << std::endl;
             /*-------------- yachaab code start ---------------*/
             try {
                 try
@@ -179,7 +180,6 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
 
                 if (!this->Requests.at(monitor.fd).storeHeader)
                 {
-                    // std::cout << "SEND RESPONSE 1" << std::endl;
                     try
                     {
                         try
@@ -193,7 +193,6 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                         }
                         catch(...)
                         {
-                            // std::cout << "SEND RESPONSE 2" << std::endl;
                             if (this->Requests.at(monitor.fd).headers.at("method") == "get")
                                 handleRequestGET(monitor.fd, this->Requests.at(monitor.fd), infoMap.at(it->second));
                             else if (this->Requests.at(monitor.fd).headers.at("method") == "delete")
@@ -203,13 +202,13 @@ void    connection::checkClient(struct pollfd &monitor, std::map<int, int>::iter
                     catch( ... )
                     {
                 /*-------------- yachaab code start -----------------*/
-                        // std::cout << "SEND RESPONSE 3" << std::endl;
+                        std::cout << "SEND RESPONSE 3" << std::endl;
                         serveErrorPage(monitor.fd, this->Requests.at(monitor.fd).stat,  Response[monitor.fd].info);
                     }
                 }
                 if ( this->Requests.at(monitor.fd).headers.at("method") == "post" )
                 {
-                    // std::cout << "SEND RESPONSE 4" << std::endl;
+                    std::cout << "SEND RESPONSE 4" << std::endl;
                     serveErrorPage(monitor.fd, this->Requests.at(monitor.fd).stat,  Response[monitor.fd].info);
                 }
                 /*-------------- yachaab code ended -----------------*/
@@ -323,7 +322,7 @@ connection::connection(std::map<int, informations> &configData)
                     << " Spend Much Time Without New Request " << std::endl;
                     this->dropClient(monitor[i].fd, it1);
                 }
-                else if ((clock() - this->clientTimerToEndRequest.at(it1->first)) / CLOCKS_PER_SEC >= 90)
+                else if ((clock() - this->clientTimerToEndRequest.at(it1->first)) / CLOCKS_PER_SEC >= 60)
                 {
                     std::cerr << "Clinet Of Fd Number: " << it1->first
                     << " Ralated With Server Of Fd Number " << it1->second
@@ -381,9 +380,9 @@ void connection::dropClient( int& fd, std::map<int, int>::iterator &it )
         this->responsetEnd.push_back(it->first);
     if (toRemove != this->Requests.end())
     {
-        //std::cerr << "Found Some Data For: " << toRemove->first << std::endl;
+        // std::cerr << "Found Some Data For: " << toRemove->first << std::endl;
         this->requestEnd.push_back(toRemove);
-        //std::cerr << "Data Deleted." << std::endl;
+        // std::cerr << "Data Deleted." << std::endl;
     }
    // std::cerr << "Client " << it->first << " Related With Server "
     //<< it->second << " Exited." << std::endl;
