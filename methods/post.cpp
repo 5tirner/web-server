@@ -224,16 +224,7 @@ static bool chunkedComplete(Request& request, std::string& buffer)
 {
     size_t bufferLength = buffer.size();
 	
-	if ( request.once )
-	{	
-		if ( buffer.compare( 0, 5, "0\r\n\r\n" ) == 0 )
-		{
-			std::remove( request.filename.data() );
-			return true;
-		}
-		request.once = false;
-	}
-     while ( bufferLength != 0 )
+    while ( bufferLength != 0 )
 	{
         if ( request.isChunkHeader )
 		{

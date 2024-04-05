@@ -206,7 +206,7 @@ typedef struct clientRequest
 
     bool            fetchHeaderDone, processingHeaderDone, processingRequestDone;
     bool            transferEncoding, isContentLength, isChunkHeader, locationGotChecked;
-    bool            storeHeader, readyToSendRes, cgi, cgiGET ,expectCRLF, once;
+    bool            storeHeader, readyToSendRes, cgi, cgiGET ,expectCRLF;
     cgiInfo         cgiInfo;
     std::ofstream*   bodyStream;
     bool             unseporsetMethod;
@@ -226,7 +226,6 @@ typedef struct clientRequest
         cgi                     = false;
         cgiGET                  = false;
         expectCRLF              = false;
-        once                    = true;
         isChunkHeader           = true;
         bytesWrite              = 0;
         chunkSizeSum            = 0;
