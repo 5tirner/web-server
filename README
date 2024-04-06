@@ -14,6 +14,7 @@ Confige File Content Should Be Good To Run The Web Server:
     Put every Keywords In A different Line.
     All Lines Ended By ;.
     Fell Free To Do Comments (#) And Add WhiteSpaces.
+    *KEYWORDS
     `default_root` to add defualt root to work.
         ==>Syntax: default_root /var/www/html;
     `listen` to add your port.
