@@ -42,7 +42,8 @@ Confige File Content Should Be Good To Run The Web Server:
         ==>Syntax: return 322 www.voovle.com;
      `upload` to allow upload (if upload missing or setted off mean you can't upload in this location).
         ==>Syntax: upload on /root/upload;
-     `cgi` to allow the common gateway interface in your location (if missing GET seted, if you turn it off no method is allowed).
+     `cgi` to allow the common gateway interface in your location (if missing i
+or you turn it off it mean cgi is outservice).
         ==>Syntax: cgi on;
 Non-Blocking I/O: Utilizes non-blocking I/O operations for scalability and responsiveness.
 Multiple Ports and Hosts: Supports listening on multiple ports and serving different hosts on the same port.
