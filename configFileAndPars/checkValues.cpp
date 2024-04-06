@@ -1,6 +1,5 @@
 # include "../include/mainHeader.hpp"
-#include <cctype>
-#include <string>
+#include <map>
 
 int normalCheck(std::string &value)
 {
@@ -18,7 +17,7 @@ int normalCheck(std::string &value)
         save.push_back(value[i]);
         i++;
     }
-    //std::cout << value + " Become " + save << std::endl;
+    //std::cerr << value + " Become " + save << std::endl;
     if (save.size() == 0 || save == ";") return (1);
     if (strchr(save.c_str(), ' ') || strchr(save.c_str(), '\t' ))
         return (1);
@@ -34,7 +33,7 @@ int     methodesSyntax(std::string &value)
     {
         if (value[i] == ' ' || value[i] == '\t')
         {
-            //std::cout << "---->" << check << std::endl;
+            //std::cerr << "---->" << check << std::endl;
             if (check == "POST") Post++;
             else if (check == "DELETE") Delete++;
             else if (check == "GET") Get++;
@@ -127,6 +126,39 @@ int isInteger(std::string &value, char c)
     return (0);
 }
 
+int redirection(int *status, std::string &val)
+{
+    if (justMakeItRight(val))
+        return (1);
+    std::string save;
+    size_t i = 0;
+    for (; i < val.size(); i++)
+    {
+        if (val[i] == ' ' || val[i] == '\t')
+            break;
+        else if (!std::isdigit(val[i]))
+            return (1);
+        save.push_back(val[i]);
+    }
+    if (save.size() != 3)
+        return (1);
+    for (; i < val.size(); i++)
+    {
+        if (val[i] != ' ' && val[i] != '\t')
+            break;
+    }
+    val = &val[i];
+    if (!val.size())
+        return (1);
+    *status = std::atoi(save.c_str());
+    if (*status < 300 || *status > 399)
+    {
+        std::cerr << "Cause Of Status Code, ";
+        return (1);
+    }
+    return (0);
+}
+
 int isValidIp4(std::string &value)
 {
     std::string save;
@@ -167,7 +199,7 @@ int isValidIp4(std::string &value)
 
 int multiValues(std::string &key, std::string &values)
 {
-    if (key == "index" || key == "server_name")
+    if (key == "index")
     {
         if (justMakeItRight(values))
             return (1);
@@ -175,11 +207,6 @@ int multiValues(std::string &key, std::string &values)
     else if (key == "allowed_methodes")
     {
         if (justMakeItRight(values) || methodesSyntax(values))
-            return (1);
-    }
-    else if (key == "cgi")
-    {
-        if (justMakeItRight(values) || cgiAndUploadSyntax(values))
             return (1);
     }
     else if (key == "upload")
@@ -190,30 +217,39 @@ int multiValues(std::string &key, std::string &values)
     return (0);
 }
 
-int redirection(int *status, std::string &val)
+int errorPages(std::string &all, int *status)
 {
-    if (justMakeItRight(val))
+    if (justMakeItRight(all))
         return (1);
+    //std::cerr << "ErrorPage Appears As: " + all << std::endl;
     std::string save;
-    size_t i = 0;
-    for (; i < val.size(); i++)
+    size_t      i = 0;
+    while (i < all.size() && all[i] != ' ' && all[i] != '\t')
     {
-        if (val[i] == ' ' || val[i] == '\t')
+        if (all[i] == ' ' || all[i] == '\t')
             break;
-        else if (!std::isdigit(val[i]))
+        else if (!std::isdigit(all[i]))
             return (1);
-        save.push_back(val[i]);
+        save.push_back(all[i]);
+        i++;
     }
-    if (save.size() < 3 || save.size() > 5)
+    if (!save.size())
         return (1);
-    for (; i < val.size(); i++)
+    if (save.size() != 3)
+        return (1);
+    for (; i < all.size(); i++)
     {
-        if (val[i] != ' ' && val[i] != '\t')
+        if (all[i] != ' ' && all[i] != '\t')
             break;
     }
-    val = &val[i];
-    if (!val.size())
+    all = &all[i];
+    if (!all.size())
         return (1);
     *status = std::atoi(save.c_str());
+    if (*status > 599)
+    {
+        std::cerr << "Cause Of Status Code, ";
+        return (1);
+    }
     return (0);
 }

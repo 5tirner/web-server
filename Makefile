@@ -1,37 +1,48 @@
-SRCS	= main.cpp\
-		./configFileAndPars/pars.cpp\
-		./configFileAndPars/openFile.cpp\
-		./configFileAndPars/selectServers.cpp\
-		./configFileAndPars/serverInfos.cpp\
-		./configFileAndPars/checkValues.cpp\
-		./multuplexing/endPointConnection.cpp\
-		./methods/get.cpp\
-		./methods/post.cpp\
-		./methods/delete.cpp\
-		./commonGateway/cgi.cpp\
+TARGET  = httpserver
 
-OBJS	= $(SRCS:.cpp=.o)
+CC      = c++ -Wall -Wextra -Werror -std=c++98 -fsanitize=address  -g3
 
-rm		= rm -rf
+OBJDIR  = obj
 
-NAME	= httpserver
+SRC     = main.cpp\
+			./configFileAndPars/pars.cpp\
+			./configFileAndPars/openFile.cpp\
+			./configFileAndPars/selectServers.cpp\
+			./configFileAndPars/serverInfos.cpp\
+			./configFileAndPars/checkValues.cpp\
+			./multuplexing/endPointConnection.cpp\
+			./multuplexing/incomingData.cpp \
+			./methods/post.cpp\
+			./methods/get.cpp \
+			./methods/delete.cpp \
+			./methods/ErrorPages.cpp \
+			./multuplexing/sendResponse.cpp\
+			./commonGateway/cgi.cpp
 
-CXX		= c++
+OBJ     = $(addprefix $(OBJDIR)/, $(SRC:.cpp=.o))
 
-CXXFLAGS = -Wall -Wextra -Werror  -std=c++98 -fsanitize=address -g3
+all: $(TARGET)
 
-all : $(NAME)
+$(TARGET): $(OBJ)
+	@$(CC) -o $@ $^
 
-$(NAME) : $(OBJS)
+$(OBJDIR)/%.o: %.cpp
+	@mkdir -p $(@D)
+	$(CC) -c -o $@ $<
 
-	$(CXX) $(CXXFLAGS) $(OBJS) -o $(NAME)
+clean:
+	@rm -f upload/* .cgi_file*
+	@rm -f $(OBJ)
 
-clean :
+fclean: clean
+	@rm -fr $(TARGET) $(OBJDIR)
 
-	$(RM) $(OBJS)
+re: fclean $(TARGET)
 
-fclean : clean
+git: fclean
+	@git add .
+	@git commit -m "@yachaab remove check for empty uploaded file"
+	@git push origin cgi-feature
+	@echo "Pushed to cgi-feature"
 
-	$(RM) $(NAME)
-
-re : fclean all
+.PHONY: clean fclean re all git

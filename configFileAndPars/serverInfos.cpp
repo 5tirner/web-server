@@ -1,39 +1,46 @@
 #include "../include/mainHeader.hpp"
+#include <cstddef>
+#include <string>
 
 void    showInfo2(informations &tmp)
 {
     for (size_t i = 0; i < tmp.locationsInfo.size(); i++)
     {
-        std::cout << "Location Number " << i + 1 << ':' << std::endl;
+        std::cerr << "Location Number " << i + 1 << ':' << std::endl;
         std::map<std::string, std::string>::iterator it
         = tmp.locationsInfo[i].directory.begin();
-        std::cout << "Location "<< it->first + " - |" + it->second+"|" << std::endl;
+        std::cerr << "Location "<< it->first + " - |" + it->second+"|" << std::endl;
         it = tmp.locationsInfo[i].root.begin();
-        std::cout << "Root " << it->first + " - |" + it->second+"|" << std::endl;
+        std::cerr << "Root " << it->first + " - |" + it->second+"|" << std::endl;
         it = tmp.locationsInfo[i].index.begin();
-        std::cout << "Index " << it->first + " - |" + it->second+"|" << std::endl;
+        std::cerr << "Index " << it->first + " - |" + it->second+"|" << std::endl;
         it = tmp.locationsInfo[i].allowed_methodes.begin();
-        std::cout << "AllowMethodes "<< it->first + " - |" + it->second+"|" << std::endl;
+        std::cerr << "AllowMethodes "<< it->first + " - |" + it->second+"|" << std::endl;
         it = tmp.locationsInfo[i].autoindex.begin();
-        std::cout << "AutoIndex " << it->first + " - |" + it->second+"|" << std::endl;
+        std::cerr << "AutoIndex " << it->first + " - |" + it->second+"|" << std::endl;
         it = tmp.locationsInfo[i].Return.begin();
-        std::cout << "Return "<< it->first + " - |" + it->second+"| Redirect It With Status="<<tmp.locationsInfo[i].returnValue << std::endl;
+        std::cerr << "Return "<< it->first + " - |" + it->second + "| Redirect It With Status=" << tmp.locationsInfo[i].returnValue << std::endl;
         it = tmp.locationsInfo[i].upload.begin();
-        std::cout << "Upload "<< it->first + " - |" + it->second+"|" << std::endl;
+        std::cerr << "Upload "<< it->first + " - |" + it->second+"|" << std::endl;
         it = tmp.locationsInfo[i].cgi.begin();
-        std::cout << "Cgi " << it->first + " - |" + it->second+"|" << std::endl;
+        std::cerr << "Cgi " << it->first + " - |" + it->second+"|" << std::endl;
     }
 }
 void    showInfo(informations &tmp)
 {
     std::map<std::string, std::string>::iterator it = tmp.port.begin();
-    std::cout << "Port " << it->first << " - " << "|"+it->second+"|" << std::endl;
+    std::cerr << "Port: " << it->first << " - " << "|"+it->second+"|" << std::endl;
     it = tmp.host.begin();
-    std::cout << "Host " << it->first << " - " << "|"+it->second+"|" << std::endl;
+    std::cerr << "Host: " << it->first << " - " << "|"+it->second+"|" << std::endl;
     it = tmp.serverName.begin();
-    std::cout << "ServerName " << it->first << " - " << "|"+it->second+"|" << std::endl;
+    std::cerr << "ServerName: " << it->first << " - " << "|"+it->second+"|" << std::endl;
     it = tmp.limitClientBody.begin();
-    std::cout << "LimitClient " << it->first << " - " << "|"+it->second+"|" << std::endl;
+    std::cerr << "LimitClient: " << it->first << " - " << "|"+it->second+"|" << std::endl;
+    it = tmp.defaultRoot.begin();
+    std::cerr << "DefaultRoot " << it->first << " - " << "|"+it->second+"|" << std::endl;
+    std::map<int, std::string>::iterator it1 = tmp.errorPages.begin();
+    while (it1 != tmp.errorPages.end())
+        std::cerr << "Error Page: " << it1->second << " With Status Code=" << it1->first << std::endl, it1++; 
 }
 
 void    initialLocation(location &save)
@@ -51,21 +58,20 @@ void    initialLocation(location &save)
 
 void    etatInitial(informations &tmp)
 {
-    tmp.port["listen"] = "1024";
-    tmp.host["host"] = "127.0.0.1";
     tmp.serverName["server_name"] = "defualt";
     tmp.limitClientBody["limit_client_body"] = "100";
 }
 
 int checkLocations(informations &tmp)
 {
-    std::cout << "I will Check The Location Info" << std::endl;
+    // std::cerr << "I will Check The Location Info" << std::endl;
     for (size_t i = 0; i < tmp.locations.size(); i++)
     {
         std::stringstream input(tmp.locations[i]);
         std::string       buffer;
         location          save;
         initialLocation(save);
+        save.root["root"] = tmp.defaultRoot.at("default_root");
         while (std::getline(input, buffer))
         {
             std::string key; size_t j = 0;
@@ -83,7 +89,7 @@ int checkLocations(informations &tmp)
             if (key == "location")
             {
                 save.directory[key] = &buffer[j];
-                std::map<std::string, std::string>::iterator it = save.directory.begin(); 
+                std::map<std::string, std::string>::iterator it = save.directory.begin();
                 if (normalCheck(it->second) || it->second == "{" || (it->second[0] == '.' && (it->second[1] && it->second[1] == '.')))
                 { std::cerr << "Invalid `Location` Syntax: " + it->second << std::endl; return (1); }
             }
@@ -100,7 +106,7 @@ int checkLocations(informations &tmp)
                 if (normalCheck(it->second))
                 { std::cerr << "Invalid `Root` Syntax: " + it->second << std::endl; return (1); }
                 struct stat metadata;
-                if (stat(it->second.c_str(), &metadata))
+                if (it->second[i] && stat(it->second.c_str(), &metadata))
                 { std::cerr << "Invalid Root Path " + it->second << std::endl; return (1);}
             }
             else if (key == "index")
@@ -138,20 +144,21 @@ int checkLocations(informations &tmp)
                 if (multiValues(key, it->second))
                 { std::cerr << "Invalid `Upload` Syntax: " + it->second << std::endl; return (1); }
                 struct stat metadata;
-                if (stat(it->second.c_str(), &metadata))
+                if (it->second[i] && stat(it->second.c_str(), &metadata))
                 { std::cerr << "Invalid Upload Path " + it->second << std::endl; return (1);}
             }
             else if (key == "cgi")
             {
                 save.cgi[key] = &buffer[j];
                 std::map<std::string, std::string>::iterator it = save.cgi.begin(); 
-                if (multiValues(key, it->second))
+                if (normalCheck(it->second))
                 { std::cerr << "Invalid `Cgi` Syntax: " + it->second << std::endl; return (1); }
             }
             else if (key != "}" && key != "{")
-            { std::cerr << "Weird KeyWord " + key << std::endl; return (1);}
-            else if (save.root.at("root") == "")
-            { std::cerr << "Invalid Root Syntax, Root Can't Be Empty" << std::endl; return (1);}
+            {
+                std::cerr << "Weird KeyWord " + key << std::endl;
+                return (1);
+            }
         }
         tmp.locationsInfo.push_back(save);
     }
@@ -160,7 +167,7 @@ int checkLocations(informations &tmp)
 
 int checkInformations(informations &tmp)
 {
-    std::cout << "I will Check The info" << std::endl;
+    // std::cerr << "I will Check The info" << std::endl;
     for (size_t i = 0; i < tmp.others.size(); i++)
     {
         std::string key; size_t j = 0;
@@ -179,23 +186,52 @@ int checkInformations(informations &tmp)
         { std::cerr << "Can't Find `;` Here " + tmp.others[i] << std::endl;  return (1); }
         if (key == "listen")
         {
-            tmp.port[key] = &tmp.others[i][j];
+            try
+            {
+                tmp.port.at(key);
+                std::cerr << "Invalid `Port`: Listen Keyword Appears Multuple Time In The ConfigFile." << std::endl;
+                return (1);
+            }
+            catch(...)
+            {
+                tmp.port[key] = &tmp.others[i][j];
+            }
             std::map<std::string, std::string>::iterator it = tmp.port.begin(); 
             if (normalCheck(it->second) || isInteger(it->second, 'P'))
             { std::cerr << "Invalid `Port` Syntax: " + it->second << std::endl; return (1); }
         }
         else if (key == "host")
         {
-            tmp.host[key] = &tmp.others[i][j];
+            try
+            {
+                tmp.host.at(key);
+                std::cerr << "Invalid `Host`: Host Keyword Appears Multuple Time In The ConfigFile." << std::endl;
+                return (1);
+            }
+            catch(...)
+            {
+                tmp.host[key] = &tmp.others[i][j];
+            }
             std::map<std::string, std::string>::iterator it = tmp.host.begin(); 
             if (normalCheck(it->second) || isValidIp4(it->second))
             { std::cerr << "Invalid `Host` Syntax: " + it->second << std::endl; return (1); }
+        }
+        else if (key == "default_root")
+        {
+            tmp.defaultRoot[key] = &tmp.others[i][j];
+            std::map<std::string, std::string>::iterator it = tmp.defaultRoot.begin();
+            if (normalCheck(it->second) || !it->second[0])
+            { std::cerr << "Invalid `DefualtRoot` Syntax: " + it->second << std::endl; return (1); }
+            // std::cerr << "Server default root: " << it->second << std::endl;
+            struct stat metadata;
+            if (stat(it->second.c_str(), &metadata))
+            { std::cerr << "Invalid DefaultRoot Path " + it->second << std::endl; return (1);}
         }
         else if (key == "server_name")
         {
             tmp.serverName[key] = &tmp.others[i][j];
             std::map<std::string, std::string>::iterator it = tmp.serverName.begin(); 
-            if (multiValues(key, it->second))
+            if (normalCheck(it->second))
             { std::cerr << "Invalid `ServerName` Syntax: " + it->second << std::endl; return (1); }
         }
         else if (key == "limit_client_body")
@@ -206,11 +242,25 @@ int checkInformations(informations &tmp)
             { std::cerr << "Invalid `ClienBody` Syntax: " + it->second << std::endl; return (1); }
         }
         else if (key == "error_page")
-        {
+        {   
+            std::string s = &tmp.others[i][j];
+            int         status;
+            if (errorPages(s, &status))
+            { std::cerr << "Invalid error Pages syntax: " + s << std::endl; return (1); }
+            struct stat metadata;
+            if (stat(s.c_str(), &metadata))
+            { std::cerr << "Invalid ErrorPage Path " + s << std::endl; return (1);}
+            tmp.errorPages[status] = s;
         }
         else
         { std::cerr << "Weird KeyWord " + key << std::endl; return (1); }
     }
+    if (tmp.defaultRoot.empty())
+    { std::cerr << "Error: Can't Find The DefaultRoot" << std::endl; return (1);}
+    if (tmp.port.empty())
+    { std::cerr << "Error: Can't Find The Port" << std::endl; return (1);}
+    if (tmp.host.empty())
+    { std::cerr << "Error: Can't Find The HostIp" << std::endl; return (1);}
     return (0);
 }
 
@@ -243,26 +293,37 @@ int servers::serverInfos(int i)
     }
     if (tmp.locations.size() == 0)
     {
-        std::cout << "No Location Found" << std::endl;
+        std::cerr << "No Location Found" << std::endl;
         return (1);
     }
-    // std::cout << "Server Number " << i << " Informations" << std::endl;
+    // std::cerr << "Server Number " << i << " Informations" << std::endl;
     // size_t j = 0;
-    // std::cout << "Not Location" << std::endl;
+    // std::cerr << "Not Location" << std::endl;
     // while (j < tmp.others.size())
     // {
-    //     std::cout << "-> " << tmp.others[j] << std::endl;
+    //     std::cerr << "-> " << tmp.others[j] << std::endl;
     //     j++;
     // }
-    // std::cout << "Location" << std::endl;
+    // std::cerr << "Location" << std::endl;
     // j = 0;
     // while (j < tmp.locations.size())
     // {
-    //     std::cout << "-> " << tmp.locations[j] << std::endl;
+    //     std::cerr << "-> " << tmp.locations[j] << std::endl;
     //     j++;
     // }
     if (checkInformations(tmp) || checkLocations(tmp))
         return (1);
+    this->rootLocation = false;
+    for (size_t i = 0; i < tmp.locationsInfo.size(); i++)
+    {
+        if (tmp.locationsInfo[i].directory.at("location") == "/")
+        {
+            this->rootLocation = true;
+            break;
+        }
+    }
+    if (this->rootLocation == false)
+    { std::cerr << "Error: Inside Server Nember: " << i + 1 << " No Root Location Founded." << std::endl; return (1);}
     this->serversInfo[i] = tmp;
     return (0);
 }

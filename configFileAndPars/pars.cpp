@@ -11,7 +11,7 @@ int    getContent(std::string &server)
     {
         if (server[end] != ' ' && server[end] != '\t' && server[end] != '\n')
         {
-            std::cout << "Wrong Thing In The End Of This Server \n" + server << std::endl;
+            std::cerr << "Wrong Thing In The End Of This Server \n" + server << std::endl;
             return (1);
         }
         end--;
@@ -51,7 +51,7 @@ int isAgoodServer(std::string &server)
             {
                 if (server[i] != ' ' && server[i] != '\t')
                 {
-                    std::cout << "Wrong THing After The Brackets:\n" + server << std::endl;
+                    std::cerr << "Wrong Thing After The Brackets:\n" + server << std::endl;
                     return (1);
                 }
                 i++;
@@ -64,7 +64,7 @@ int isAgoodServer(std::string &server)
             {
                 if (server[i] != ' ' && server[i] != '\t' && server[i] != ';')
                 {
-                    std::cout << "Wrong Thing after ; in this:\n" + server << std::endl;
+                    std::cerr << "Wrong Thing after ; in this:\n" + server << std::endl;
                     return (1);
                 }
                 i++;
@@ -73,7 +73,7 @@ int isAgoodServer(std::string &server)
     }
     if (closeCollad != openCollad)
     {
-        std::cout << "Wrong Numbers Of The Collads" << std::endl;
+        std::cerr << "Wrong Numbers Of The Collads" << std::endl;
         return (1);
     }
     if (getContent(server))
@@ -102,17 +102,14 @@ int isServer(std::string &s, size_t i)
                 break;
             if (s[i] != ' ' && s[i] != '\t' && s[i] != '\n')
             {
-                std::cout << "Find A Server Keyword But With Some Bad Words" << std::endl;
+                std::cerr << "Find A Server Keyword But With Some Bad Words" << std::endl;
                 return (2);
             }
         }
         if (check == "server{" || check == "server {" || check == "server\t{"
             || check == "server\n{" || check == "server \n{" || check == "server\t\n{"
             || check == "server\t \n{" || check == "server \t\n{")
-        {
-            //std::cout << "After Check ^ is a server" << std::endl;
             return (0);
-        }
     }
     return (1);
 }

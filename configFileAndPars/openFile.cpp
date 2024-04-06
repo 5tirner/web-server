@@ -15,12 +15,12 @@ configFile &configFile::operator=(const configFile &other)
 configFile::configFile(int ac, char **av)
 {
     if (ac == 1)
-        this->fileName = "one";
+        this->fileName = "./conf/server.conf";
     else if (ac == 2)
         this->fileName = av[1];
     else
         throw BadRunException();
-    std::cout << "Config File Name: " + this->fileName << std::endl; 
+    // ?std::cerr << "Config File Name: " + this->fileName << std::endl; 
     this->File.open(this->fileName.c_str(), std::ios_base::in);
     if (!this->File)
         throw BadFileException();
