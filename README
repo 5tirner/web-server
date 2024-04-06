@@ -1,10 +1,10 @@
 Project Name: webserv.
 Created By : Youssef Saber(ysabr) | Youssef Achaab(yachaab) | Zakaria Sabri(zasabri).
-
+___________________
 Description:
 This repository contains the source code for a C++98 HTTP server named webserv.
 It is designed to be robust, efficient, and compliant with HTTP standards(HTTP1.1).
-
+___________________
 Features:
 Configuration File: Parses a configuration file to define Server settings, Locations settings,
 Confige File Content Should Be Good To Run The Web Server:
@@ -52,7 +52,7 @@ File Uploads: Enables clients to upload files to the server.
 Directory Listing: Optionally displays directory listings when requested.
 CGI Support: Executes CGI scripts based on file extensions, handling POST requests and uploaded files.
 Client Body Size Limitation: Restricts the maximum allowed size of client request bodies to prevent resource exhaustion.
-_________________________________________________________________________________________________________________________
+_______________________________________________________________________
 Requirements:
 C++ compiler supporting C++98 standard (flags: -Wall -Wextra -Werror)
 ______________________________________________________________________
@@ -63,13 +63,13 @@ Run make to compile the source code.
 _____________________________________
 Usage:
 Run the server: ./webserv OR You Can Add Your confige File Name And Run: `./webserv youConfigeFileName`.
-________________________________________________________________________________________________________
+_____________________________________
 Testing:
 Thoroughly test your server with various web browsers and tools.
 Consider writing automated tests in another language (Python, Php, Ruby, Perl).
 Cookie and Session Management.
 Multiple CGI Support (handle execution of multiple CGI scripts)
-_______________________________________________________________________________________________________
+_______________________________________________________________
 Important Notes:
 Aim for maximum resilience – the server should never crash.
 Refer to the HTTP RFC and NGINX behavior for guidance.
