@@ -10,7 +10,7 @@ Configuration File: Parses a configuration file to define Server settings, Locat
 Confige File Content Should Be Good To Run The Web Server:
   - Inside The Server Block:
     Server Block Should Be Look Like: server{}
-    All The Key Words Expect Of `listen & host & error_page` Can Be Overrided.
+    All The Key Words Excepet For `listen & host & error_page` Can Be Overrided.
     Put every Keywords In A different Line.
     All Lines Ended By ;.
     Fell Free To Do Comments (#) And Add WhiteSpaces.
