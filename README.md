@@ -67,10 +67,10 @@ _____________________________________
 Run the server: ./webserv OR You Can Add Your confige File Name And Run: `./webserv youConfigeFileName`.
 _____________________________________
 Testing:
-Thoroughly test your server with various web browsers and tools.
-Consider writing automated tests in another language (Python, Php, Ruby, Perl).
-Cookie and Session Management.
-Multiple CGI Support (handle execution of multiple CGI scripts)
+Thoroughly test The server with various web browsers and tools.\
+Consider writing automated tests in another language (Python, Php, Ruby, Perl).\
+Cookie and Session Management.\
+Multiple CGI Support (handle execution of multiple CGI scripts).
 _______________________________________________________________
 ### Important Notes:
 * Aim for maximum resilience – the server should never crash.
