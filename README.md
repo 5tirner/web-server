@@ -14,7 +14,7 @@ Confige File Content Should Be Good To Run The Web Server:
     Put every Keywords In A different Line.
     All Lines Ended By ;.
     Fell Free To Do Comments (#) And Add WhiteSpaces.
-    *KEYWORDS
+    - KEYWORDS
     `default_root` to add defualt root to work.
         ==>Syntax: default_root /var/www/html;
     `listen` to add your port.
@@ -25,7 +25,7 @@ Confige File Content Should Be Good To Run The Web Server:
         ==>Syntax: limit_client_body 1000;(counting with megaBytes)
     `error_page` to add your errorPages.
         ==>Syntax: error_page 200 /var/www/html/myErrPage;
-     You Can Add Locations Blocks To Your Server:
+  ### You Can Add Locations Blocks To Your Server:
      Location Block Should Be Look Like: location nameOfTHeLocation{}
      All The Key Words Can Be Overrided.
      Put every Keywords In A different Line.
