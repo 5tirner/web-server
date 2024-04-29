@@ -2,7 +2,7 @@
 Created By : `Youssef Saber(ysabr)` | `Youssef Achaab(yachaab)` | `Zakaria Sabri(zasabri)`
 ___________________
 ### Description:
-This repository contains the source code for a C++98 HTTP server named webserv.
+This repository contains the source code for a C++98 HTTP server named webserv.\
 It is designed to be robust, efficient, and compliant with HTTP standards(HTTP1.1).
 ___________________
 ### Features:
